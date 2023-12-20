@@ -7,10 +7,10 @@ using DataFrames
 let
     # Define instances
     # Set A
-    A = []
+    A = ["m-n101-k10", "tai150a", "cmt10", "x-n251-k28", "x-n303-k21"]
     # Set B
-    B = []
-    instances = ["rc101"]
+    B = ["r101", "r201", "c101", "c201", "rc101", "rc201"]
+    instances = [A..., B...,]
     # Define random number generators
     seeds = [1010, 1106, 1509, 1604, 1905, 2104, 2412, 2703, 2710, 2807]
     # Dataframes to store solution quality and run time
