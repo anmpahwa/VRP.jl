@@ -148,7 +148,7 @@ end
 
 
 """
-    Solution(D::Vector{DepotNode}, ::Vector{CustomerNode}, A::Dict{Tuple{Int,Int}, Arc})
+    Solution(D::Vector{DepotNode}, C::OffsetVector{CustomerNode}, A::Dict{Tuple{Int,Int}, Arc})
 
 A `Solution` is a graph with depot nodes `D`, customer nodes `C`, and arcs `A`.
 """
