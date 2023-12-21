@@ -143,7 +143,7 @@ function worstcustomer!(rng::AbstractRNG, q::Int, s::Solution)
         ϕ .= 0
         for (j,r) ∈ pairs(R) 
             φʳ = isequal(r, c.r)
-            φᵛ = isequal(r.iᵛ, v.iᵛ) && isless(tⁱ, r.tⁱ) && isequal(φᵀ, true)
+            φᵛ = isequal(r.iᵛ, v.iᵛ) && isless(tⁱ, r.tⁱ) && isequal(φᵉ::Bool, true)
             φᵈ = false
             φˢ = φʳ || φᵛ || φᵈ
             if isequal(φˢ, false) continue end
