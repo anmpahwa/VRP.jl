@@ -3,7 +3,8 @@
     
 Returns a tuple of depot nodes, customer nodes, and arcs for the `instance`.
 
-Note, `dir` locates the the folder containing instance files as sub-folders.
+Note, `dir` locates the the folder containing instance files as sub-folders,
+as follows,
 
     <dir>
     |-<instance>
@@ -35,7 +36,7 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
     end
     # Customer nodes
     df = DataFrame(CSV.File(joinpath(dir, "$instance/customer_nodes.csv")))
-    I  = (df[1,1]:df[nrow(df),1])
+    I  = (df[1,1]:df[nrow(df),1])::UnitRange{Int}
     C  = OffsetVector{CustomerNode}(undef, I)
     for k ∈ 1:nrow(df)
         iⁿ = df[k,1]
@@ -117,7 +118,8 @@ Here, each cluster is assigned to the nearest depot node and
 then each customer in this cluster is best inserted to the 
 assigned depot node.
 
-Note, `dir` locates the the folder containing instance files as sub-folders.
+Note, `dir` locates the the folder containing instance files as sub-folders,
+as follows,
 
     <dir>
     |-<instance>
@@ -238,7 +240,8 @@ the number of depot nodes and at most the number of customer nodes until a
 feasible solution is found. Finally, the solution with the least objective 
 function value is returned as the initial solution.
 
-Note, `dir` locates the the folder containing instance files as sub-folders.
+Note, `dir` locates the the folder containing instance files as sub-folders,
+as follows,
 
     <dir>
     |-<instance>
