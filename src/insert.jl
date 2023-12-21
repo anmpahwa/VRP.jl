@@ -168,7 +168,7 @@ function greedy!(rng::AbstractRNG, s::Solution; mode::Symbol)
         ϕ .= 0
         for (j,r) ∈ pairs(R) 
             φʳ = isequal(r, c.r)
-            φᵛ = isequal(r.iᵛ, v.iᵛ) && isless(c.r.tⁱ, r.tⁱ) && isequal(φᵀ, true)
+            φᵛ = isequal(r.iᵛ, v.iᵛ) && isless(c.r.tⁱ, r.tⁱ) && isequal(φᵉ::Bool, true)
             φᵈ = isequal(r.iᵈ, d.iⁿ) && !hasslack(d)
             φˢ = φʳ || φᵛ || φᵈ
             if isequal(φˢ, false) continue end
@@ -317,7 +317,7 @@ function regretk!(rng::AbstractRNG, s::Solution, k̅::Int)
         ϕ .= 0
         for (j,r) ∈ pairs(R) 
             φʳ = isequal(r, c.r)
-            φᵛ = isequal(r.iᵛ, v.iᵛ) && isless(c.r.tⁱ, r.tⁱ) && isequal(φᵀ, true)
+            φᵛ = isequal(r.iᵛ, v.iᵛ) && isless(c.r.tⁱ, r.tⁱ) && isequal(φᵉ::Bool, true)
             φᵈ = isequal(r.iᵈ, d.iⁿ) && !hasslack(d)
             φˢ = φʳ || φᵛ || φᵈ
             if isequal(φˢ, false) continue end
