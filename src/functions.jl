@@ -18,37 +18,37 @@ iscustomer(n::Node) = isequal(typeof(n), CustomerNode)
 
 Returns `true` if node `c` is a pickup node.
 """
-ispickup(c::CustomerNode) = c.qᶜ < 0
+ispickup(c::CustomerNode) = c.qᶜ < 0.
 """
     isdelivery(c::CustomerNode)
 
 Returns `true` if node `c` is a delivery node.
 """
-isdelivery(c::CustomerNode) = c.qᶜ > 0
+isdelivery(c::CustomerNode) = c.qᶜ > 0.
 
 
 
 """
-    isequal(p::Route, q::Route)
+    isequal(n₁::Node, n₂::Node)
 
-Return `true` if route `p` equals route `q`.
-Two routes are the equal if their indices (`iᵈ`, `iᵛ`, `iʳ`) match.
-"""
-Base.isequal(p::Route, q::Route) = isequal(p.iᵈ, q.iᵈ) && isequal(p.iᵛ, q.iᵛ) && isequal(p.iʳ, q.iʳ)
-"""
-    isequal(p::Vehicle, q::Vehicle)
-
-Return `true` if vehicle `p` equals vehicle `q`.
-Two vehicles are equal if their indices (`iᵈ`, `iᵛ`) match.
-"""
-Base.isequal(p::Vehicle, q::Vehicle) = isequal(p.iᵈ, q.iᵈ) && isequal(p.iᵛ, q.iᵛ)
-"""
-    isequal(p::Node, q::Node)
-
-Return `true` if node `p` equals node `q`.
+Return `true` if node `n₁` equals node `n₂`.
 Two nodes are equal if their indices (`iⁿ`) match.
 """
-Base.isequal(p::Node, q::Node) = isequal(p.iⁿ, q.iⁿ)
+Base.isequal(n₁::Node, n₂::Node) = isequal(n₁.iⁿ, n₂.iⁿ)
+"""
+    isequal(r₁::Route, r₂::Route)
+
+Return `true` if route `r₁` equals route `r₂`.
+Two routes are the equal if their indices (`iᵈ`, `iᵛ`, `iʳ`) match.
+"""
+Base.isequal(r₁::Route, r₂::Route) = isequal(r₁.iᵈ, r₂.iᵈ) && isequal(r₁.iᵛ, r₂.iᵛ) && isequal(r₁.iʳ, r₂.iʳ)
+"""
+    isequal(v₁::Vehicle, v₂::Vehicle)
+
+Return `true` if vehicle `v₁` equals vehicle `v₂`.
+Two vehicles are equal if their indices (`iᵈ`, `iᵛ`) match.
+"""
+Base.isequal(v₁::Vehicle, v₂::Vehicle) = isequal(v₁.iᵈ, v₂.iᵈ) && isequal(v₁.iᵛ, v₂.iᵛ)
 
 
 
@@ -117,7 +117,6 @@ isclose(d::DepotNode) = iszero(d.n) && iszero(d.φ)
     isactive(r::Route)
 
 A `Route` is defined active if it has not been initialized yet.
-
 Usage in dynamic execution and simulation.
 """
 isactive(r::Route) = isone(r.φ)
@@ -125,7 +124,6 @@ isactive(r::Route) = isone(r.φ)
     isactive(c::CustomerNode)
 
 A `CustomerNode` is defined active if its route has not been initialized yet.
-
 Usage in dynamic execution and simulation.
 """
 isactive(c::CustomerNode) = isactive(c.r)
@@ -136,7 +134,6 @@ isactive(c::CustomerNode) = isactive(c.r)
     isdormant(r::Route)
 
 A `Route` is defined dormant if it has been initialized.
-
 Usage in dynamic execution and simulation.
 """
 isdormant(r::Route) = iszero(r.φ)
@@ -144,7 +141,6 @@ isdormant(r::Route) = iszero(r.φ)
     isactive(c::CustomerNode)
 
 A `CustomerNode` is defined dormant if its route has been initialized.
-
 Usage in dynamic execution and simulation.
 """
 isdormant(c::CustomerNode) = isdormant(c.r)
@@ -274,7 +270,7 @@ Base.hash(s::Solution) = hash(vectorize(s))
     f(s::Solution; fixed=true, operational=true, penalty=true)
 
 Returns objective function evaluation for solution `s`. Includes `fixed`, 
-`operational`, and `penalty` cost for constraint violation if `true`.
+`operational`, and `penalty` cost if `true`.
 """
 function f(s::Solution; fixed=true, operational=true, penalty=true)
     πᶠ, πᵒ, πᵖ = 0., 0., 0.
@@ -282,26 +278,15 @@ function f(s::Solution; fixed=true, operational=true, penalty=true)
     for c ∈ s.C 
         if isopen(c) πᵖ += abs(c.qᶜ)                                # Service constraint (node visit)
         else
-            d = s.D[c.iᵈ]
-            v = d.V[c.iᵛ]
-            if isdelivery(c)
-                nᵖ = c.jⁿ ≤ length(s.D) ? s.D[c.jⁿ] : s.C[c.jⁿ]
-                rᵖ = isdepot(nᵖ) ? c.r : nᵖ.r
-                tᵖ = isdepot(nᵖ) ? rᵖ.tˢ : nᵖ.tᵃ
-                nᵈ = c
-                rᵈ = nᵈ.r
-                tᵈ = nᵈ.tᵃ
-                qᵒ = c.q
-            end
-            if ispickup(c)
-                nᵖ = c
-                rᵖ = nᵖ.r
-                tᵖ = nᵖ.tᵃ
-                nᵈ = s.C[c.jⁿ]
-                rᵈ = nᵈ.r
-                tᵈ = nᵈ.tᵃ
-                qᵒ = c.q - c.qᶜ
-            end
+            d  = s.D[c.iᵈ]
+            v  = d.V[c.iᵛ]
+            nᵖ = isdelivery(c) ? (c.jⁿ ≤ length(s.D) ? s.D[c.jⁿ] : s.C[c.jⁿ]) : c
+            rᵖ = isdelivery(c) ? (c.jⁿ ≤ length(s.D) ? c.r : nᵖ.r) : nᵖ.r
+            tᵖ = isdelivery(c) ? (c.jⁿ ≤ length(s.D) ? rᵖ.tˢ : nᵖ.tᵃ) : nᵖ.tᵃ
+            nᵈ = isdelivery(c) ? c : s.C[c.jⁿ]
+            rᵈ = nᵈ.r
+            tᵈ = nᵈ.tᵃ
+            qᵒ = c.q - ispickup(c) * c.qᶜ
             πᵖ += (!isequal(rᵖ, rᵈ) || (tᵖ > tᵈ)) * nᵈ.qᶜ           # Service constraint (order of service)
             πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)                     # Time-window constraint
             πᵖ += (c.l > v.lᵛ) * (c.l - v.lᵛ)                       # Vehicle range constraint
@@ -351,24 +336,13 @@ function isfeasible(s::Solution)
         else
             d = s.D[c.iᵈ]
             v = d.V[c.iᵛ]
-            if isdelivery(c)
-                nᵖ = c.jⁿ ≤ length(s.D) ? s.D[c.jⁿ] : s.C[c.jⁿ]
-                rᵖ = isdepot(nᵖ) ? c.r : nᵖ.r
-                tᵖ = isdepot(nᵖ) ? rᵖ.tˢ : nᵖ.tᵃ
-                nᵈ = c
-                rᵈ = nᵈ.r
-                tᵈ = nᵈ.tᵃ
-                qᵒ = c.q
-            end
-            if ispickup(c)
-                nᵖ = c
-                rᵖ = nᵖ.r
-                tᵖ = nᵖ.tᵃ
-                nᵈ = s.C[c.jⁿ]
-                rᵈ = nᵈ.r
-                tᵈ = nᵈ.tᵃ
-                qᵒ = c.q - c.qᶜ
-            end
+            nᵖ = isdelivery(c) ? (c.jⁿ ≤ length(s.D) ? s.D[c.jⁿ] : s.C[c.jⁿ]) : c
+            rᵖ = isdelivery(c) ? (c.jⁿ ≤ length(s.D) ? c.r : nᵖ.r) : nᵖ.r
+            tᵖ = isdelivery(c) ? (c.jⁿ ≤ length(s.D) ? rᵖ.tˢ : nᵖ.tᵃ) : nᵖ.tᵃ
+            nᵈ = isdelivery(c) ? c : s.C[c.jⁿ]
+            rᵈ = nᵈ.r
+            tᵈ = nᵈ.tᵃ
+            qᵒ = c.q - ispickup(c) * c.qᶜ
             if (!isequal(rᵖ, rᵈ) || (tᵖ > tᵈ)) return false end     # Service constraint (order of service)
             if c.tᵃ > c.tˡ return false end                         # Time-window constraint
             if c.l > v.lᵛ return false end                          # Vehicle range constraint
@@ -394,76 +368,76 @@ end
 
 
 """
-    relatedness(c¹::CustomerNode, c²::CustomerNode, s::Solution)
+    relatedness(c₁::CustomerNode, c₂::CustomerNode, s::Solution)
 
-Returns a measure of similarity between customer nodes `c¹` and `c²` in solution `s`.
+Returns a measure of similarity between customer nodes `c₁` and `c₂` in solution `s`.
 """
-function relatedness(c¹::CustomerNode, c²::CustomerNode, s::Solution)
+function relatedness(c₁::CustomerNode, c₂::CustomerNode, s::Solution)
     ϵ  = 1e-5
-    r¹ = c¹.r
-    r² = c².r
-    φ  = (1 + isequal(r¹, r²)) / 2
-    q  = abs(c¹.qᶜ - c².qᶜ)
-    l  = s.A[(c¹.iⁿ,c².iⁿ)].l
-    t  = abs(c¹.tᵉ - c².tᵉ) + abs(c¹.tˡ - c².tˡ)
+    r₁ = c₁.r
+    r₂ = c₂.r
+    φ  = (1 + isequal(r₁, r₂)) / 2
+    q  = abs(c₁.qᶜ - c₂.qᶜ)
+    l  = s.A[(c₁.iⁿ,c₂.iⁿ)].l
+    t  = abs(c₁.tᵉ - c₂.tᵉ) + abs(c₁.tˡ - c₂.tˡ)
     z  = φ/(q + l + t + ϵ)
     return z
 end
 """
-    relatedness(r¹::Route, r²::Route, s::Solution)
+    relatedness(r₁::Route, r₂::Route, s::Solution)
 
-Returns a measure of similarity between routes `r¹` and `r²` in solution `s`.
+Returns a measure of similarity between routes `r₁` and `r₂` in solution `s`.
 """
-function relatedness(r¹::Route, r²::Route, s::Solution)
+function relatedness(r₁::Route, r₂::Route, s::Solution)
     ϵ  = 1e-5
-    d¹ = s.D[r¹.iᵈ]
-    d² = s.D[r².iᵈ]
-    v¹ = d¹.V[r¹.iᵛ]
-    v² = d².V[r².iᵛ]
+    d₁ = s.D[r₁.iᵈ]
+    d₂ = s.D[r₂.iᵈ]
+    v₁ = d₁.V[r₁.iᵛ]
+    v₂ = d₂.V[r₂.iᵛ]
     φ  = 1
-    q  = abs(v¹.qᵛ - v².qᵛ)
-    l  = sqrt((r¹.x - r².x)^2 + (r¹.y - r².y)^2)
-    t  = abs(r¹.tˢ - r².tˢ) + abs(r¹.tᵉ - r².tᵉ)
+    q  = abs(v₁.qᵛ - v₂.qᵛ)
+    l  = sqrt((r₁.x - r₂.x)^2 + (r₁.y - r₂.y)^2)
+    t  = abs(r₁.tˢ - r₂.tˢ) + abs(r₁.tᵉ - r₂.tᵉ)
     z  = φ/(q + l + t + ϵ)
     return z
 end
 """
-    relatedness(v¹::Vehicle, v²::Vehicle, s::Solution)
+    relatedness(v₁::Vehicle, v₂::Vehicle, s::Solution)
 
-Returns a measure of similarity between vehicles `v¹` and `v²` in solution `s`.
+Returns a measure of similarity between vehicles `v₁` and `v₂` in solution `s`.
 """
-function relatedness(v¹::Vehicle, v²::Vehicle, s::Solution)
+function relatedness(v₁::Vehicle, v₂::Vehicle, s::Solution)
     ϵ  = 1e-5
-    x¹ = 0.
-    y¹ = 0.
-    for r ∈ v¹.R 
-        x¹ += r.n * r.x / v¹.n
-        y¹ += r.n * r.y / v¹.n 
+    x₁ = 0.
+    y₁ = 0.
+    for r ∈ v₁.R 
+        x₁ += r.n * r.x / v₁.n
+        y₁ += r.n * r.y / v₁.n 
     end
-    x² = 0.
-    y² = 0.
-    for r ∈ v².R 
-        x² += r.n * r.x / v².n
-        y² += r.n * r.y / v².n
+    x₂ = 0.
+    y₂ = 0.
+    for r ∈ v₂.R 
+        x₂ += r.n * r.x / v₂.n
+        y₂ += r.n * r.y / v₂.n
     end
     φ  = 1
-    q  = abs(v¹.qᵛ - v².qᵛ)
-    l  = sqrt((x¹ - x²)^2 + (y¹ - y²)^2)
-    t  = abs(v¹.tˢ - v².tˢ) + abs(v¹.tᵉ - v².tᵉ)
+    q  = abs(v₁.qᵛ - v₂.qᵛ)
+    l  = sqrt((x₁ - x₂)^2 + (y₁ - y₂)^2)
+    t  = abs(v₁.tˢ - v₂.tˢ) + abs(v₁.tᵉ - v₂.tᵉ)
     z  = φ/(q + l + t + ϵ)
     return z
 end
 """
-    relatedness(d¹::DepotNode, d²::DepotNode, s::Solution)
+    relatedness(d₁::DepotNode, d₂::DepotNode, s::Solution)
 
-Returns a measure of similarity between depot nodes `d¹` and `d²` in solution `s`.
+Returns a measure of similarity between depot nodes `d₁` and `d₂` in solution `s`.
 """
-function relatedness(d¹::DepotNode, d²::DepotNode, s::Solution)
+function relatedness(d₁::DepotNode, d₂::DepotNode, s::Solution)
     ϵ  = 1e-5
     φ  = 1
-    q  = abs(d¹.qᵈ - d².qᵈ)
-    l  = s.A[(d¹.iⁿ,d².iⁿ)].l
-    t  = abs(d¹.tˢ - d².tˢ) + abs(d¹.tᵉ - d².tᵉ)
+    q  = abs(d₁.qᵈ - d₂.qᵈ)
+    l  = s.A[(d₁.iⁿ, d₂.iⁿ)].l
+    t  = abs(d₁.tˢ - d₂.tˢ) + abs(d₁.tᵉ - d₂.tᵉ)
     z  = φ/(q + l + t + ϵ)
     return z
 end
