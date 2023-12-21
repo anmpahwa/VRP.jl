@@ -174,14 +174,14 @@ end
 
 
 """
-    movevehicle!(v::Vehicle, d::DepotNode, s::Solution)
+    movevehicle!(v::Vehicle, d₁::DepotNode, d₂::DepotNode, s::Solution)
 
-Returns solution `s` after moving vehicle `v` from fleet of `d¹` into fleet 
-of depot node `d²`.
+Returns solution `s` after moving vehicle `v` from fleet of `d₁` into fleet 
+of depot node `d₂`.
 """
-function movevehicle!(v::Vehicle, d::DepotNode, s::Solution)
-    # remove vehicle from d¹
-    d = d¹
+function movevehicle!(v::Vehicle, d₁::DepotNode, d₂::DepotNode, s::Solution)
+    # remove vehicle from d₁
+    d = d₁
     deleteat!(d.V, findfirst(isequal(v), d.V))
     v.iᵈ = 0
     for r ∈ v.R
@@ -220,8 +220,8 @@ function movevehicle!(v::Vehicle, d::DepotNode, s::Solution)
             r.iᵉ = 0
         end
     end
-    # add vehicle to d²
-    d = d²
+    # add vehicle to d₂
+    d = d₂
     push!(d.V, v)
     v.iᵈ = d.iⁿ
     for r ∈ v.R
