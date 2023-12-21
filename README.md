@@ -4,7 +4,7 @@
 [![Build Status](https://github.com/anmol1104/VRP.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/anmol1104/VRP.jl/actions/workflows/CI.yml?query=branch%3Amaster)
 [![Coverage](https://codecov.io/gh/anmol1104/VRP.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/anmol1104/VRP.jl)
 
-### capacitated vehicle routing pickup and delivery problem with time-windows and heterogeneous fleet of multi-route delivery vehicles
+### capacitated vehicle routing problem with mixed pickup and delivery, time-windows, and heterogeneous fleet of multi-route delivery vehicles
 
 Given, a graph `G = (D, C, A)` with set of depots `D`, set of customer nodes `C`, and set of arcs `A`, the objective is to develop least cost routes from depot nodes using select vehicles such that every customer node is visited exactly once while accounting for customer service and time-window constraints; vehicle range, capacity, and working-hours constraints; and depot operations mandate and capacity constraints.
 
