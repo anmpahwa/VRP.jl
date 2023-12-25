@@ -260,7 +260,7 @@ function worstroute!(rng::AbstractRNG, q::Int, s::Solution)
     for (iʳ,r) ∈ pairs(R)
         d = s.D[r.iᵈ]
         v = d.V[r.iᵛ]
-        X[iʳ] = isone(W[iʳ]) ? r.q/v.qᵛ : Inf
+        X[iʳ] = isone(W[iʳ]) ? r.n : Inf
     end
     # Step 3: Iteratively select low-utilization route and remove customer nodes from it until exactly q customer nodes are removed
     n = 0
@@ -391,7 +391,7 @@ function worstvehicle!(rng::AbstractRNG, q::Int, s::Solution)
     X = fill(Inf, eachindex(V))     # X[iʳ] : utilization of vehicle V[iᵛ]
     W = isopt.(V)                   # W[iᵛ] : selection weight for vehicle V[iᵛ]
     # Step 1: Evaluate utilization for each vehicle
-    for (iᵛ,v) ∈ pairs(V) X[iᵛ] = isone(W[iᵛ]) ? v.q/(length(v.R) * v.qᵛ) : Inf end
+    for (iᵛ,v) ∈ pairs(V) X[iᵛ] = isone(W[iᵛ]) ? v.n : Inf end
     # Step 2: Iteratively select low-utilization route and remove customer nodes from it until at least q customer nodes are removed
     n = 0
     while n < q
