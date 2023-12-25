@@ -283,59 +283,11 @@ Base.hash(s::Solution) = hash(vectorize(s))
 
 
 """
-    f(s::Solution; fixed=true, operational=true, penalty=true)
+    f(s::Solution)
 
-Returns objective function evaluation for solution `s`. Includes `fixed`, 
-`operational`, and `penalty` cost if `true`.
+Returns objective function evaluation for solution `s`
 """
-function f(s::Solution; fixed=true, operational=true, penalty=true)
-    πᶠ, πᵒ, πᵖ = 0., 0., 0.
-    φᶠ, φᵒ, φᵖ = fixed, operational, penalty
-    for c ∈ s.C 
-        if isopen(c) πᵖ += abs(c.qᶜ)                                # Service constraint (node visit)
-        else
-            d  = s.D[c.iᵈ]
-            v  = d.V[c.iᵛ]
-            nᵖ = isdelivery(c) ? (c.jⁿ ≤ length(s.D) ? s.D[c.jⁿ] : s.C[c.jⁿ]) : c
-            rᵖ = isdelivery(c) ? (c.jⁿ ≤ length(s.D) ? c.r : nᵖ.r) : nᵖ.r
-            tᵖ = isdelivery(c) ? (c.jⁿ ≤ length(s.D) ? rᵖ.tˢ : nᵖ.tᵃ) : nᵖ.tᵃ
-            nᵈ = isdelivery(c) ? c : s.C[c.jⁿ]
-            rᵈ = nᵈ.r
-            tᵈ = nᵈ.tᵃ
-            qᵒ = c.q - ispickup(c) * c.qᶜ
-            πᵖ += (!isequal(rᵖ, rᵈ) || (tᵖ > tᵈ)) * nᵈ.qᶜ           # Service constraint (order of service)
-            πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)                     # Time-window constraint
-            πᵖ += (c.l > v.lᵛ) * (c.l - v.lᵛ)                       # Vehicle range constraint
-            πᵖ += (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)                         # Vehicle capacity constraint
-        end
-    end
-    for d ∈ s.D
-        if !isopt(d) continue end
-        πᶠ += d.πᶠ
-        πᵒ += d.q * d.πᵒ
-        for v ∈ d.V
-            if !isopt(v) continue end
-            πᶠ += v.πᶠ
-            πᵒ += (v.tᵉ - v.tˢ) * v.πᵗ
-            for r ∈ v.R 
-                if !isopt(r) continue end
-                πᶠ += 0.
-                πᵒ += r.l * v.πᵈ
-                πᵖ += (r.l > v.lᵛ) * (r.l - v.lᵛ)                   # Vehicle range constraint
-                πᵖ += (r.q > v.qᵛ) * (r.q - v.qᵛ)                   # Vehicle capacity constraint
-            end
-            πᵖ += (d.tˢ > v.tˢ) * (d.tˢ - v.tˢ)                     # Working-hours constraint (start time)
-            πᵖ += (v.tᵉ > d.tᵉ) * (v.tᵉ - d.tᵉ)                     # Working-hours constraint (end time)
-            πᵖ += (v.tᵉ - v.tˢ > v.τʷ) * (v.tᵉ - v.tˢ - v.τʷ)       # Working-hours constraint (duration)
-            πᵖ += (length(v.R) > v.r̅) * (length(v.R) - v.r̅)         # Number of routes constraint
-        end
-        πᵖ += (d.q > d.qᵈ) * (d.q - d.qᵈ)                           # Depot capacity constraint
-    end
-    πᵖ *= 10 ^ ceil(log10(πᶠ + πᵒ))
-    z = φᶠ * πᶠ + φᵒ * πᵒ + φᵖ * πᵖ
-    return z
-end
-
+f(s::Solution) = s.πᶠ + s.πᵒ + s.πᵖ * 10 ^ ceil(log10(s.πᶠ + s.πᵒ))
 
 
 
