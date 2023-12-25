@@ -104,7 +104,7 @@ function worstcustomer!(rng::AbstractRNG, q::Int, s::Solution)
     D = s.D
     C = s.C
     R = [r for d ∈ D for v ∈ d.V for r ∈ v.R if isactive(r)]
-    L = [c for c ∈ C if isactive(c)]
+    L = [c for c ∈ C if isactive(c) && isdelivery(c)]
     X = fill(-Inf, eachindex(L))   # X[i]: removal cost of customer node L[i]
     ϕ = ones(Int, eachindex(R))    # ϕʳ[j]: binary weight for route R[j]
     # Step 2: Iterate until q customer nodes have been removed
@@ -112,37 +112,49 @@ function worstcustomer!(rng::AbstractRNG, q::Int, s::Solution)
     while n < q
         # Step 2.1: For every closed customer node evaluate removal cost
         z = f(s)
-        for (i,c) ∈ pairs(L)
-            r = c.r
+        for i ∈ eachindex(L)
+            cᵈ = L[i]
+            cᵖ = C[cᵈ.jⁿ]
+            if !isequal(cᵖ.r, cᵈ.r) continue end
+            if isopen(cᵈ) || isopen(cᵖ) continue end
+            r = cᵈ.r
             j = findfirst(isequal(r), R)
-            if isopen(c) || iszero(ϕ[j]) continue end
+            if iszero(ϕ[j]) continue end
             # Step 2.1.1: Remove closed customer node c between tail node nᵗ and head node nʰ in route r
-            nᵗ = isequal(r.iˢ, c.iⁿ) ? D[c.iᵗ] : C[c.iᵗ]
-            nʰ = isequal(r.iᵉ, c.iⁿ) ? D[c.iʰ] : C[c.iʰ]
-            removenode!(c, nᵗ, nʰ, r, s)
+            nᵖᵗ = isequal(r.iˢ, cᵖ.iⁿ) ? D[cᵖ.iᵗ] : C[cᵖ.iᵗ]
+            nᵖʰ = isequal(r.iᵉ, cᵖ.iⁿ) ? D[cᵖ.iʰ] : C[cᵖ.iʰ]
+            nᵈᵗ = isequal(r.iˢ, cᵈ.iⁿ) ? D[cᵈ.iᵗ] : C[cᵈ.iᵗ]
+            nᵈʰ = isequal(r.iᵉ, cᵈ.iⁿ) ? D[cᵈ.iʰ] : C[cᵈ.iʰ]
+            removenode!(cᵈ, nᵈᵗ, nᵈʰ, r, s)
+            removenode!(cᵖ, nᵖᵗ, nᵖʰ, r, s)
             # Step 2.1.2: Evaluate the removal cost
             z′ = f(s) * (1 + rand(rng, Uniform(-0.2, 0.2)))
             Δ  = z′ - z
             X[i] = -Δ
             # Step 2.1.3: Re-insert customer node c between tail node nᵗ and head node nʰ in route r
-            insertnode!(c, nᵗ, nʰ, r, s)
+            insertnode!(cᵖ, nᵖᵗ, nᵖʰ, r, s)
+            insertnode!(cᵈ, nᵈᵗ, nᵈʰ, r, s)
         end
         # Step 2.2: Remove the customer node with highest removal cost (savings)
         i  = argmax(X)
-        c  = L[i]
-        r  = c.r
+        cᵈ = L[i]
+        cᵖ = C[cᵈ.jⁿ]
+        r  = cᵈ.r
         d  = s.D[r.iᵈ]
         v  = d.V[r.iᵛ]
-        nᵗ = isequal(r.iˢ, c.iⁿ) ? D[c.iᵗ] : C[c.iᵗ]
-        nʰ = isequal(r.iᵉ, c.iⁿ) ? D[c.iʰ] : C[c.iʰ]
-        removenode!(c, nᵗ, nʰ, r, s)
+        nᵖᵗ = isequal(r.iˢ, cᵖ.iⁿ) ? D[cᵖ.iᵗ] : C[cᵖ.iᵗ]
+        nᵖʰ = isequal(r.iᵉ, cᵖ.iⁿ) ? D[cᵖ.iʰ] : C[cᵖ.iʰ]
+        nᵈᵗ = isequal(r.iˢ, cᵈ.iⁿ) ? D[cᵈ.iᵗ] : C[cᵈ.iᵗ]
+        nᵈʰ = isequal(r.iᵉ, cᵈ.iⁿ) ? D[cᵈ.iʰ] : C[cᵈ.iʰ]
+        removenode!(cᵈ, nᵈᵗ, nᵈʰ, r, s)
+        removenode!(cᵖ, nᵖᵗ, nᵖʰ, r, s)
         tⁱ = r.tⁱ
         n += 1
         # Step 2.3: Update cost and selection weight vectors
         X[i] = -Inf
         ϕ .= 0
         for (j,r) ∈ pairs(R) 
-            φʳ = isequal(r, c.r)
+            φʳ = isequal(r, cᵈ.r)
             φᵛ = isequal(r.iᵛ, v.iᵛ) && isless(tⁱ, r.tⁱ) && isequal(φᵉ::Bool, true)
             φᵈ = false
             φˢ = φʳ || φᵛ || φᵈ
@@ -257,11 +269,7 @@ function worstroute!(rng::AbstractRNG, q::Int, s::Solution)
     X = fill(Inf, eachindex(R))     # X[iʳ] : utilization of route R[iʳ]
     W = isopt.(R) .* isactive.(R)   # W[iʳ] : selection weight for route R[iʳ]
     # Step 2: Evaluate utilization of each route
-    for (iʳ,r) ∈ pairs(R)
-        d = s.D[r.iᵈ]
-        v = d.V[r.iᵛ]
-        X[iʳ] = isone(W[iʳ]) ? r.n : Inf
-    end
+    for (iʳ,r) ∈ pairs(R) X[iʳ] = isone(W[iʳ]) ? r.n : Inf end
     # Step 3: Iteratively select low-utilization route and remove customer nodes from it until exactly q customer nodes are removed
     n = 0
     while n < q
