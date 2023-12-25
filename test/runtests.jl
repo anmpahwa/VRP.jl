@@ -23,7 +23,7 @@ let
                     :worstroute!        ,
                     :worstvehicle!      ,
                     :worstdepot!
-                ]                    ,
+                ]                       ,
         Ψᵢ  =   [
                     :best!              ,
                     :precise!           ,
