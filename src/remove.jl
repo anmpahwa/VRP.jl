@@ -417,3 +417,133 @@ function worstvehicle!(rng::AbstractRNG, q::Int, s::Solution)
     # Step 3: Return solution
     return s
 end
+
+
+
+# -------------------------------------------------- DEPOT REMOVAL --------------------------------------------------
+"""
+    randomdepot!(rng::AbstractRNG, q::Int, s::Solution)
+
+Returns solution `s` after iteratively selecting a random depot node and 
+removing customer nodes from its routes until at least `q` customer nodes 
+are removed.
+"""
+function randomdepot!(rng::AbstractRNG, q::Int, s::Solution)
+    preremove!(s)
+    D = s.D
+    C = s.C
+    W = isopt.(D)                   # W[iᵈ] : selection weight for depot node D[iᵈ]
+    # Step 1: Iteratively select a random depot and remove customer nodes from it until at least q customer nodes are removed
+    n = 0
+    while n < q
+        iᵈ = sample(rng, eachindex(D), Weights(W))
+        d  = D[iᵈ]
+        for v ∈ d.V
+            if n ≥ q break end
+            for r ∈ v.R
+                if !isopt(r) || isdormant(r) continue end
+                while true
+                    nᵗ = d
+                    c  = C[r.iˢ]
+                    nʰ = isequal(r.iᵉ, c.iⁿ) ? D[c.iʰ] : C[c.iʰ]
+                    removenode!(c, nᵗ, nʰ, r, s)
+                    n += 1
+                    if isequal(nʰ, d) break end
+                end
+            end
+        end
+        W[iᵈ] = 0
+    end
+    postremove!(s)
+    # Step 2: Return solution
+    return s
+end
+
+
+
+"""
+    relateddepot!(rng::AbstractRNG, q::Int, s::Solution)
+
+Returns solution `s` after removing at least `q` customer nodes 
+from the routes of the depots most related to a randomly selected 
+pivot depot node.
+"""
+function relateddepot!(rng::AbstractRNG, q::Int, s::Solution)
+    preremove!(s)
+    D = s.D
+    C = s.C
+    X = fill(-Inf, eachindex(D))    # X[iᵛ]: relatedness of depot node D[iⁿ] with pivot depot node D[i]
+    W = isclose.(D)                 # W[iᵈ] : selection weight for depot node D[iᵈ]
+    # Step 1: Select a random closed depot node
+    i = sample(rng, eachindex(D), Weights(W))
+    # Step 2: Evaluate relatedness of this depot node to every depot node
+    for iᵈ ∈ eachindex(D) X[iᵈ] = iszero(W[iᵈ]) ? relatedness(D[iᵈ], D[i], s) : -Inf end
+    # Step 3: Remove at least q customer nodes most related to this pivot depot node
+    n = 0
+    while n < q
+        iᵈ = argmax(X)
+        d  = D[iᵈ]
+        for v ∈ d.V
+            if n ≥ q break end
+            for r ∈ v.R
+                if !isopt(r) || isdormant(r) continue end
+                while true
+                    nᵗ = d
+                    c  = C[r.iˢ]
+                    nʰ = isequal(r.iᵉ, c.iⁿ) ? D[c.iʰ] : C[c.iʰ]
+                    removenode!(c, nᵗ, nʰ, r, s)
+                    n += 1
+                    if isequal(nʰ, d) break end
+                end
+            end
+        end
+        X[iᵈ] = -Inf
+        W[iᵈ] = 0
+    end
+    postremove!(s)
+    # Step 4: Return solution
+    return s
+end
+
+
+
+"""
+    worstdepot!(rng::AbstractRNG, q::Int, s::Solution)
+
+Returns solution `s` after removing at least `q` customer 
+nodes from routes of low-utilization depot nodes.
+"""
+function worstdepot!(rng::AbstractRNG, q::Int, s::Solution)
+    preremove!(s)
+    D = s.D
+    C = s.C
+    X = fill(Inf, eachindex(D))     # X[iᵈ] : utilization of vehicle D[iᵈ]
+    W = isopt.(D)                   # W[iᵈ] : selection weight for vehicle D[iᵈ]
+    # Step 1: Evaluate utilization for each depot
+    for (iᵈ,d) ∈ pairs(D) X[iᵈ] = isone(W[iᵈ]) ? d.n : Inf end
+    # Step 2: Iteratively select low-utilization route and remove customer nodes from it until at least q customer nodes are removed
+    n = 0
+    while n < q
+        iᵈ = argmin(X)
+        d  = D[iᵈ]
+        for v ∈ d.V
+            if n ≥ q break end
+            for r ∈ v.R
+                if !isopt(r) || isdormant(r) continue end
+                while true
+                    nᵗ = d
+                    c  = C[r.iˢ]
+                    nʰ = isequal(r.iᵉ, c.iⁿ) ? D[c.iʰ] : C[c.iʰ]
+                    removenode!(c, nᵗ, nʰ, r, s)
+                    n += 1
+                    if isequal(nʰ, d) break end
+                end
+            end
+        end
+        X[iᵈ] = Inf
+        W[iᵈ] = 0
+    end
+    postremove!(s)
+    # Step 3: Return solution
+    return s
+end
