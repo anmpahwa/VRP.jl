@@ -148,4 +148,4 @@ function initialize(rng::AbstractRNG, instance::String; dir=joinpath(dirname(@__
     end
     return s
 end
-initialize(instance; dir=joinpath(dirname(@__DIR__), "instances"))) = initialize(Random.GLOBAL_RNG, instance; dir=dir)
+initialize(instance; dir=joinpath(dirname(@__DIR__), "instances")) = initialize(Random.GLOBAL_RNG, instance; dir=dir)
