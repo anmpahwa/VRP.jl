@@ -14,13 +14,16 @@ let
                     :randomcustomer!    ,
                     :randomroute!       ,
                     :randomvehicle!     ,
+                    :randomdepot!       ,
                     :relatedcustomer!   ,
                     :relatedroute!      ,
                     :relatedvehicle!    ,
+                    :relateddepot!      ,
                     :worstcustomer!     ,
                     :worstroute!        ,
-                    :worstvehicle!
-                ]                       ,
+                    :worstvehicle!      ,
+                    :worstdepot!
+                ]                    ,
         Ψᵢ  =   [
                     :best!              ,
                     :precise!           ,
