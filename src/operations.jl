@@ -10,12 +10,12 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     aᵒ = s.A[(nᵗ.iⁿ, nʰ.iⁿ)]
     aᵗ = s.A[(nᵗ.iⁿ, c.iⁿ)]
     aʰ = s.A[(c.iⁿ, nʰ.iⁿ)]
-    nᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
-    nᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
+    cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
+    cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
     # update associated customer nodes
     s.πᶠ -= 0.
     s.πᵒ -= 0.
-    s.πᵖ -= !isequal(nᵖ.r, nᵈ.r) * abs(c.qᶜ)
+    s.πᵖ -= !isequal(cᵖ.r, cᵈ.r) * abs(c.qᶜ)
     s.πᵖ -= abs(c.qᶜ)
     c.jⁿ  = c.jⁿ
     c.iʳ  = r.iʳ
@@ -28,7 +28,7 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     c.r   = r
     s.πᶠ += 0.
     s.πᵒ += 0.
-    s.πᵖ += !isequal(nᵖ.r, nᵈ.r) * abs(c.qᶜ)
+    s.πᵖ += !isequal(cᵖ.r, cᵈ.r) * abs(c.qᶜ)
     # update associated route
     s.πᶠ -= 0.
     s.πᵒ -= r.l * v.πᵈ
@@ -85,27 +85,27 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
                 l  = s.A[(d.iⁿ,cˢ.iⁿ)].l
                 c  = cˢ
                 while true
-                    nᵖ    = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
-                    nᵈ    = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
-                    qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
+                    cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
+                    cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
+                    qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
                     s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
-                    s.πᵖ -= (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ)
+                    s.πᵖ -= (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
                     s.πᵖ -= (qᵒ > v.qᵛ) * abs(c.qᶜ)
                     s.πᵖ -= (c.l > v.lᵛ) * abs(c.qᶜ)
                     c.tᵃ  = tᵈ + s.A[(c.iᵗ, c.iⁿ)].l/v.sᵛ
                     c.tᵈ  = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - v.τᶜ) + c.τᶜ
-                    c.n   = n
-                    c.q   = q
-                    c.l   = l
-                    qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
+                    c.n = n
+                    c.q = q
+                    c.l = l
+                    qᵒ  = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
                     s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
-                    s.πᵖ += (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ)
+                    s.πᵖ += (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
                     s.πᵖ += (qᵒ > v.qᵛ) * abs(c.qᶜ)
                     s.πᵖ += (c.l > v.lᵛ) * abs(c.qᶜ)
                     if isequal(c, cᵉ) break end
                     tᵈ = c.tᵈ
                     n += 1
-                    q += ispickup(c) * abs(c.qᶜ) - isdelivery(c) * abs(c.qᶜ)
+                    q += -c.qᶜ
                     l += s.A[(c.iⁿ,c.iʰ)].l
                     c  = s.C[c.iʰ]
                 end
@@ -142,12 +142,12 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     aᵒ = s.A[(nᵗ.iⁿ, nʰ.iⁿ)]
     aᵗ = s.A[(nᵗ.iⁿ, c.iⁿ)]
     aʰ = s.A[(c.iⁿ, nʰ.iⁿ)]
-    nᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
-    nᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
+    cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
+    cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
     # update associated customer nodes
     s.πᶠ -= 0.
     s.πᵒ -= 0.
-    s.πᵖ -= !isequal(nᵖ.r, nᵈ.r) * abs(c.qᶜ)
+    s.πᵖ -= !isequal(cᵖ.r, cᵈ.r) * abs(c.qᶜ)
     c.jⁿ  = c.jⁿ
     c.iʳ  = 0
     c.iᵛ  = 0
@@ -159,7 +159,7 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     c.r   = NullRoute
     s.πᶠ += 0.
     s.πᵒ += 0.
-    s.πᵖ += !isequal(nᵖ.r, nᵈ.r) * abs(c.qᶜ)
+    s.πᵖ += !isequal(cᵖ.r, cᵈ.r) * abs(c.qᶜ)
     s.πᵖ += abs(c.qᶜ)
     # update associated route
     s.πᶠ -= 0.
@@ -199,22 +199,22 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         s.πᵖ -= (d.tˢ > v.tˢ) * (d.tˢ - v.tˢ)
         s.πᵖ -= (v.tᵉ > d.tᵉ) * (v.tᵉ - d.tᵉ)
         s.πᵖ -= (v.tᵉ - v.tˢ > v.τʷ) * ((v.tᵉ - v.tˢ) - v.τʷ)
-        tᵒ    = r.tⁱ
-        tⁱ    = r.tⁱ
-        θⁱ    = r.θⁱ
-        qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
+        tᵒ = r.tⁱ
+        tⁱ = r.tⁱ
+        θⁱ = r.θⁱ
+        qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
         s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
-        s.πᵖ -= (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ)
+        s.πᵖ -= (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
         s.πᵖ -= (qᵒ > v.qᵛ) * abs(c.qᶜ)
         s.πᵖ -= (c.l > v.lᵛ) * abs(c.qᶜ)
         c.tᵃ  = isdelivery(c) ? c.tˡ : c.tᵉ
         c.tᵈ  = c.tᵃ + c.τᶜ
-        c.n   = 0
-        c.q   = 0
-        c.l   = 0
-        qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
+        c.n = 0
+        c.q = 0.
+        c.l = 0.
+        qᵒ  = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
         s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
-        s.πᵖ += (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ)
+        s.πᵖ += (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
         s.πᵖ += (qᵒ > v.qᵛ) * abs(c.qᶜ)
         s.πᵖ += (c.l > v.lᵛ) * abs(c.qᶜ)
         for r ∈ v.R
@@ -232,27 +232,27 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
                 l  = s.A[(d.iⁿ,cˢ.iⁿ)].l
                 c  = cˢ
                 while true
-                    nᵖ    = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
-                    nᵈ    = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
-                    qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
+                    cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
+                    cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
+                    qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
                     s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
-                    s.πᵖ -= (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ)
+                    s.πᵖ -= (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
                     s.πᵖ -= (qᵒ > v.qᵛ) * abs(c.qᶜ)
                     s.πᵖ -= (c.l > v.lᵛ) * abs(c.qᶜ)
                     c.tᵃ  = tᵈ + s.A[(c.iᵗ, c.iⁿ)].l/v.sᵛ
                     c.tᵈ  = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - v.τᶜ) + c.τᶜ
-                    c.n   = n
-                    c.q   = q
-                    c.l   = l
-                    qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
+                    c.n = n
+                    c.q = q
+                    c.l = l
+                    qᵒ  = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
                     s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
-                    s.πᵖ += (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ)
+                    s.πᵖ += (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
                     s.πᵖ += (qᵒ > v.qᵛ) * abs(c.qᶜ)
                     s.πᵖ += (c.l > v.lᵛ) * abs(c.qᶜ)
                     if isequal(c, cᵉ) break end
                     tᵈ = c.tᵈ
                     n += 1
-                    q += ispickup(c) * abs(c.qᶜ) - isdelivery(c) * abs(c.qᶜ)
+                    q += -c.qᶜ
                     l += s.A[(c.iⁿ,c.iʰ)].l
                     c  = s.C[c.iʰ]
                 end
@@ -369,7 +369,7 @@ function movevehicle!(v::Vehicle, d₁::DepotNode, d₂::DepotNode, s::Solution)
             nʰ.iᵗ = d.iⁿ
             cˢ = nʰ
             cᵉ = nᵗ
-            c = cˢ
+            c  = cˢ
             while true
                 c.iᵈ = d.iⁿ
                 if isequal(c, cᵉ) break end
@@ -441,27 +441,27 @@ function movevehicle!(v::Vehicle, d₁::DepotNode, d₂::DepotNode, s::Solution)
                 l  = s.A[(d.iⁿ,cˢ.iⁿ)].l
                 c  = cˢ
                 while true
-                    nᵖ    = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
-                    nᵈ    = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
-                    qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
+                    cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
+                    cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
+                    qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
                     s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
-                    s.πᵖ -= (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ)
+                    s.πᵖ -= (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
                     s.πᵖ -= (qᵒ > v.qᵛ) * abs(c.qᶜ)
                     s.πᵖ -= (c.l > v.lᵛ) * abs(c.qᶜ)
                     c.tᵃ  = tᵈ + s.A[(c.iᵗ, c.iⁿ)].l/v.sᵛ
                     c.tᵈ  = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - v.τᶜ) + c.τᶜ
-                    c.n   = n
-                    c.q   = q
-                    c.l   = l
-                    qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
+                    c.n = n
+                    c.q = q
+                    c.l = l
+                    qᵒ  = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
                     s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
-                    s.πᵖ += (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ)
+                    s.πᵖ += (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
                     s.πᵖ += (qᵒ > v.qᵛ) * abs(c.qᶜ)
                     s.πᵖ += (c.l > v.lᵛ) * abs(c.qᶜ)
                     if isequal(c, cᵉ) break end
                     tᵈ = c.tᵈ
                     n += 1
-                    q += ispickup(c) * abs(c.qᶜ) - isdelivery(c) * abs(c.qᶜ)
+                    q += -c.qᶜ
                     l += s.A[(c.iⁿ,c.iʰ)].l
                     c  = s.C[c.iʰ]
                 end
@@ -655,7 +655,6 @@ function postremove!(s::Solution)
     end
     for c ∈ s.C
         if isdelivery(c)
-            if c.jⁿ ≤ lastindex(s.D) continue end
             cᵖ = s.C[c.jⁿ]
             cᵈ = s.C[c.iⁿ]
             if isopen(cᵈ) && isclose(cᵖ)
