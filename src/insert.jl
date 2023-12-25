@@ -71,8 +71,8 @@ function best!(rng::AbstractRNG, s::Solution)
         v  = d.V[r.iᵛ]
         iᵗ = P[i,j][1]
         iʰ = P[i,j][2]
-        nᵗ = iᵗ ≤ length(D) ? D[iᵗ] : C[iᵗ]
-        nʰ = iʰ ≤ length(D) ? D[iʰ] : C[iʰ]
+        nᵗ = iᵗ ≤ lastindex(D) ? D[iᵗ] : C[iᵗ]
+        nʰ = iʰ ≤ lastindex(D) ? D[iʰ] : C[iʰ]
         insertnode!(c, nᵗ, nʰ, r, s)
         # Step 2.3: Revise vectors appropriately
         W[i] = 0
@@ -159,8 +159,8 @@ function greedy!(rng::AbstractRNG, s::Solution; mode::Symbol)
         v  = d.V[r.iᵛ]
         iᵗ = P[i,j][1]
         iʰ = P[i,j][2]
-        nᵗ = iᵗ ≤ length(D) ? D[iᵗ] : C[iᵗ]
-        nʰ = iʰ ≤ length(D) ? D[iʰ] : C[iʰ]
+        nᵗ = iᵗ ≤ lastindex(D) ? D[iᵗ] : C[iᵗ]
+        nʰ = iʰ ≤ lastindex(D) ? D[iʰ] : C[iʰ]
         insertnode!(c, nᵗ, nʰ, r, s)
         # Step 2.3: Revise vectors appropriately
         X[i,:] .= Inf
@@ -294,8 +294,8 @@ function regretk!(rng::AbstractRNG, s::Solution, k̅::Int)
         v  = d.V[r.iᵛ]
         iᵗ = P[i,j][1]
         iʰ = P[i,j][2]
-        nᵗ = iᵗ ≤ length(D) ? D[iᵗ] : C[iᵗ]
-        nʰ = iʰ ≤ length(D) ? D[iʰ] : C[iʰ]
+        nᵗ = iᵗ ≤ lastindex(D) ? D[iᵗ] : C[iᵗ]
+        nʰ = iʰ ≤ lastindex(D) ? D[iʰ] : C[iʰ]
         insertnode!(c, nᵗ, nʰ, r, s)
         # Step 2.3: Revise vectors appropriately
         X[i,:] .= Inf

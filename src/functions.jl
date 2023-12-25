@@ -163,7 +163,7 @@ hasslack(d::DepotNode) = d.q < d.qᵈ
 Returns a non-operational `Route` traversed by vehicle `v` from depot node `d`.
 """
 function Route(v::Vehicle, d::DepotNode)
-    iʳ = length(v.R) + 1
+    iʳ = lastindex(v.R) + 1
     iᵛ = v.iᵛ
     iᵈ = d.iⁿ
     x  = 0.
@@ -215,7 +215,7 @@ end
 Returns a non-operational `Vehicle` cloning vehicle `v` at depot node `d`.
 """
 function Vehicle(v::Vehicle, d::DepotNode)
-    iᵛ = length(d.V) + 1
+    iᵛ = lastindex(d.V) + 1
     jᵛ = v.jᵛ
     iᵈ = v.iᵈ
     qᵛ = v.qᵛ
@@ -248,24 +248,22 @@ end
 Returns `Solution` as a sequence of nodes in the order of visits.
 """
 function vectorize(s::Solution)
-    D = s.D
-    C = s.C
-    Z = [Int[] for _ ∈ D]
-    for d ∈ D
+    Z = [Int[] for _ ∈ s.D]
+    for d ∈ s.D
         iⁿ = d.iⁿ
         if !isopt(d) continue end
         for v ∈ d.V
             if !isopt(v) continue end
             for r ∈ v.R
                 if !isopt(r) continue end
-                cˢ = C[r.iˢ]
-                cᵉ = C[r.iᵉ] 
+                cˢ = s.C[r.iˢ]
+                cᵉ = s.C[r.iᵉ] 
                 push!(Z[iⁿ], d.iⁿ)
-                cᵒ = cˢ
+                c  = cˢ
                 while true
-                    push!(Z[iⁿ], cᵒ.iⁿ)
-                    if isequal(cᵒ, cᵉ) break end
-                    cᵒ = C[cᵒ.iʰ]
+                    push!(Z[iⁿ], c.iⁿ)
+                    if isequal(c, cᵉ) break end
+                    c = s.C[c.iʰ]
                 end
             end
         end
@@ -299,36 +297,43 @@ vehicle range, capacity, and working-hours constraints; and
 depot capacity constraints are not violated.
 """
 function isfeasible(s::Solution)
-    for c ∈ s.C
-        if isopen(c) return false                                   # Service constraint (node visit)
-        else
-            d = s.D[c.iᵈ]
-            v = d.V[c.iᵛ]
-            nᵖ = isdelivery(c) ? (c.jⁿ ≤ length(s.D) ? s.D[c.jⁿ] : s.C[c.jⁿ]) : c
-            rᵖ = isdelivery(c) ? (c.jⁿ ≤ length(s.D) ? c.r : nᵖ.r) : nᵖ.r
-            tᵖ = isdelivery(c) ? (c.jⁿ ≤ length(s.D) ? rᵖ.tˢ : nᵖ.tᵃ) : nᵖ.tᵃ
-            nᵈ = isdelivery(c) ? c : s.C[c.jⁿ]
-            rᵈ = nᵈ.r
-            tᵈ = nᵈ.tᵃ
-            qᵒ = c.q - ispickup(c) * c.qᶜ
-            if (!isequal(rᵖ, rᵈ) || (tᵖ > tᵈ)) return false end     # Service constraint (order of service)
-            if c.tᵃ > c.tˡ return false end                         # Time-window constraint
-            if c.l > v.lᵛ return false end                          # Vehicle range constraint
-            if qᵒ > v.qᵛ return false end                           # Vehicle capacity constraint
-        end
-    end
+    if any(isopen, s.C) return false end                                    # Service constraint
     for d ∈ s.D
+        if !isopt(d) continue end
         for v ∈ d.V
+            if !isopt(v) continue end
             for r ∈ v.R
-                if r.l > v.lᵛ return false end                      # Vehicle range constraint
-                if r.q > v.qᵛ return false end                      # Vehicle capacity constraint
+                if !isopt(r) continue end
+                cˢ = s.C[r.iˢ]
+                cᵉ = s.C[r.iᵉ] 
+                c  = cˢ
+                while true
+                    if c.tᵃ > c.tˡ return false end                         # Time-window constraint
+                    if isdelivery(c)
+                        if c.jⁿ > lastindex(s.D)
+                            nᵖ  = s.C[c.jⁿ]
+                            nᵈ  = s.C[c.iⁿ]
+                            if nᵖ.tᵃ > nᵈ.tᵃ return false end               # Service constraint (order of service)
+                            if !isequal(nᵖ.r, nᵈ.r) return false end        # Service constraint (order of service)
+                        end
+                        qᵒ = c.q
+                    else
+                        qᵒ = c.q - c.qᶜ
+                    end
+                    if c.l > v.lᵛ return false end                          # Vehicle range constraint
+                    if qᵒ > v.qᵛ return false end                           # Vehicle capacity constraint
+                    if isequal(c, cᵉ) break end
+                    c = s.C[c.iʰ]
+                end
+                if r.l > v.lᵛ return false end                              # Vehicle range constraint
+                if r.q > v.qᵛ return false end                              # Vehicle capacity constraint
             end
-            if d.tˢ > v.tˢ return false end                         # Working-hours constraint (start time)
-            if v.tᵉ > d.tᵉ return false end                         # Working-hours constraint (end time)
-            if v.tᵉ - v.tˢ > v.τʷ return false end                  # Working-hours constraint (duration)
-            if length(v.R) > v.r̅ return false end                   # Number of routes constraint
+            if d.tˢ > v.tˢ return false end                                 # Working-hours constraint (start time)
+            if v.tᵉ > d.tᵉ return false end                                 # Working-hours constraint (end time)
+            if v.tᵉ - v.tˢ > v.τʷ return false end                          # Working-hours constraint (duration)
+            if length(v.R) > v.r̅ return false end                           # Number of routes constraint
         end
-        if d.q > d.qᵈ return false end                              # Depot capacity constraint
+        if d.q > d.qᵈ return false end                                      # Depot capacity constraint
     end
     return true
 end
