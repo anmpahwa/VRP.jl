@@ -194,6 +194,22 @@ const NullRoute = Route(0, 0, 0, 0., 0., 0, 0, 0., 0., 0., Inf, Inf, Inf, 0., 0,
 
 
 """
+    Solution(D::Vector{DepotNode}, C::OffsetVector{CustomerNode}, A::Dict{Tuple{Int,Int}, Arc})
+
+Returns `Solution` on graph `G = (D, C, A)`.
+"""
+function Solution(D::Vector{DepotNode}, C::OffsetVector{CustomerNode}, A::Dict{Tuple{Int,Int}, Arc})
+    πᶠ = 0.
+    πᵒ = 0.
+    πᵖ = 0.
+    for d ∈ D πᶠ += d.φ * d.πᶠ end
+    for c ∈ C πᵖ += abs(c.qᶜ) end
+    return Solution(D, C, A, πᶠ, πᵒ, πᵖ)
+end
+
+
+
+"""
     Vehicle(v::Vehicle, d::DepotNode)
 
 Returns a non-operational `Vehicle` cloning vehicle `v` at depot node `d`.
