@@ -6,11 +6,7 @@ using DataFrames
 
 let
     # Define instances
-    # Set A
-    A = ["m-n101-k10", "tai150a", "cmt10", "x-n251-k28", "x-n303-k21"]
-    # Set B
-    B = ["r101", "r201", "c101", "c201", "rc101", "rc201"]
-    instances = [A..., B...]
+    instances = ["bar-n100-1"]
     # Define random number generators
     seeds = [1010, 1106, 1509, 1604, 1905, 2104, 2412, 2703, 2710, 2807]
     # Dataframes to store solution quality and run time
@@ -25,11 +21,11 @@ let
             println("\n instance: $instance | seed: $seed")
             rng = MersenneTwister(seed);
             # Define inital solution method and build the initial solution
-            sₒ = initialize(rng, instance; method=:global);
+            s₁ = initialize(rng, instance);
             # Visualize initial solution
-            display(visualize(sₒ))
+            display(visualize(s₁))
             # Define ALNS parameters
-            x = max(100, lastindex(sₒ.C))
+            x = max(100, lastindex(s₁.C))
             χ = ALNSparameters(
                 j   =   50                      ,
                 k   =   5                       ,
@@ -44,7 +40,7 @@ let
                             :relatedvehicle!    ,
                             :worstcustomer!     ,
                             :worstroute!        ,
-                            :worstvehicle!
+                            :worstvehicle!      ,
                         ]                       ,
                 Ψᵢ  =   [
                             :best!              ,
@@ -56,19 +52,15 @@ let
                 Ψₗ  =   [
                             :intramove!         ,
                             :intraswap!         ,
-                            :intraopt!          ,
-                            :intermove!         ,
-                            :interswap!         ,
-                            :interopt!          ,
-                            :swapdepot!
+                            :intraopt!
                         ]                       ,
                 σ₁  =   15                      ,
                 σ₂  =   10                      ,
                 σ₃  =   3                       ,
-                μ̲   =   0.1                     ,
-                c̲   =   4                       ,
-                μ̅   =   0.4                     ,
-                c̅   =   60                      ,
+                μ̲   =   0.01                    ,
+                c̲   =   1                       ,
+                μ̅   =   0.1                     ,
+                c̅   =   15                      ,
                 ω̅   =   0.05                    ,
                 τ̅   =   0.5                     ,
                 ω̲   =   0.01                    ,
@@ -77,32 +69,28 @@ let
                 ρ   =   0.1
             );
             # Run ALNS and fetch best solution
-            t = @CPUelapsed s⃰ = ALNS(rng, χ, sₒ);
+            t = @CPUelapsed s₂ = ALNS(rng, χ, s₁);
             # Visualize best solution
-            display(visualize(s⃰))
+            display(visualize(s₂))
             # Fetch objective function values
             println("Objective function value:")
-            println("   Initial: $(f(sₒ; penalty=false))")
-            println("   Optimal: $(f(s⃰ ; penalty=false))")
-            # Fetch fixed costs
-            println("Fixed costs:")
-            println("   Initial: $(f(sₒ; operational=false, penalty=false))")
-            println("   Optimal: $(f(s⃰ ; operational=false, penalty=false))")
-            # Fetch operational costs
-            println("Operational costs:")
-            println("   Initial: $(f(sₒ; fixed=false, penalty=false))")
-            println("   Optimal: $(f(s⃰ ; fixed=false, penalty=false))")
+            println("   Initial: $(round(s₁.πᶠ + s₁.πᵒ, digits=3))")
+            println("   Optimal: $(round(s₂.πᶠ + s₂.πᵒ, digits=3))")
             # Check if the solutions are feasible
             println("Solution feasibility:")
-            println("   Initial: $(isfeasible(sₒ))")
-            println("   Optimal: $(isfeasible(s⃰))")
+            println("   Initial: $(isfeasible(s₁)) | $(round(s₁.πᵖ, digits=3))")
+            println("   Optimal: $(isfeasible(s₂)) | $(round(s₂.πᵖ, digits=3))")
             # Optimal solution characteristics
             println("Optimal solution characteristics:")
-            println("   Number of depots: $(sum([!iszero(d.n) for d ∈ s⃰.D]))")
-            println("   Number of vehicles: $(sum([!iszero(v.n) for d ∈ s⃰.D for v ∈ d.V]))")
-            println("   Number of routes: $(sum([!iszero(r.n) for d ∈ s⃰.D for v ∈ d.V for r ∈ v.R]))")
+            nᵈ, nᵛ, nʳ = 0, 0, 0
+            for d ∈ s₂.D nᵈ += VRP.isopt(d) end
+            for d ∈ s₂.D for v ∈ d.V nᵛ += VRP.isopt(v) end end
+            for d ∈ s₂.D for v ∈ d.V for r ∈ v.R nʳ += VRP.isopt(r) end end end
+            println("   Number of depots: $nᵈ")
+            println("   Number of vehicles: $nᵛ")
+            println("   Number of routes: $nʳ")
             # Store Results
-            df₁[i,j+1] = f(s⃰)
+            df₁[i,j+1] = f(s₂)
             df₂[i,j+1] = t
             println(df₁)
             println(df₂)
