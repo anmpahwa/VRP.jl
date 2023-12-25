@@ -90,8 +90,8 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
                     qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
                     s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
                     s.πᵖ -= (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ)
-                    s.πᵖ -= (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
-                    s.πᵖ -= (c.l > v.lᵛ) * (c.l - v.lᵛ)
+                    s.πᵖ -= (qᵒ > v.qᵛ) * abs(c.qᶜ)
+                    s.πᵖ -= (c.l > v.lᵛ) * abs(c.qᶜ)
                     c.tᵃ  = tᵈ + s.A[(c.iᵗ, c.iⁿ)].l/v.sᵛ
                     c.tᵈ  = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - v.τᶜ) + c.τᶜ
                     c.n   = n
@@ -100,8 +100,8 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
                     qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
                     s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
                     s.πᵖ += (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ)
-                    s.πᵖ += (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
-                    s.πᵖ += (c.l > v.lᵛ) * (c.l - v.lᵛ)
+                    s.πᵖ += (qᵒ > v.qᵛ) * abs(c.qᶜ)
+                    s.πᵖ += (c.l > v.lᵛ) * abs(c.qᶜ)
                     if isequal(c, cᵉ) break end
                     tᵈ = c.tᵈ
                     n += 1
@@ -205,8 +205,8 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
         s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
         s.πᵖ -= (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ)
-        s.πᵖ -= (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
-        s.πᵖ -= (c.l > v.lᵛ) * (c.l - v.lᵛ)
+        s.πᵖ -= (qᵒ > v.qᵛ) * abs(c.qᶜ)
+        s.πᵖ -= (c.l > v.lᵛ) * abs(c.qᶜ)
         c.tᵃ  = isdelivery(c) ? c.tˡ : c.tᵉ
         c.tᵈ  = c.tᵃ + c.τᶜ
         c.n   = 0
@@ -215,8 +215,8 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
         s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
         s.πᵖ += (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ)
-        s.πᵖ += (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
-        s.πᵖ += (c.l > v.lᵛ) * (c.l - v.lᵛ)
+        s.πᵖ += (qᵒ > v.qᵛ) * abs(c.qᶜ)
+        s.πᵖ += (c.l > v.lᵛ) * abs(c.qᶜ)
         for r ∈ v.R
             if r.tⁱ < tᵒ continue end
             if isopt(r)
@@ -237,8 +237,8 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
                     qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
                     s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
                     s.πᵖ -= (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ)
-                    s.πᵖ -= (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
-                    s.πᵖ -= (c.l > v.lᵛ) * (c.l - v.lᵛ)
+                    s.πᵖ -= (qᵒ > v.qᵛ) * abs(c.qᶜ)
+                    s.πᵖ -= (c.l > v.lᵛ) * abs(c.qᶜ)
                     c.tᵃ  = tᵈ + s.A[(c.iᵗ, c.iⁿ)].l/v.sᵛ
                     c.tᵈ  = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - v.τᶜ) + c.τᶜ
                     c.n   = n
@@ -247,8 +247,8 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
                     qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
                     s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
                     s.πᵖ += (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ)
-                    s.πᵖ += (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
-                    s.πᵖ += (c.l > v.lᵛ) * (c.l - v.lᵛ)
+                    s.πᵖ += (qᵒ > v.qᵛ) * abs(c.qᶜ)
+                    s.πᵖ += (c.l > v.lᵛ) * abs(c.qᶜ)
                     if isequal(c, cᵉ) break end
                     tᵈ = c.tᵈ
                     n += 1
@@ -446,8 +446,8 @@ function movevehicle!(v::Vehicle, d₁::DepotNode, d₂::DepotNode, s::Solution)
                     qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
                     s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
                     s.πᵖ -= (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ)
-                    s.πᵖ -= (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
-                    s.πᵖ -= (c.l > v.lᵛ) * (c.l - v.lᵛ)
+                    s.πᵖ -= (qᵒ > v.qᵛ) * abs(c.qᶜ)
+                    s.πᵖ -= (c.l > v.lᵛ) * abs(c.qᶜ)
                     c.tᵃ  = tᵈ + s.A[(c.iᵗ, c.iⁿ)].l/v.sᵛ
                     c.tᵈ  = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - v.τᶜ) + c.τᶜ
                     c.n   = n
@@ -456,8 +456,8 @@ function movevehicle!(v::Vehicle, d₁::DepotNode, d₂::DepotNode, s::Solution)
                     qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
                     s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
                     s.πᵖ += (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ)
-                    s.πᵖ += (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
-                    s.πᵖ += (c.l > v.lᵛ) * (c.l - v.lᵛ)
+                    s.πᵖ += (qᵒ > v.qᵛ) * abs(c.qᶜ)
+                    s.πᵖ += (c.l > v.lᵛ) * abs(c.qᶜ)
                     if isequal(c, cᵉ) break end
                     tᵈ = c.tᵈ
                     n += 1
