@@ -148,12 +148,16 @@ end
 
 
 """
-    Solution(D::Vector{DepotNode}, C::OffsetVector{CustomerNode}, A::Dict{Tuple{Int,Int}, Arc})
+    Solution(D::Vector{DepotNode}, C::OffsetVector{CustomerNode}, A::Dict{Tuple{Int,Int}, Arc}, πᶠ::Float64, πᵒ::Float64, πᵖ::Float64)
 
-A `Solution` is a graph with depot nodes `D`, customer nodes `C`, and arcs `A`.
+A `Solution` is a graph with depot nodes `D`, customer nodes `C`, arcs `A`, fixed 
+cost `πᶠ`, operational cost `πᵒ`, and penalty `πᵖ`
 """
-struct Solution
+mutable struct Solution
     D::Vector{DepotNode}                                                            # Vector of depot nodes
     C::OffsetVector{CustomerNode, Vector{CustomerNode}}                             # Vector of customer nodes
     A::Dict{Tuple{Int,Int}, Arc}                                                    # Set of arcs
+    πᶠ::Float64                                                                     # Fixed cost
+    πᵒ::Float64                                                                     # Opertaional cost
+    πᵖ::Float64                                                                     # Penalty
 end
