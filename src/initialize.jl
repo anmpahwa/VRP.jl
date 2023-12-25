@@ -137,14 +137,10 @@ function initialize(rng::AbstractRNG, instance::String; dir=joinpath(dirname(@__
         d = sample(rng, s.D)
         v = d.V[lastindex(d.V)]
         r = v.R[lastindex(v.R)]
-        if c.jⁿ ≤ lastindex(s.D)
-            insertnode!(c, d, d, r, s)
-        else
-            cᵖ = s.C[c.jⁿ]
-            cᵈ = s.C[c.iⁿ]
-            insertnode!(cᵖ, d, d, r, s)
-            insertnode!(cᵈ, cᵖ, d, r, s)
-        end
+        cᵖ = s.C[c.jⁿ]
+        cᵈ = s.C[c.iⁿ]
+        insertnode!(cᵖ, d, d, r, s)
+        insertnode!(cᵈ, cᵖ, d, r, s)
         v = Vehicle(v, d)
         r = Route(v, d)
         push!(v.R, r)
