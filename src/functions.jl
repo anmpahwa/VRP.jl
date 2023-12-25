@@ -310,16 +310,16 @@ function isfeasible(s::Solution)
                 while true
                     if c.tᵃ > c.tˡ return false end                         # Time-window constraint
                     if isdelivery(c)
-                        if c.jⁿ > lastindex(s.D)
-                            nᵖ  = s.C[c.jⁿ]
-                            nᵈ  = s.C[c.iⁿ]
-                            if nᵖ.tᵃ > nᵈ.tᵃ return false end               # Service constraint (order of service)
-                            if !isequal(nᵖ.r, nᵈ.r) return false end        # Service constraint (order of service)
-                        end
+                        nᵖ  = s.C[c.jⁿ]
+                        nᵈ  = s.C[c.iⁿ]
                         qᵒ = c.q
                     else
+                        nᵖ  = s.C[c.iⁿ]
+                        nᵈ  = s.C[c.jⁿ]
                         qᵒ = c.q - c.qᶜ
                     end
+                    if nᵖ.tᵃ > nᵈ.tᵃ return false end                       # Service constraint (order of service)
+                    if !isequal(nᵖ.r, nᵈ.r) return false end                # Service constraint (order of service)
                     if c.l > v.lᵛ return false end                          # Vehicle range constraint
                     if qᵒ > v.qᵛ return false end                           # Vehicle capacity constraint
                     if isequal(c, cᵉ) break end
