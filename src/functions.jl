@@ -340,14 +340,18 @@ end
 Returns a measure of similarity between customer nodes `c₁` and `c₂` in solution `s`.
 """
 function relatedness(c₁::CustomerNode, c₂::CustomerNode, s::Solution)
-    ϵ  = 1e-5
-    r₁ = c₁.r
-    r₂ = c₂.r
-    φ  = (1 + isequal(r₁, r₂)) / 2
-    q  = abs(c₁.qᶜ - c₂.qᶜ)
-    l  = s.A[(c₁.iⁿ,c₂.iⁿ)].l
-    t  = abs(c₁.tᵉ - c₂.tᵉ) + abs(c₁.tˡ - c₂.tˡ)
-    z  = φ/(q + l + t + ϵ)
+    ϵ   = 1e-5
+    r₁  = c₁.r
+    r₂  = c₂.r
+    cᵖ₁ = isdelivery(c₁) ? s.C[c₁.jⁿ] : s.C[c₁.iⁿ] 
+    cᵈ₁ = isdelivery(c₁) ? s.C[c₁.iⁿ] : s.C[c₁.jⁿ]
+    cᵖ₂ = isdelivery(c₂) ? s.C[c₂.jⁿ] : s.C[c₂.iⁿ] 
+    cᵈ₂ = isdelivery(c₂) ? s.C[c₂.iⁿ] : s.C[c₂.jⁿ]
+    φ   = (1 + isequal(r₁, r₂)) / 2
+    q   = abs(c₁.qᶜ - c₂.qᶜ)
+    l   = sqrt(((cᵖ₁.x + cᵈ₁.x)/2 - (cᵖ₂.x + cᵈ₂.x)/2)^2 + ((cᵖ₁.y + cᵈ₁.y)/2 - (cᵖ₂.y + cᵈ₂.y)/2)^2)
+    t   = abs(cᵖ₁.tᵉ - cᵖ₂.tᵉ) + abs(cᵖ₁.tˡ - cᵖ₂.tˡ) + abs(cᵈ₁.tᵉ - cᵈ₂.tᵉ) + abs(cᵈ₁.tˡ - cᵈ₂.tˡ)
+    z   = φ/(q + l + t + ϵ)
     return z
 end
 """
