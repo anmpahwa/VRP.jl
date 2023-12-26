@@ -25,7 +25,7 @@ let
             # Visualize initial solution
             display(visualize(s₁))
             # Define ALNS parameters
-            x = max(100, lastindex(s₁.C))
+            x = max(50, lastindex(s₁.C) ÷ 2)
             χ = ALNSparameters(
                 j   =   50                      ,
                 k   =   5                       ,
@@ -34,13 +34,10 @@ let
                 Ψᵣ  =   [
                             :randomcustomer!    ,
                             :randomroute!       ,
-                            :randomvehicle!     ,
                             :relatedcustomer!   ,
                             :relatedroute!      ,
-                            :relatedvehicle!    ,
                             :worstcustomer!     ,
                             :worstroute!        ,
-                            :worstvehicle!      ,
                         ]                       ,
                 Ψᵢ  =   [
                             :best!              ,
@@ -52,15 +49,18 @@ let
                 Ψₗ  =   [
                             :intramove!         ,
                             :intraswap!         ,
-                            :intraopt!
+                            :intraopt!          ,
+                            :intermove!         ,
+                            :interswap!         ,
+                            :interopt!
                         ]                       ,
                 σ₁  =   15                      ,
                 σ₂  =   10                      ,
                 σ₃  =   3                       ,
-                μ̲   =   0.01                    ,
-                c̲   =   1                       ,
-                μ̅   =   0.1                     ,
-                c̅   =   15                      ,
+                μ̲   =   0.05                    ,
+                c̲   =   2                       ,
+                μ̅   =   0.2                     ,
+                c̅   =   30                      ,
                 ω̅   =   0.05                    ,
                 τ̅   =   0.5                     ,
                 ω̲   =   0.01                    ,
@@ -70,6 +70,7 @@ let
             );
             # Run ALNS and fetch best solution
             t = @CPUelapsed s₂ = ALNS(rng, χ, s₁);
+            t = @CPUelapsed s₂ = ALNS(rng, χ, s₂);
             # Visualize best solution
             display(visualize(s₂))
             # Fetch objective function values
