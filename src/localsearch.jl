@@ -94,20 +94,25 @@ function intermove!(rng::AbstractRNG, k̅::Int, s::Solution)
     for _ ∈ 1:k̅
         z  = f(s)
         # Step 2.1: Select a random customer node
-        c  = sample(rng, C, OffsetWeights(Wᶜ))
-        r₁ = c.r
+        n  = sample(rng, C, OffsetWeights(Wᶜ))
+        cᵖ = isdelivery(n) ? C[n.jⁿ] : C[n.iⁿ]
+        cᵈ = isdelivery(n) ? C[n.iⁿ] : C[n.jⁿ]
+        r₁ = cᵈ.r
         if isdormant(r₁) continue end
         # Step 2.2: Select a random route
         Wʳ = [isdormant(r₂) || isequal(r₁, r₂) ? 0 : 1 for r₂ ∈ R]
         r₂ = sample(rng, R, Weights(Wʳ))
         if isdormant(r₂) continue end
         # Step 2.3: Remove this node from its position between tail node nᵗ and head node nʰ
-        nᵗ = isequal(r₁.iˢ, c.iⁿ) ? D[c.iᵗ] : C[c.iᵗ]
-        nʰ = isequal(r₁.iᵉ, c.iⁿ) ? D[c.iʰ] : C[c.iʰ] 
-        removenode!(c, nᵗ, nʰ, r₁, s)
+        nᵈᵗ = isequal(r₁.iˢ, cᵈ.iⁿ) ? D[cᵈ.iᵗ] : C[cᵈ.iᵗ]
+        nᵈʰ = isequal(r₁.iᵉ, cᵈ.iⁿ) ? D[cᵈ.iʰ] : C[cᵈ.iʰ]
+        removenode!(cᵈ, nᵈᵗ, nᵈʰ, r₁, s)
+        nᵖᵗ = isequal(r₁.iˢ, cᵖ.iⁿ) ? D[cᵖ.iᵗ] : C[cᵖ.iᵗ]
+        nᵖʰ = isequal(r₁.iᵉ, cᵖ.iⁿ) ? D[cᵖ.iʰ] : C[cᵖ.iʰ]
+        removenode!(cᵖ, nᵖᵗ, nᵖʰ, r₁, s)
         # Step 2.4: Iterate through all position in the route
         x  = 0.
-        p  = (nᵗ.iⁿ, nʰ.iⁿ)
+        p  = ((nᵖᵗ.iⁿ, nᵖʰ.iⁿ), (nᵈᵗ.iⁿ, nᵈʰ.iⁿ))
         r  = r₁
         d  = s.D[r₂.iᵈ]
         nˢ = isopt(r₂) ? C[r₂.iˢ] : D[r₂.iˢ] 
@@ -116,24 +121,31 @@ function intermove!(rng::AbstractRNG, k̅::Int, s::Solution)
         nʰ = nˢ
         while true
             # Step 2.4.1: Insert customer node c between tail node nᵗ and head node nʰ
-            insertnode!(c, nᵗ, nʰ, r₂, s)
+            insertnode!(cᵖ, nᵗ, nʰ, r₂, s)
+            insertnode!(cᵈ, cᵖ, nʰ, r₂, s)
             # Step 2.4.2: Compute insertion cost
             z′ = f(s)
             Δ  = z′ - z
             # Step 2.4.3: Revise least insertion cost in route r and the corresponding best insertion position in route r
-            if Δ < x x, p, r = Δ, (nᵗ.iⁿ, nʰ.iⁿ), r₂ end
+            if Δ < x x, p, r = Δ, ((nᵗ.iⁿ, nʰ.iⁿ), (cᵖ.iⁿ, nʰ.iⁿ)), r₂ end
             # Step 2.4.4: Remove node from its position between tail node nᵗ and head node nʰ
-            removenode!(c, nᵗ, nʰ, r₂, s)
+            removenode!(cᵈ, cᵖ, nʰ, r₂, s)
+            removenode!(cᵖ, nᵗ, nʰ, r₂, s)
             if isequal(nᵗ, nᵉ) break end
             nᵗ = nʰ
             nʰ = isequal(r₂.iᵉ, nᵗ.iⁿ) ? D[nᵗ.iʰ] : C[nᵗ.iʰ]
         end
         # Step 2.5: Move the node to its best position (this could be its original position as well)
-        iᵗ = p[1]
-        iʰ = p[2]
-        nᵗ = iᵗ ≤ length(D) ? D[iᵗ] : C[iᵗ]
-        nʰ = iʰ ≤ length(D) ? D[iʰ] : C[iʰ]
-        insertnode!(c, nᵗ, nʰ, r, s)
+        iᵖᵗ = p[1][1]
+        iᵖʰ = p[1][2]
+        iᵈᵗ = p[2][1]
+        iᵈʰ = p[2][2]
+        nᵖᵗ = iᵖᵗ ≤ lastindex(D) ? D[iᵖᵗ] : C[iᵖᵗ]
+        nᵖʰ = iᵖʰ ≤ lastindex(D) ? D[iᵖʰ] : C[iᵖʰ]
+        nᵈᵗ = iᵈᵗ ≤ lastindex(D) ? D[iᵈᵗ] : C[iᵈᵗ]
+        nᵈʰ = iᵈʰ ≤ lastindex(D) ? D[iᵈʰ] : C[iᵈʰ]
+        insertnode!(cᵖ, nᵖᵗ, nᵖʰ, r, s)
+        insertnode!(cᵈ, nᵈᵗ, nᵈʰ, r, s)
     end
     postlocalsearch!(s)
     # Step 3: Return solution
@@ -238,13 +250,36 @@ function interswap!(rng::AbstractRNG, k̅::Int, s::Solution)
         W₅ = [isdormant(n₅) || isequal(n₂.r, n₅.r) || isequal(n₂, n₅) ? 0. : relatedness(n₂, n₅, s) for n₅ ∈ C]
         n₅ = sample(rng, C, OffsetWeights(W₅))
         if isdormant(n₅) continue end
+        if isequal(n₂, n₅) continue end
         r₂ = n₂.r
         r₅ = n₅.r
         n₁ = isequal(r₂.iˢ, n₂.iⁿ) ? D[n₂.iᵗ] : C[n₂.iᵗ]
         n₃ = isequal(r₂.iᵉ, n₂.iⁿ) ? D[n₂.iʰ] : C[n₂.iʰ]
         n₄ = isequal(r₅.iˢ, n₅.iⁿ) ? D[n₅.iᵗ] : C[n₅.iᵗ]
         n₆ = isequal(r₅.iᵉ, n₅.iⁿ) ? D[n₅.iʰ] : C[n₅.iʰ]
-        if isequal(n₂, n₅) continue end
+        # n₁ → n₂ (n₄) → n₃ (n₅) → n₆   ⇒   n₁ → n₃ (n₅) → n₂ (n₄) → n₆
+        if isequal(n₃, n₅)
+            removenode!(n₂, n₁, n₃, r₂, s)
+            insertnode!(n₂, n₅, n₆, r₅, s)
+        # n₄ → n₅ (n₁) → n₂ (n₆) → n₃   ⇒   n₄ → n₂ (n₆) → n₅ (n₁) → n₃   
+        elseif isequal(n₂, n₆)
+            removenode!(n₂, n₁, n₃, r₂, s)
+            insertnode!(n₂, n₄, n₅, r₅, s)
+        # n₁ → n₂ → n₃ and n₄ → n₅ → n₆ ⇒   n₁ → n₅ → n₃ and n₄ → n₂ → n₆
+        else 
+            removenode!(n₂, n₁, n₃, r₂, s)
+            removenode!(n₅, n₄, n₆, r₅, s)
+            insertnode!(n₅, n₁, n₃, r₂, s)
+            insertnode!(n₂, n₄, n₆, r₅, s)
+        end
+        n₂ = C[n₂.jⁿ]
+        n₅ = C[n₅.jⁿ]
+        r₂ = n₂.r
+        r₅ = n₅.r
+        n₁ = isequal(r₂.iˢ, n₂.iⁿ) ? D[n₂.iᵗ] : C[n₂.iᵗ]
+        n₃ = isequal(r₂.iᵉ, n₂.iⁿ) ? D[n₂.iʰ] : C[n₂.iʰ]
+        n₄ = isequal(r₅.iˢ, n₅.iⁿ) ? D[n₅.iᵗ] : C[n₅.iᵗ]
+        n₆ = isequal(r₅.iᵉ, n₅.iⁿ) ? D[n₅.iʰ] : C[n₅.iʰ]
         # n₁ → n₂ (n₄) → n₃ (n₅) → n₆   ⇒   n₁ → n₃ (n₅) → n₂ (n₄) → n₆
         if isequal(n₃, n₅)
             removenode!(n₂, n₁, n₃, r₂, s)
@@ -267,20 +302,51 @@ function interswap!(rng::AbstractRNG, k̅::Int, s::Solution)
         if Δ < 0 z = z′
         # Step 2.4: Reswap the two customer nodes and go to step 1.1
         else
+            n₂ = C[n₂.iⁿ]
+            n₅ = C[n₅.iⁿ]
+            r₂ = n₂.r
+            r₅ = n₅.r
+            n₁ = isequal(r₂.iˢ, n₂.iⁿ) ? D[n₂.iᵗ] : C[n₂.iᵗ]
+            n₃ = isequal(r₂.iᵉ, n₂.iⁿ) ? D[n₂.iʰ] : C[n₂.iʰ]
+            n₄ = isequal(r₅.iˢ, n₅.iⁿ) ? D[n₅.iᵗ] : C[n₅.iᵗ]
+            n₆ = isequal(r₅.iᵉ, n₅.iⁿ) ? D[n₅.iʰ] : C[n₅.iʰ]
             # n₁ → n₂ (n₄) → n₃ (n₅) → n₆   ⇒   n₁ → n₃ (n₅) → n₂ (n₄) → n₆
             if isequal(n₃, n₅)
-                removenode!(n₂, n₅, n₆, r₅, s)
-                insertnode!(n₂, n₁, n₃, r₂, s)
+                removenode!(n₂, n₁, n₃, r₂, s)
+                insertnode!(n₂, n₅, n₆, r₅, s)
             # n₄ → n₅ (n₁) → n₂ (n₆) → n₃   ⇒   n₄ → n₂ (n₆) → n₅ (n₁) → n₃   
             elseif isequal(n₂, n₆)
-                removenode!(n₂, n₄, n₅, r₅, s)
-                insertnode!(n₂, n₁, n₃, r₂, s)
+                removenode!(n₂, n₁, n₃, r₂, s)
+                insertnode!(n₂, n₄, n₅, r₅, s)
             # n₁ → n₂ → n₃ and n₄ → n₅ → n₆ ⇒   n₁ → n₅ → n₃ and n₄ → n₂ → n₆
             else 
-                removenode!(n₅, n₁, n₃, r₂, s)
-                removenode!(n₂, n₄, n₆, r₅, s)
-                insertnode!(n₂, n₁, n₃, r₂, s)
-                insertnode!(n₅, n₄, n₆, r₅, s)
+                removenode!(n₂, n₁, n₃, r₂, s)
+                removenode!(n₅, n₄, n₆, r₅, s)
+                insertnode!(n₅, n₁, n₃, r₂, s)
+                insertnode!(n₂, n₄, n₆, r₅, s)
+            end
+            n₂ = C[n₂.jⁿ]
+            n₅ = C[n₅.jⁿ]
+            r₂ = n₂.r
+            r₅ = n₅.r
+            n₁ = isequal(r₂.iˢ, n₂.iⁿ) ? D[n₂.iᵗ] : C[n₂.iᵗ]
+            n₃ = isequal(r₂.iᵉ, n₂.iⁿ) ? D[n₂.iʰ] : C[n₂.iʰ]
+            n₄ = isequal(r₅.iˢ, n₅.iⁿ) ? D[n₅.iᵗ] : C[n₅.iᵗ]
+            n₆ = isequal(r₅.iᵉ, n₅.iⁿ) ? D[n₅.iʰ] : C[n₅.iʰ]
+            # n₁ → n₂ (n₄) → n₃ (n₅) → n₆   ⇒   n₁ → n₃ (n₅) → n₂ (n₄) → n₆
+            if isequal(n₃, n₅)
+                removenode!(n₂, n₁, n₃, r₂, s)
+                insertnode!(n₂, n₅, n₆, r₅, s)
+            # n₄ → n₅ (n₁) → n₂ (n₆) → n₃   ⇒   n₄ → n₂ (n₆) → n₅ (n₁) → n₃   
+            elseif isequal(n₂, n₆)
+                removenode!(n₂, n₁, n₃, r₂, s)
+                insertnode!(n₂, n₄, n₅, r₅, s)
+            # n₁ → n₂ → n₃ and n₄ → n₅ → n₆ ⇒   n₁ → n₅ → n₃ and n₄ → n₂ → n₆
+            else 
+                removenode!(n₂, n₁, n₃, r₂, s)
+                removenode!(n₅, n₄, n₆, r₅, s)
+                insertnode!(n₅, n₁, n₃, r₂, s)
+                insertnode!(n₂, n₄, n₆, r₅, s)
             end
         end
     end
