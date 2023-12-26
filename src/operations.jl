@@ -654,24 +654,19 @@ function postremove!(s::Solution)
         d.τ = τ
     end
     for c ∈ s.C
-        if isdelivery(c)
-            cᵖ = s.C[c.jⁿ]
-            cᵈ = s.C[c.iⁿ]
-            if isopen(cᵈ) && isclose(cᵖ)
-                nᵗ = cᵖ.iᵗ ≤ lastindex(s.D) ? s.D[cᵖ.iᵗ] : s.C[cᵖ.iᵗ]
-                nʰ = cᵖ.iʰ ≤ lastindex(s.D) ? s.D[cᵖ.iʰ] : s.C[cᵖ.iʰ]
-                r  = cᵖ.r
-                removenode!(cᵖ, nᵗ, nʰ, r, s)
-            end
-        else
-            cᵖ = s.C[c.iⁿ]
-            cᵈ = s.C[c.jⁿ]
-            if isopen(cᵖ) && isclose(cᵈ)
-                nᵗ = cᵈ.iᵗ ≤ lastindex(s.D) ? s.D[cᵈ.iᵗ] : s.C[cᵈ.iᵗ]
-                nʰ = cᵈ.iʰ ≤ lastindex(s.D) ? s.D[cᵈ.iʰ] : s.C[cᵈ.iʰ]
-                r  = cᵈ.r
-                removenode!(cᵈ, nᵗ, nʰ, r, s)
-            end
+        cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
+        cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
+        if isopen(cᵈ) && isclose(cᵖ)
+            nᵗ = cᵖ.iᵗ ≤ lastindex(s.D) ? s.D[cᵖ.iᵗ] : s.C[cᵖ.iᵗ]
+            nʰ = cᵖ.iʰ ≤ lastindex(s.D) ? s.D[cᵖ.iʰ] : s.C[cᵖ.iʰ]
+            r  = cᵖ.r
+            removenode!(cᵖ, nᵗ, nʰ, r, s)
+        end
+        if isopen(cᵖ) && isclose(cᵈ)
+            nᵗ = cᵈ.iᵗ ≤ lastindex(s.D) ? s.D[cᵈ.iᵗ] : s.C[cᵈ.iᵗ]
+            nʰ = cᵈ.iʰ ≤ lastindex(s.D) ? s.D[cᵈ.iʰ] : s.C[cᵈ.iʰ]
+            r  = cᵈ.r
+            removenode!(cᵈ, nᵗ, nʰ, r, s)
         end
     end
     return s
