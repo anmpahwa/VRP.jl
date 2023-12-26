@@ -115,7 +115,6 @@ function worstcustomer!(rng::AbstractRNG, q::Int, s::Solution)
         for i ∈ eachindex(L)
             cᵈ = L[i]
             cᵖ = C[cᵈ.jⁿ]
-            if !isequal(cᵖ.r, cᵈ.r) continue end
             if isopen(cᵈ) || isopen(cᵖ) continue end
             r = cᵈ.r
             j = findfirst(isequal(r), R)
