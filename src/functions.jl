@@ -158,183 +158,6 @@ hasslack(d::DepotNode) = d.q < d.qᵈ
 
 
 """
-    Route(v::Vehicle, d::DepotNode)
-
-Returns a non-operational `Route` traversed by vehicle `v` from depot node `d`.
-"""
-function Route(v::Vehicle, d::DepotNode)
-    iʳ = lastindex(v.R) + 1
-    iᵛ = v.iᵛ
-    iᵈ = d.iⁿ
-    x  = 0.
-    y  = 0. 
-    iˢ = iᵈ
-    iᵉ = iᵈ
-    θⁱ = isone(iʳ) ? 1.0 : v.R[iʳ-1].θᵉ
-    θˢ = θⁱ
-    θᵉ = θˢ
-    tⁱ = isone(iʳ) ? d.tˢ : v.R[iʳ-1].tᵉ
-    tˢ = tⁱ
-    tᵉ = tⁱ
-    τ  = Inf
-    n  = 0 
-    q  = 0.
-    l  = 0.
-    φ  = 1
-    r  = Route(iʳ, iᵛ, iᵈ, x, y, iˢ, iᵉ, θⁱ, θˢ, θᵉ, tⁱ, tˢ, tᵉ, τ, n, q, l, φ)
-    return r
-end
-"""
-    NullRoute
-
-A `NullRoute` is a fictitious out-of-service route.
-"""           
-const NullRoute = Route(0, 0, 0, 0., 0., 0, 0, 0., 0., 0., Inf, Inf, Inf, 0., 0, 0, Inf, 1)
-
-
-
-"""
-    Solution(D::Vector{DepotNode}, C::OffsetVector{CustomerNode}, A::Dict{Tuple{Int,Int}, Arc})
-
-Returns `Solution` on graph `G = (D, C, A)`.
-"""
-function Solution(D::Vector{DepotNode}, C::OffsetVector{CustomerNode}, A::Dict{Tuple{Int,Int}, Arc})
-    πᶠ = 0.
-    πᵒ = 0.
-    πᵖ = 0.
-    for d ∈ D πᶠ += d.φ * d.πᶠ end
-    for c ∈ C πᵖ += abs(c.qᶜ) end
-    return Solution(D, C, A, πᶠ, πᵒ, πᵖ)
-end
-
-
-
-"""
-    Vehicle(v::Vehicle, d::DepotNode)
-
-Returns a non-operational `Vehicle` cloning vehicle `v` at depot node `d`.
-"""
-function Vehicle(v::Vehicle, d::DepotNode)
-    iᵛ = lastindex(d.V) + 1
-    jᵛ = v.jᵛ
-    iᵈ = v.iᵈ
-    qᵛ = v.qᵛ
-    lᵛ = v.lᵛ
-    sᵛ = v.sᵛ
-    τᶠ = v.τᶠ
-    τᵈ = v.τᵈ
-    τᶜ = v.τᶜ
-    τʷ = v.τʷ
-    r̅  = v.r̅
-    tˢ = d.tˢ
-    tᵉ = d.tˢ
-    τ  = Inf
-    n  = 0
-    q  = 0.
-    l  = 0.
-    πᵈ = v.πᵈ
-    πᵗ = v.πᵗ
-    πᶠ = v.πᶠ
-    R  = Route[]
-    v  = Vehicle(iᵛ, jᵛ, iᵈ, qᵛ, lᵛ, sᵛ, τᶠ, τᵈ, τᶜ, τʷ, r̅, tˢ, tᵉ, τ, n, q, l, πᵈ, πᵗ, πᶠ, R)
-    return v
-end
-
-
-
-"""
-    vectorize(s::Solution)
-
-Returns `Solution` as a sequence of nodes in the order of visits.
-"""
-function vectorize(s::Solution)
-    Z = [Int[] for _ ∈ s.D]
-    for d ∈ s.D
-        iⁿ = d.iⁿ
-        if !isopt(d) continue end
-        for v ∈ d.V
-            if !isopt(v) continue end
-            for r ∈ v.R
-                if !isopt(r) continue end
-                cˢ = s.C[r.iˢ]
-                cᵉ = s.C[r.iᵉ] 
-                push!(Z[iⁿ], d.iⁿ)
-                c  = cˢ
-                while true
-                    push!(Z[iⁿ], c.iⁿ)
-                    if isequal(c, cᵉ) break end
-                    c = s.C[c.iʰ]
-                end
-            end
-        end
-        push!(Z[iⁿ], d.iⁿ)
-    end
-    return Z
-end
-"""
-    hash(s::Solution)
-
-Returns hash on vectorized `Solution`.
-"""
-Base.hash(s::Solution) = hash(vectorize(s))
-
-
-
-"""
-    f(s::Solution)
-
-Returns objective function evaluation for solution `s`
-"""
-f(s::Solution) = s.πᶠ + s.πᵒ + s.πᵖ * 10 ^ ceil(log10(s.πᶠ + s.πᵒ))
-
-
-
-"""
-    isfeasible(s::Solution)
-
-Returns `true` if customer service and time-window constraints;
-vehicle range, capacity, and working-hours constraints; and
-depot capacity constraints are not violated.
-"""
-function isfeasible(s::Solution)
-    if any(isopen, s.C) return false end                                    # Service constraint
-    for d ∈ s.D
-        if !isopt(d) continue end
-        for v ∈ d.V
-            if !isopt(v) continue end
-            for r ∈ v.R
-                if !isopt(r) continue end
-                cˢ = s.C[r.iˢ]
-                cᵉ = s.C[r.iᵉ] 
-                c  = cˢ
-                while true
-                    if c.tᵃ > c.tˡ return false end                         # Time-window constraint
-                    cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
-                    cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
-                    qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
-                    if !isequal(cᵖ.r, cᵈ.r) return false end                # Service constraint (order of service)
-                    if cᵖ.tᵃ > cᵈ.tᵃ return false end                       # Service constraint (order of service)
-                    if c.l > v.lᵛ return false end                          # Vehicle range constraint
-                    if qᵒ > v.qᵛ return false end                           # Vehicle capacity constraint
-                    if isequal(c, cᵉ) break end
-                    c = s.C[c.iʰ]
-                end
-                if r.l > v.lᵛ return false end                              # Vehicle range constraint
-                if r.q > v.qᵛ return false end                              # Vehicle capacity constraint
-            end
-            if d.tˢ > v.tˢ return false end                                 # Working-hours constraint (start time)
-            if v.tᵉ > d.tᵉ return false end                                 # Working-hours constraint (end time)
-            if v.tᵉ - v.tˢ > v.τʷ return false end                          # Working-hours constraint (duration)
-            if length(v.R) > v.r̅ return false end                           # Number of routes constraint
-        end
-        if d.q > d.qᵈ return false end                                      # Depot capacity constraint
-    end
-    return true
-end
-
-
-
-"""
     relatedness(c₁::CustomerNode, c₂::CustomerNode, s::Solution)
 
 Returns a measure of similarity between customer nodes `c₁` and `c₂` in solution `s`.
@@ -352,6 +175,7 @@ function relatedness(c₁::CustomerNode, c₂::CustomerNode, s::Solution)
     z   = φ/(q + l + t + ϵ)
     return z
 end
+
 """
     relatedness(r₁::Route, r₂::Route, s::Solution)
 
@@ -430,3 +254,180 @@ end
 Returns a measure of similarity between depot node `d` and customer nodes `c` in solution `s`.
 """
 relatedness(d::DepotNode, c::CustomerNode, s::Solution) = relatedness(c, d, s)
+
+
+
+"""
+    Route(v::Vehicle, d::DepotNode)
+
+Returns a non-operational `Route` traversed by vehicle `v` from depot node `d`.
+"""
+function Route(v::Vehicle, d::DepotNode)
+    iʳ = lastindex(v.R) + 1
+    iᵛ = v.iᵛ
+    iᵈ = d.iⁿ
+    x  = 0.
+    y  = 0. 
+    iˢ = iᵈ
+    iᵉ = iᵈ
+    θⁱ = isone(iʳ) ? 1.0 : v.R[iʳ-1].θᵉ
+    θˢ = θⁱ
+    θᵉ = θˢ
+    tⁱ = isone(iʳ) ? d.tˢ : v.R[iʳ-1].tᵉ
+    tˢ = tⁱ
+    tᵉ = tⁱ
+    τ  = Inf
+    n  = 0 
+    q  = 0.
+    l  = 0.
+    φ  = 1
+    r  = Route(iʳ, iᵛ, iᵈ, x, y, iˢ, iᵉ, θⁱ, θˢ, θᵉ, tⁱ, tˢ, tᵉ, τ, n, q, l, φ)
+    return r
+end
+"""
+    NullRoute
+
+A `NullRoute` is a fictitious out-of-service route.
+"""           
+const NullRoute = Route(0, 0, 0, 0., 0., 0, 0, 0., 0., 0., Inf, Inf, Inf, 0., 0, 0, Inf, 1)
+
+
+
+"""
+    Vehicle(v::Vehicle, d::DepotNode)
+
+Returns a non-operational `Vehicle` cloning vehicle `v` at depot node `d`.
+"""
+function Vehicle(v::Vehicle, d::DepotNode)
+    iᵛ = lastindex(d.V) + 1
+    jᵛ = v.jᵛ
+    iᵈ = v.iᵈ
+    qᵛ = v.qᵛ
+    lᵛ = v.lᵛ
+    sᵛ = v.sᵛ
+    τᶠ = v.τᶠ
+    τᵈ = v.τᵈ
+    τᶜ = v.τᶜ
+    τʷ = v.τʷ
+    r̅  = v.r̅
+    tˢ = d.tˢ
+    tᵉ = d.tˢ
+    τ  = Inf
+    n  = 0
+    q  = 0.
+    l  = 0.
+    πᵈ = v.πᵈ
+    πᵗ = v.πᵗ
+    πᶠ = v.πᶠ
+    R  = Route[]
+    v  = Vehicle(iᵛ, jᵛ, iᵈ, qᵛ, lᵛ, sᵛ, τᶠ, τᵈ, τᶜ, τʷ, r̅, tˢ, tᵉ, τ, n, q, l, πᵈ, πᵗ, πᶠ, R)
+    return v
+end
+
+
+
+"""
+    Solution(D::Vector{DepotNode}, C::OffsetVector{CustomerNode}, A::Dict{Tuple{Int,Int}, Arc})
+
+Returns `Solution` on graph `G = (D, C, A)`.
+"""
+function Solution(D::Vector{DepotNode}, C::OffsetVector{CustomerNode}, A::Dict{Tuple{Int,Int}, Arc})
+    πᶠ = 0.
+    πᵒ = 0.
+    πᵖ = 0.
+    for d ∈ D πᶠ += d.φ * d.πᶠ end
+    for c ∈ C πᵖ += 1. end
+    return Solution(D, C, A, πᶠ, πᵒ, πᵖ)
+end
+
+
+
+"""
+    vectorize(s::Solution)
+
+Returns `Solution` as a sequence of nodes in the order of visits.
+"""
+function vectorize(s::Solution)
+    Z = [Int[] for _ ∈ s.D]
+    for d ∈ s.D
+        iⁿ = d.iⁿ
+        if !isopt(d) continue end
+        for v ∈ d.V
+            if !isopt(v) continue end
+            for r ∈ v.R
+                if !isopt(r) continue end
+                cˢ = s.C[r.iˢ]
+                cᵉ = s.C[r.iᵉ] 
+                push!(Z[iⁿ], d.iⁿ)
+                c  = cˢ
+                while true
+                    push!(Z[iⁿ], c.iⁿ)
+                    if isequal(c, cᵉ) break end
+                    c = s.C[c.iʰ]
+                end
+            end
+        end
+        push!(Z[iⁿ], d.iⁿ)
+    end
+    return Z
+end
+"""
+    hash(s::Solution)
+
+Returns hash on vectorized `Solution`.
+"""
+Base.hash(s::Solution) = hash(vectorize(s))
+
+
+
+"""
+    isfeasible(s::Solution)
+
+Returns `true` if customer service and time-window constraints;
+vehicle range, capacity, and working-hours constraints; and
+depot capacity constraints are not violated.
+"""
+function isfeasible(s::Solution)
+    if any(isopen, s.C) return false end                                    # Service constraint
+    for d ∈ s.D
+        if !isopt(d) continue end
+        for v ∈ d.V
+            if !isopt(v) continue end
+            for r ∈ v.R
+                if !isopt(r) continue end
+                cˢ = s.C[r.iˢ]
+                cᵉ = s.C[r.iᵉ] 
+                c  = cˢ
+                while true
+                    if c.tᵃ > c.tˡ return false end                         # Time-window constraint
+                    cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
+                    cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
+                    qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
+                    if !isequal(cᵖ.r, cᵈ.r) return false end                # Service constraint (order of service)
+                    if cᵖ.tᵃ > cᵈ.tᵃ return false end                       # Service constraint (order of service)
+                    if c.l > v.lᵛ return false end                          # Vehicle range constraint
+                    if qᵒ > v.qᵛ return false end                           # Vehicle capacity constraint
+                    if isequal(c, cᵉ) break end
+                    c = s.C[c.iʰ]
+                end
+                if r.l > v.lᵛ return false end                              # Vehicle range constraint
+                if r.q > v.qᵛ return false end                              # Vehicle capacity constraint
+            end
+            if d.tˢ > v.tˢ return false end                                 # Working-hours constraint (start time)
+            if v.tᵉ > d.tᵉ return false end                                 # Working-hours constraint (end time)
+            if v.tᵉ - v.tˢ > v.τʷ return false end                          # Working-hours constraint (duration)
+            if length(v.R) > v.r̅ return false end                           # Number of routes constraint
+        end
+        if d.q > d.qᵈ return false end                                      # Depot capacity constraint
+    end
+    return true
+end
+
+
+
+"""
+    f(s::Solution)
+
+Returns objective function evaluation for solution `s`
+"""
+f(s::Solution) = s.πᶠ + s.πᵒ + s.πᵖ * 10 ^ ceil(log10(s.πᶠ + s.πᵒ))
