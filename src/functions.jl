@@ -347,7 +347,7 @@ function relatedness(c₁::CustomerNode, c₂::CustomerNode, s::Solution)
     cᵈ₂ = isdelivery(c₂) ? s.C[c₂.iⁿ] : s.C[c₂.jⁿ]
     φ   = 1
     q   = abs(c₁.qᶜ - c₂.qᶜ)
-    l   = sqrt(((cᵖ₁.x - cᵖ₂.x) + (cᵈ₁.x - cᵈ₂.x)) ^ 2 + ((cᵖ₁.y - cᵖ₂.y) + (cᵈ₁.y - cᵈ₂.y)) ^ 2)
+    l   = s.A[(cᵖ₁.iⁿ,cᵖ₂.iⁿ)].l + s.A[(cᵈ₁.iⁿ,cᵈ₂.iⁿ)].l
     t   = abs(cᵖ₁.tᵉ - cᵖ₂.tᵉ) + abs(cᵖ₁.tˡ - cᵖ₂.tˡ) + abs(cᵈ₁.tᵉ - cᵈ₂.tᵉ) + abs(cᵈ₁.tˡ - cᵈ₂.tˡ)
     z   = φ/(q + l + t + ϵ)
     return z
