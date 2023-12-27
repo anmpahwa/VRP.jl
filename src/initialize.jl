@@ -109,9 +109,125 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
 end
 
 
+"""
+    savings([rng::AbstractRNG], instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
+
+Returns initial `Solution` created by merging routes that render the most 
+savings until no merger can render further savings. 
+
+Note, `dir` locates the the folder containing instance files as sub-folders,
+as follows,
+
+    <dir>
+    |-<instance>
+        |-arcs.csv
+        |-depot_nodes.csv
+        |-customer_nodes.csv
+        |-vehicles.csv
+
+Optionally specify a random number generator `rng` as the first argument
+(defaults to `Random.GLOBAL_RNG`).
+"""
+function savings(rng::AbstractRNG, instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
+    # Step 1: Initialize
+    G = VRP.build(instance; dir=dir)
+    s = VRP.Solution(G...)
+    D = s.D
+    C = s.C
+    VRP.preinitialize!(s)
+    # Step 2: Initialize solution with routes to every node from the depot node (first node)
+    for c ∈ C
+        if VRP.ispickup(c) continue end
+        d = VRP.sample(rng, D)
+        v = d.V[lastindex(d.V)]
+        r = v.R[lastindex(v.R)]
+        cᵖ = C[c.jⁿ]
+        cᵈ = C[c.iⁿ]
+        VRP.insertnode!(cᵖ, d, d, r, s)
+        VRP.insertnode!(cᵈ, cᵖ, d, r, s)
+        v = VRP.Vehicle(v, d)
+        r = VRP.Route(v, d)
+        push!(v.R, r)
+        push!(d.V, v)
+    end
+    # Step 3: Merge routes iteratively until single route traversing all nodes remains
+    R = [r for d ∈ s.D for v ∈ d.V for r ∈ v.R]
+    K = eachindex(R)
+    X = fill(Inf, (K,K))            # X[i,j]: Savings from merging route with tail node N[i] into route with tail node N[j]
+    while true
+        z = f(s)
+        for (k₁,r₁) ∈ pairs(R)
+            for (k₂,r₂) ∈ pairs(R)
+                if isequal(r₁, r₂) continue end
+                if !VRP.isopt(r₁) || !VRP.isopt(r₂) continue end
+                cˢ  = C[r₁.iˢ]
+                cᵉ  = C[r₁.iᵉ] 
+                c   = cˢ
+                nᵗ₁ = c.iᵗ ≤ lastindex(D) ? D[c.iᵗ] : C[c.iᵗ]
+                nʰ₁ = c.iʰ ≤ lastindex(D) ? D[c.iʰ] : C[c.iʰ]
+                nᵗ₂ = C[r₂.iᵉ]
+                nʰ₂ = D[r₂.iᵈ]
+                while true
+                    VRP.removenode!(c, nᵗ₁, nʰ₁, r₁, s)
+                    VRP.insertnode!(c, nᵗ₂, nʰ₂, r₂, s)
+                    if isequal(c, cᵉ) break end
+                    c   = C[r₁.iˢ]
+                    nᵗ₁ = c.iᵗ ≤ lastindex(D) ? D[c.iᵗ] : C[c.iᵗ]
+                    nʰ₁ = c.iʰ ≤ lastindex(D) ? D[c.iʰ] : C[c.iʰ]
+                    nᵗ₂ = C[r₂.iᵉ]
+                    nʰ₂ = D[r₂.iᵈ]
+                end
+                z′ = f(s)
+                Δ  = z′ - z
+                X[k₁,k₂] = Δ
+                c   = cᵉ
+                nᵗ₁ = D[r₁.iᵈ]
+                nʰ₁ = D[r₁.iᵈ]
+                nᵗ₂ = c.iᵗ ≤ lastindex(D) ? D[c.iᵗ] : C[c.iᵗ]
+                nʰ₂ = c.iʰ ≤ lastindex(D) ? D[c.iʰ] : C[c.iʰ]
+                while true
+                    VRP.removenode!(c, nᵗ₂, nʰ₂, r₂, s)
+                    VRP.insertnode!(c, nᵗ₁, nʰ₁, r₁, s)
+                    if isequal(c, cˢ) break end
+                    c   = C[r₂.iᵉ]
+                    nᵗ₁ = D[r₁.iᵈ]
+                    nʰ₁ = C[r₁.iˢ]
+                    nᵗ₂ = c.iᵗ ≤ lastindex(D) ? D[c.iᵗ] : C[c.iᵗ]
+                    nʰ₂ = c.iʰ ≤ lastindex(D) ? D[c.iʰ] : C[c.iʰ]
+                end
+            end
+        end
+        k₁,k₂ = Tuple(argmin(X))
+        Δ = X[k₁,k₂]
+        if Δ > 0 break end 
+        r₁  = R[k₁]
+        r₂  = R[k₂]
+        cˢ  = C[r₁.iˢ]
+        cᵉ  = C[r₁.iᵉ] 
+        c   = cˢ
+        nᵗ₁ = c.iᵗ ≤ lastindex(D) ? D[c.iᵗ] : C[c.iᵗ]
+        nʰ₁ = c.iʰ ≤ lastindex(D) ? D[c.iʰ] : C[c.iʰ]
+        nᵗ₂ = C[r₂.iᵉ]
+        nʰ₂ = D[r₂.iᵈ]
+        while true
+            VRP.removenode!(c, nᵗ₁, nʰ₁, r₁, s)
+            VRP.insertnode!(c, nᵗ₂, nʰ₂, r₂, s)
+            if isequal(c, cᵉ) break end
+            c   = C[r₁.iˢ]
+            nᵗ₁ = c.iᵗ ≤ lastindex(D) ? D[c.iᵗ] : C[c.iᵗ]
+            nʰ₁ = c.iʰ ≤ lastindex(D) ? D[c.iʰ] : C[c.iʰ]
+            nᵗ₂ = C[r₂.iᵉ]
+            nʰ₂ = D[r₂.iᵈ]
+        end
+        X .= Inf
+    end
+    return s
+end
+
+
 
 """
-    initialize(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
+    initialize([rng::AbstractRNG], instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
 
 Returns initial VRP `Solution` for the `instance`. 
 
@@ -128,24 +244,5 @@ as follows,
 Optionally specify a random number generator `rng` as the first argument
 (defaults to `Random.GLOBAL_RNG`).
 """
-function initialize(rng::AbstractRNG, instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
-    G = build(instance; dir=dir)
-    s = Solution(G...)
-    preinitialize!(s)
-    for c ∈ s.C
-        if ispickup(c) continue end
-        d = sample(rng, s.D)
-        v = d.V[lastindex(d.V)]
-        r = v.R[lastindex(v.R)]
-        cᵖ = s.C[c.jⁿ]
-        cᵈ = s.C[c.iⁿ]
-        insertnode!(cᵖ, d, d, r, s)
-        insertnode!(cᵈ, cᵖ, d, r, s)
-        v = Vehicle(v, d)
-        r = Route(v, d)
-        push!(v.R, r)
-        push!(d.V, v)
-    end
-    return s
-end
-initialize(instance; dir=joinpath(dirname(@__DIR__), "instances")) = initialize(Random.GLOBAL_RNG, instance; dir=dir)
+initialize(rng::AbstractRNG, instance::String; dir=joinpath(dirname(@__DIR__), "instances")) = savings(rng, instance; dir=dir)
+initialize(instance::String; dir=joinpath(dirname(@__DIR__), "instances")) = initialize(Random.GLOBAL_RNG, instance; dir=dir)
