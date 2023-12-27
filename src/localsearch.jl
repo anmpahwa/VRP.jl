@@ -97,6 +97,7 @@ function intermove!(rng::AbstractRNG, k̅::Int, s::Solution)
         n  = sample(rng, C, OffsetWeights(Wᶜ))
         cᵖ = isdelivery(n) ? C[n.jⁿ] : C[n.iⁿ]
         cᵈ = isdelivery(n) ? C[n.iⁿ] : C[n.jⁿ]
+        if !isequal(cᵖ.r, cᵈ.r) continue end
         r₁ = cᵈ.r
         if isdormant(r₁) continue end
         # Step 2.2: Select a random route
