@@ -6,7 +6,9 @@ using DataFrames
 
 let
     # Define instances
-    instances = ["lc101", "bar-n100-1", "ber-n100-2", "nyc-n100-3", "poa-n100-4"]
+    # Set A
+    A = ["bar-n100-1", "ber-n100-2", "nyc-n100-3", "poa-n100-4"]
+    instances = [A...]
     # Define random number generators
     seeds = [1010, 1106, 1509, 1604, 1905, 2104, 2412, 2703, 2710, 2807]
     # Dataframes to store solution quality and run time
@@ -57,15 +59,15 @@ let
                 σ₁  =   15                      ,
                 σ₂  =   10                      ,
                 σ₃  =   3                       ,
-                μ̲   =   0.01                    ,
-                c̲   =   1                       ,
-                μ̅   =   0.05                    ,
-                c̅   =   5                       ,
+                μ̲   =   0.05                    ,
+                c̲   =   2                       ,
+                μ̅   =   0.1                     ,
+                c̅   =   15                      ,
                 ω̅   =   0.05                    ,
                 τ̅   =   0.5                     ,
                 ω̲   =   0.01                    ,
                 τ̲   =   0.01                    ,
-                θ   =   0.9985                  ,
+                θ   =   0.9993                  ,
                 ρ   =   0.1
             );
             # Run ALNS and fetch best solution
