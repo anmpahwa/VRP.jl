@@ -30,7 +30,7 @@ let
                 j   =   50                      ,
                 k   =   5                       ,
                 n   =   x                       ,
-                m   =   100x                    ,
+                m   =   25x                     ,
                 Ψᵣ  =   [
                             :randomcustomer!    ,
                             :randomroute!       ,
@@ -61,11 +61,11 @@ let
                 c̲   =   2                       ,
                 μ̅   =   0.1                     ,
                 c̅   =   15                      ,
-                ω̅   =   0.05                    ,
+                ω̅   =   0.1                     ,
                 τ̅   =   0.5                     ,
                 ω̲   =   0.01                    ,
                 τ̲   =   0.01                    ,
-                θ   =   0.9993                  ,
+                θ   =   0.999                   ,
                 ρ   =   0.1
             );
             # Run ALNS and fetch best solution
