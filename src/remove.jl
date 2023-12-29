@@ -4,9 +4,9 @@
 Returns solution removing `q` customer nodes from solution s using the given `method`.
 
 Available methods include,
-- Random Customer Node Removal  : `:random!`
-- Related Customer Node Removal : `:related!`
-- Worst Customer Node Removal   : `:worst!`
+- Random Customer Node Removal  : `:randomcustomer!`
+- Related Customer Node Removal : `:relatedcustomer!`
+- Worst Customer Node Removal   : `:worstcustomer!`
 
 Optionally specify a random number generator `rng` as the first argument
 (defaults to `Random.GLOBAL_RNG`).
@@ -17,12 +17,12 @@ remove!(q::Int, s::Solution, method::Symbol) = remove!(Random.GLOBAL_RNG, q, s, 
 
 
 """
-    random!(rng::AbstractRNG, q::Int, s::Solution)
+    randomcustomer!(rng::AbstractRNG, q::Int, s::Solution)
 
 Returns solution `s` after removing exactly `q` customer nodes
 selected randomly.
 """
-function random!(rng::AbstractRNG, q::Int, s::Solution)
+function randomcustomer!(rng::AbstractRNG, q::Int, s::Solution)
     # Step 1: Initialize
     preremove!(s)
     D = s.D
@@ -48,12 +48,12 @@ end
 
 
 """
-    related!(rng::AbstractRNG, q::Int, s::Solution)
+    relatedcustomer!(rng::AbstractRNG, q::Int, s::Solution)
 
 Returns solution `s` after removing exactly `q` customer nodes
 most related to a randomly selected pivot customer node.
 """
-function related!(rng::AbstractRNG, q::Int, s::Solution)
+function relatedcustomer!(rng::AbstractRNG, q::Int, s::Solution)
     # Step 1: Initialize
     preremove!(s)
     D = s.D
@@ -86,12 +86,12 @@ end
 
 
 """
-    worst!(rng::AbstractRNG, q::Int, s::Solution)
+    worstcustomer!(rng::AbstractRNG, q::Int, s::Solution)
 
 Returns solution `s` after removing exactly `q` customer nodes 
 with highest removal cost (savings).
 """
-function worst!(rng::AbstractRNG, q::Int, s::Solution)
+function worstcustomer!(rng::AbstractRNG, q::Int, s::Solution)
     # Step 1: Initialize
     preremove!(s)
     D = s.D
