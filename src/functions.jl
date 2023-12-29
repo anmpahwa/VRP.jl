@@ -87,8 +87,8 @@ isopen(c::CustomerNode) = isequal(c.r, NullRoute)
 """
     isopen(d::DepotNode)
 
-Returns `true` if depot node `d` is operational.
-A `DepotNode` is defined operational if it serves at least one customer
+Returns `true` if depot node `d` is open.
+A `DepotNode` is defined open if it serves at least one customer
 unless it is mandated to be operational.
 """  
 isopen(d::DepotNode) = !iszero(d.n) || !iszero(d.φ)
@@ -105,8 +105,8 @@ isclose(c::CustomerNode) = !isequal(c.r, NullRoute)
 """
     isclose(d::DepotNode)
 
-Returns `true` if depot node `d` is not operational.
-A `DepotNode` is defined non-operational if it serves no customer
+Returns `true` if depot node `d` is closed.
+A `DepotNode` is defined closed if it serves no customer
 given it is not mandated to be operational.
 """  
 isclose(d::DepotNode) = iszero(d.n) && iszero(d.φ)
@@ -114,44 +114,10 @@ isclose(d::DepotNode) = iszero(d.n) && iszero(d.φ)
 
 
 """
-    isactive(r::Route)
-
-A `Route` is defined active if it has not been initialized yet.
-Usage in dynamic execution and simulation.
-"""
-isactive(r::Route) = isone(r.φ)
-"""
-    isactive(c::CustomerNode)
-
-A `CustomerNode` is defined active if its route has not been initialized yet.
-Usage in dynamic execution and simulation.
-"""
-isactive(c::CustomerNode) = isactive(c.r)
-
-
-
-"""
-    isdormant(r::Route)
-
-A `Route` is defined dormant if it has been initialized.
-Usage in dynamic execution and simulation.
-"""
-isdormant(r::Route) = iszero(r.φ)
-"""
-    isactive(c::CustomerNode)
-
-A `CustomerNode` is defined dormant if its route has been initialized.
-Usage in dynamic execution and simulation.
-"""
-isdormant(c::CustomerNode) = isdormant(c.r)
-
-
-
-"""
     hasslack(d::DepotNode)
     
 Returns `true` if depot node `d` has slack.
-A `DepotNode` is defined to have slack if it has the capacity to serve an additional customer.
+A `DepotNode` is defined to have slack if it has spare capacity.
 """
 hasslack(d::DepotNode) = d.q < d.qᵈ
 
@@ -168,11 +134,10 @@ function relatedness(m::Symbol, c₁::CustomerNode, c₂::CustomerNode, s::Solut
     cᵈ₁ = isdelivery(c₁) ? s.C[c₁.iⁿ] : s.C[c₁.jⁿ]
     cᵖ₂ = isdelivery(c₂) ? s.C[c₂.jⁿ] : s.C[c₂.iⁿ] 
     cᵈ₂ = isdelivery(c₂) ? s.C[c₂.iⁿ] : s.C[c₂.jⁿ]
-    φ   = 1
     q   = isequal(m, :q) * (abs(c₁.qᶜ - c₂.qᶜ))
     l   = isequal(m, :l) * (s.A[(cᵖ₁.iⁿ,cᵖ₂.iⁿ)].l + s.A[(cᵈ₁.iⁿ,cᵈ₂.iⁿ)].l)
     t   = isequal(m, :t) * (abs(cᵖ₁.tᵉ - cᵖ₂.tᵉ) + abs(cᵖ₁.tˡ - cᵖ₂.tˡ) + abs(cᵈ₁.tᵉ - cᵈ₂.tᵉ) + abs(cᵈ₁.tˡ - cᵈ₂.tˡ))
-    z   = φ/(q + l + t + ϵ)
+    z   = 1/(q + l + t + ϵ)
     return z
 end
 """
@@ -182,11 +147,10 @@ Returns a measure of similarity between routes `r₁` and `r₂` based on metric
 """
 function relatedness(m::Symbol, r₁::Route, r₂::Route, s::Solution)
     ϵ  = 1e-5
-    φ  = 1
     q  = isequal(m, :q) * (abs(r₁.q - r₂.q))
     l  = isequal(m, :l) * (sqrt((r₁.x - r₂.x)^2 + (r₁.y - r₂.y)^2))
     t  = isequal(m, :t) * (abs(r₁.tˢ - r₂.tˢ) + abs(r₁.tᵉ - r₂.tᵉ))
-    z  = φ/(q + l + t + ϵ)
+    z  = 1/(q + l + t + ϵ)
     return z
 end
 """
@@ -208,11 +172,10 @@ function relatedness(m::Symbol, v₁::Vehicle, v₂::Vehicle, s::Solution)
         x₂ += r.n * r.x / v₂.n
         y₂ += r.n * r.y / v₂.n
     end
-    φ  = 1
     q  = isequal(m, :q) * (abs(v₁.q - v₂.q))
     l  = isequal(m, :l) * (sqrt((x₁ - x₂)^2 + (y₁ - y₂)^2))
     t  = isequal(m, :t) * (abs(v₁.tˢ - v₂.tˢ) + abs(v₁.tᵉ - v₂.tᵉ))
-    z  = φ/(q + l + t + ϵ)
+    z  = 1/(q + l + t + ϵ)
     return z
 end
 """
@@ -222,11 +185,10 @@ Returns a measure of similarity between depot nodes `d₁` and `d₂` based on m
 """
 function relatedness(m::Symbol, d₁::DepotNode, d₂::DepotNode, s::Solution)
     ϵ  = 1e-5
-    φ  = 1
     q  = isequal(m, :q) * (abs(d₁.qᵈ - d₂.qᵈ))
     l  = isequal(m, :l) * (s.A[(d₁.iⁿ, d₂.iⁿ)].l)
     t  = isequal(m, :t) * (abs(d₁.tˢ - d₂.tˢ) + abs(d₁.tᵉ - d₂.tᵉ))
-    z  = φ/(q + l + t + ϵ)
+    z  = 1/(q + l + t + ϵ)
     return z
 end
 
@@ -251,12 +213,10 @@ function Route(v::Vehicle, d::DepotNode)
     tⁱ = isone(iʳ) ? d.tˢ : v.R[iʳ-1].tᵉ
     tˢ = tⁱ
     tᵉ = tⁱ
-    τ  = Inf
     n  = 0 
     q  = 0.
     l  = 0.
-    φ  = 1
-    r  = Route(iʳ, iᵛ, iᵈ, x, y, iˢ, iᵉ, θⁱ, θˢ, θᵉ, tⁱ, tˢ, tᵉ, τ, n, q, l, φ)
+    r  = Route(iʳ, iᵛ, iᵈ, x, y, iˢ, iᵉ, θⁱ, θˢ, θᵉ, tⁱ, tˢ, tᵉ, n, q, l)
     return r
 end
 """
@@ -264,7 +224,7 @@ end
 
 A `NullRoute` is a fictitious out-of-service route.
 """           
-const NullRoute = Route(0, 0, 0, 0., 0., 0, 0, 0., 0., 0., Inf, Inf, Inf, 0., 0, 0, Inf, 1)
+const NullRoute = Route(0, 0, 0, 0., 0., 0, 0, 0., 0., 0., Inf, Inf, Inf, 0, 0, Inf)
 
 
 
@@ -287,7 +247,6 @@ function Vehicle(v::Vehicle, d::DepotNode)
     r̅  = v.r̅
     tˢ = d.tˢ
     tᵉ = d.tˢ
-    τ  = Inf
     n  = 0
     q  = 0.
     l  = 0.
@@ -295,7 +254,7 @@ function Vehicle(v::Vehicle, d::DepotNode)
     πᵗ = v.πᵗ
     πᶠ = v.πᶠ
     R  = Route[]
-    v  = Vehicle(iᵛ, jᵛ, iᵈ, qᵛ, lᵛ, sᵛ, τᶠ, τᵈ, τᶜ, τʷ, r̅, tˢ, tᵉ, τ, n, q, l, πᵈ, πᵗ, πᶠ, R)
+    v  = Vehicle(iᵛ, jᵛ, iᵈ, qᵛ, lᵛ, sᵛ, τᶠ, τᵈ, τᶜ, τʷ, r̅, tˢ, tᵉ, n, q, l, πᵈ, πᵗ, πᶠ, R)
     return v
 end
 
@@ -323,26 +282,28 @@ end
 Returns `Solution` as a sequence of nodes in the order of visits.
 """
 function vectorize(s::Solution)
-    Z = [Int[] for _ ∈ s.D]
+    Z = [[[Int[] for r ∈ v.R] for v ∈ d.V] for d ∈ s.D]
     for d ∈ s.D
         iⁿ = d.iⁿ
         if !isopt(d) continue end
         for v ∈ d.V
+            iᵛ = v.iᵛ
             if !isopt(v) continue end
             for r ∈ v.R
+                iʳ = r.iʳ
                 if !isopt(r) continue end
                 cˢ = s.C[r.iˢ]
                 cᵉ = s.C[r.iᵉ] 
-                push!(Z[iⁿ], d.iⁿ)
+                push!(Z[iⁿ][iᵛ][iʳ], d.iⁿ)
                 c  = cˢ
                 while true
-                    push!(Z[iⁿ], c.iⁿ)
+                    push!(Z[iⁿ][iᵛ][iʳ], c.iⁿ)
                     if isequal(c, cᵉ) break end
                     c = s.C[c.iʰ]
                 end
+                push!(Z[iⁿ][iᵛ][iʳ], d.iⁿ)
             end
         end
-        push!(Z[iⁿ], d.iⁿ)
     end
     return Z
 end
