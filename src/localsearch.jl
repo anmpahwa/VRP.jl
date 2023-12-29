@@ -10,7 +10,6 @@ Available methods include,
 - inter-swap    : `:interswap!`
 - intra-opt     : `:intraopt!`
 - inter-opt     : `:interopt!`
-- swapdepot     : `:swapdepot!`
 
 Optionally specify a random number generator `rng` as the first argument (defaults to `Random.GLOBAL_RNG`).
 """
@@ -175,7 +174,7 @@ function intraswap!(rng::AbstractRNG, k̅::Int, s::Solution)
         # n₁ → n₂ → n₃ and n₄ → n₅ → n₆
         n₂ = sample(rng, C, OffsetWeights(W₂))
         if isdormant(n₂) continue end
-        W₅ = [isdormant(n₅) || !isequal(n₂.r, n₅.r) || isequal(n₂, n₅) ? 0. : relatedness(n₂, n₅, s) for n₅ ∈ C]
+        W₅ = [isdormant(n₅) || !isequal(n₂.r, n₅.r) || isequal(n₂, n₅) ? 0. : 1. for n₅ ∈ C]
         n₅ = sample(rng, C, OffsetWeights(W₅))
         if isdormant(n₅) continue end
         r₂ = n₂.r
@@ -248,7 +247,7 @@ function interswap!(rng::AbstractRNG, k̅::Int, s::Solution)
         # n₁ → n₂ → n₃ and n₄ → n₅ → n₆
         n₂ = sample(rng, C, OffsetWeights(W₂))
         if isdormant(n₂) continue end
-        W₅ = [isdormant(n₅) || isequal(n₂.r, n₅.r) || isequal(n₂, n₅) ? 0. : relatedness(n₂, n₅, s) for n₅ ∈ C]
+        W₅ = [isdormant(n₅) || isequal(n₂.r, n₅.r) || isequal(n₂, n₅) ? 0. : 1. for n₅ ∈ C]
         n₅ = sample(rng, C, OffsetWeights(W₅))
         if isdormant(n₅) continue end
         if isequal(n₂, n₅) continue end
@@ -462,7 +461,7 @@ function interopt!(rng::AbstractRNG, k̅::Int, s::Solution)
         # d₂ → ... → n₁ → n₂ → n₃ → ... → d₂ and d₅ → ... → n₄ → n₅ → n₆ → ... → d₅
         r₂ = sample(rng, R, Weights(W₂))
         if !isopt(r₂) || isdormant(r₂) continue end
-        W₅ = [!isopt(r₅) || isdormant(r₅) || isequal(r₂, r₅)  ? 0. : relatedness(r₂, r₅, s) for r₅ ∈ R]
+        W₅ = [!isopt(r₅) || isdormant(r₅) || isequal(r₂, r₅)  ? 0. : 1. for r₅ ∈ R]
         r₅ = sample(rng, R, Weights(W₅))
         if !isopt(r₅) || isdormant(r₅) continue end
         d₂ = D[r₂.iᵈ]
@@ -552,68 +551,6 @@ function interopt!(rng::AbstractRNG, k̅::Int, s::Solution)
                 tⁿ = c₅
                 c₅ = C[hᵒ.iⁿ]
                 hᵒ = isequal(r₅.iᵉ, c₅.iⁿ) ? D[c₅.iʰ] : C[c₅.iʰ]
-            end
-        end
-    end
-    postlocalsearch!(s)
-    # Step 3: Return solution
-    return s
-end
-
-
-
-"""
-    swapdepot!(rng::AbstractRNG, k̅::Int, s::Solution)
-
-Returns solution `s` after swapping vehicles, routes, and customer nodes
-between two randomly selected depot nodes if the swap results in a reduction 
-in objective function value, repeating for `k̅` iterations.
-"""
-function swapdepot!(rng::AbstractRNG, k̅::Int, s::Solution)
-    # Step 1: Initialize
-    prelocalsearch!(s)
-    z  = f(s)
-    D  = s.D
-    C  = s.C
-    W₁ = isopt.(D)
-    # Step 2: Iterate for k̅ iterations
-    for _ ∈ 1:k̅
-        # Step 2.1: Select a random depot pair
-        d₁ = sample(rng, D, Weights(W₁))
-        R₁ = [r₁ for v₁ ∈ d₁.V for r₁ ∈ v₁.R]
-        if any(isdormant, R₁) continue end
-        W₂ = [isequal(d₁, d₂) ? 0. : relatedness(d₁, d₂, s) for d₂ ∈ D]
-        d₂ = sample(rng, D, Weights(W₂))
-        R₂ = [r₂ for v₂ ∈ d₂.V for r₂ ∈ v₂.R]
-        if any(isdormant, R₂) continue end
-        if isequal(d₁, d₂) continue end
-        if !isopt(d₁) && !isopt(d₂) continue end
-        # Step 2.2: Swap vehicles, routes, and customer nodes
-        I₁ = eachindex(d₁.V)
-        I₂ = eachindex(d₂.V)
-        while !isempty(d₁.V)
-            v = d₁.V[1]
-            movevehicle!(v, d₁, d₂, s)
-        end
-        for iᵛ ∈ I₂
-            v = d₂.V[1]
-            movevehicle!(v, d₂, d₁, s)
-        end
-        z′ = f(s)
-        Δ  = z′ - z
-        # Step 2.3: If the swap results in reduction in objective function value then go to step 1, else go to step 1.4
-        if Δ < 0 z = z′
-        # Step 2.4: Reconfigure back to the original state
-        else
-            I₁ = eachindex(d₁.V)
-            I₂ = eachindex(d₂.V)
-            while !isempty(d₁.V)
-                v = d₁.V[1]
-                movevehicle!(v, d₁, d₂, s)
-            end
-            for iᵛ ∈ I₂
-                v = d₂.V[1]
-                movevehicle!(v, d₂, d₁, s)
             end
         end
     end
