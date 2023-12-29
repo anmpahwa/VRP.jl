@@ -12,17 +12,8 @@ let
         m   =   1000                    ,
         Ψᵣ  =   [
                     :randomcustomer!    ,
-                    :randomroute!       ,
-                    :randomvehicle!     ,
-                    :randomdepot!       ,
                     :relatedcustomer!   ,
-                    :relatedroute!      ,
-                    :relatedvehicle!    ,
-                    :relateddepot!      ,
-                    :worstcustomer!     ,
-                    :worstroute!        ,
-                    :worstvehicle!      ,
-                    :worstdepot!
+                    :worstcustomer!
                 ]                       ,
         Ψᵢ  =   [
                     :best!              ,
@@ -37,8 +28,7 @@ let
                     :intraopt!          ,
                     :intermove!         ,
                     :interswap!         ,
-                    :interopt!          ,
-                    :swapdepot!
+                    :interopt!
                 ]                       ,
         σ₁  =   15                      ,
         σ₂  =   10                      ,
@@ -55,7 +45,7 @@ let
         ρ   =   0.1
     );
     @testset "VRP" begin
-        instances = ["bar-n100-1"]
+        instances = ["bar-n100-1", "nyc-n100-3", "poa-n100-7"]
         for instance ∈ instances
             visualize(instance)
             println(instance)
