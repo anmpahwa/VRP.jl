@@ -249,6 +249,21 @@ end
 Returns a measure of similarity between depot node `d` and customer nodes `c` based on metric `m` in solution `s`.
 """
 relatedness(m::Symbol, d::DepotNode, c::CustomerNode, s::Solution) = relatedness(m, c, d, s)
+"""
+    relatedness(m::Symbol, c::CustomerNode, r::Route, s::Solution)
+
+Returns a measure of similarity between customer node `c` and and route `r` based on metric `m` in solution `s`.
+"""
+function relatedness(m::Symbol, c::CustomerNode, r::Route, s::Solution)
+    ϵ  = 1e-5
+    φ  = 1
+    q  = isequal(m, :q) * (0.)
+    l  = isequal(m, :l) * (sqrt((r.x - c.x)^2 + (r.y - c.y)^2))
+    t  = isequal(m, :t) * (0.)
+    z  = φ/(q + l + t + ϵ)
+    return z
+end
+relatedness(m::Symbol, r::Route, c::CustomerNode, s::Solution) = relatedness(m, c, r, s)
 
 
 
