@@ -158,20 +158,20 @@ hasslack(d::DepotNode) = d.q < d.qᵈ
 
 
 """
-    relatedness(f::Symbol, c₁::CustomerNode, c₂::CustomerNode, s::Solution)
+    relatedness(m::Symbol, c₁::CustomerNode, c₂::CustomerNode, s::Solution)
 
-Returns a measure of similarity between customer nodes `c₁` and `c₂` basedon feature `f` in solution `s`.
+Returns a measure of similarity between customer nodes `c₁` and `c₂` based on metric `m` in solution `s`.
 """
-function relatedness(f::Symbol, c₁::CustomerNode, c₂::CustomerNode, s::Solution;)
+function relatedness(m::Symbol, c₁::CustomerNode, c₂::CustomerNode, s::Solution;)
     ϵ   = 1e-5
     cᵖ₁ = isdelivery(c₁) ? s.C[c₁.jⁿ] : s.C[c₁.iⁿ] 
     cᵈ₁ = isdelivery(c₁) ? s.C[c₁.iⁿ] : s.C[c₁.jⁿ]
     cᵖ₂ = isdelivery(c₂) ? s.C[c₂.jⁿ] : s.C[c₂.iⁿ] 
     cᵈ₂ = isdelivery(c₂) ? s.C[c₂.iⁿ] : s.C[c₂.jⁿ]
     φ   = 1
-    q   = isequal(f, :q) * (abs(c₁.qᶜ - c₂.qᶜ))
-    l   = isequal(f, :l) * (s.A[(cᵖ₁.iⁿ,cᵖ₂.iⁿ)].l + s.A[(cᵈ₁.iⁿ,cᵈ₂.iⁿ)].l)
-    t   = isequal(f, :t) * (abs(cᵖ₁.tᵉ - cᵖ₂.tᵉ) + abs(cᵖ₁.tˡ - cᵖ₂.tˡ) + abs(cᵈ₁.tᵉ - cᵈ₂.tᵉ) + abs(cᵈ₁.tˡ - cᵈ₂.tˡ))
+    q   = isequal(m, :q) * (abs(c₁.qᶜ - c₂.qᶜ))
+    l   = isequal(m, :l) * (s.A[(cᵖ₁.iⁿ,cᵖ₂.iⁿ)].l + s.A[(cᵈ₁.iⁿ,cᵈ₂.iⁿ)].l)
+    t   = isequal(m, :t) * (abs(cᵖ₁.tᵉ - cᵖ₂.tᵉ) + abs(cᵖ₁.tˡ - cᵖ₂.tˡ) + abs(cᵈ₁.tᵉ - cᵈ₂.tᵉ) + abs(cᵈ₁.tˡ - cᵈ₂.tˡ))
     z   = φ/(q + l + t + ϵ)
     return z
 end
@@ -257,7 +257,7 @@ function Solution(D::Vector{DepotNode}, C::OffsetVector{CustomerNode}, A::Dict{T
     πᵒ = 0.
     πᵖ = 0.
     for d ∈ D πᶠ += d.φ * d.πᶠ end
-    for c ∈ C πᵖ += 1. end
+    for c ∈ C πᵖ += abs(c.qᶜ) end
     return Solution(D, C, A, πᶠ, πᵒ, πᵖ)
 end
 
