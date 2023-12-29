@@ -230,26 +230,6 @@ function relatedness(m::Symbol, d₁::DepotNode, d₂::DepotNode, s::Solution)
     return z
 end
 """
-    relatedness(m::Symbol, c::CustomerNode, d::DepotNode, s::Solution)
-
-Returns a measure of similarity between customer nodes `c` and depot node `d` based on metric `m` in solution `s`.
-"""
-function relatedness(m::Symbol, c::CustomerNode, d::DepotNode, s::Solution)
-    ϵ  = 1e-5
-    φ  = 1
-    q  = isequal(m, :q) * (0.)
-    l  = isequal(m, :l) * (s.A[(c.iⁿ,d.iⁿ)].l)
-    t  = isequal(m, :t) * (0.)
-    z  = φ/(q + l + t + ϵ)
-    return z
-end
-"""
-    relatedness(m::Symbol, d::DepotNode, c::CustomerNode, s::Solution)
-
-Returns a measure of similarity between depot node `d` and customer nodes `c` based on metric `m` in solution `s`.
-"""
-relatedness(m::Symbol, d::DepotNode, c::CustomerNode, s::Solution) = relatedness(m, c, d, s)
-"""
     relatedness(m::Symbol, c::CustomerNode, r::Route, s::Solution)
 
 Returns a measure of similarity between customer node `c` and and route `r` based on metric `m` in solution `s`.
@@ -257,9 +237,13 @@ Returns a measure of similarity between customer node `c` and and route `r` base
 function relatedness(m::Symbol, c::CustomerNode, r::Route, s::Solution)
     ϵ  = 1e-5
     φ  = 1
+    d  = s.D[c.iᵈ]
+    v  = d.V[c.iᵛ]
+    r₁ = r
+    r₂ = v.R[c.iʳ] 
     q  = isequal(m, :q) * (0.)
     l  = isequal(m, :l) * (sqrt((r.x - c.x)^2 + (r.y - c.y)^2))
-    t  = isequal(m, :t) * (0.)
+    t  = isequal(m, :t) * (abs(r₁.tˢ - r₂.tˢ) + abs(r₁.tᵉ - r₂.tᵉ))
     z  = φ/(q + l + t + ϵ)
     return z
 end
