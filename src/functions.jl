@@ -257,7 +257,7 @@ function Solution(D::Vector{DepotNode}, C::OffsetVector{CustomerNode}, A::Dict{T
     πᵒ = 0.
     πᵖ = 0.
     for d ∈ D πᶠ += d.φ * d.πᶠ end
-    for c ∈ C πᵖ += 1. end
+    for c ∈ C πᵖ += abs(c.qᶜ) end
     return Solution(D, C, A, πᶠ, πᵒ, πᵖ)
 end
 
