@@ -25,19 +25,16 @@ let
             # Visualize initial solution
             display(visualize(s₁))
             # Define ALNS parameters
-            x = max(100, lastindex(s₁.C))
+            x = 25
             χ = ALNSparameters(
                 j   =   50                      ,
                 k   =   5                       ,
                 n   =   x                       ,
-                m   =   25x                     ,
+                m   =   100x                    ,
                 Ψᵣ  =   [
-                            :randomcustomer!    ,
-                            :randomroute!       ,
-                            :relatedcustomer!   ,
-                            :relatedroute!      ,
-                            :worstcustomer!     ,
-                            :worstroute!        ,
+                            :random!            ,
+                            :related!           ,
+                            :worst!
                         ]                       ,
                 Ψᵢ  =   [
                             :best!              ,
@@ -59,13 +56,13 @@ let
                 σ₃  =   3                       ,
                 μ̲   =   0.05                    ,
                 c̲   =   2                       ,
-                μ̅   =   0.1                     ,
-                c̅   =   15                      ,
-                ω̅   =   0.1                     ,
+                μ̅   =   0.2                     ,
+                c̅   =   30                      ,
+                ω̅   =   0.05                    ,
                 τ̅   =   0.5                     ,
                 ω̲   =   0.01                    ,
                 τ̲   =   0.01                    ,
-                θ   =   0.999                   ,
+                θ   =   0.9965                  ,
                 ρ   =   0.1
             );
             # Run ALNS and fetch best solution
