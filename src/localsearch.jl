@@ -101,7 +101,7 @@ function intermove!(rng::AbstractRNG, k̅::Int, s::Solution)
         if isdormant(r₁) continue end
         # Step 2.2: Select a random route
         m  = sample(rng, φᵉ::Bool ? [:q, :l, :t] : [:q, :l])
-        Wʳ = [isdormant(r₂) || isequal(r₁, r₂) ? 0. : relatedness(m, n, r₂, s) for r₂ ∈ R]
+        Wʳ = [isdormant(r₂) || isequal(r₁, r₂) ? 0. : (relatedness(m, cᵖ, r₂, s) + relatedness(m, cᵈ, r₂, s))/2 for r₂ ∈ R]
         r₂ = sample(rng, R, Weights(Wʳ))
         if isdormant(r₂) continue end
         # Step 2.3: Remove this node from its position between tail node nᵗ and head node nʰ
