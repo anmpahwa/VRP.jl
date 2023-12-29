@@ -585,7 +585,8 @@ function swapdepot!(rng::AbstractRNG, k̅::Int, s::Solution)
         d₁ = sample(rng, D, Weights(W₁))
         R₁ = [r₁ for v₁ ∈ d₁.V for r₁ ∈ v₁.R]
         if any(isdormant, R₁) continue end
-        W₂ = [isequal(d₁, d₂) ? 0. : 1. for d₂ ∈ D]
+        m  = sample(rng, φᵉ::Bool ? [:q, :l, :t] : [:q, :l])
+        W₂ = [isequal(d₁, d₂) ? 0. : relatedness(m, d₁, d₂, s) for d₂ ∈ D]
         d₂ = sample(rng, D, Weights(W₂))
         R₂ = [r₂ for v₂ ∈ d₂.V for r₂ ∈ v₂.R]
         if any(isdormant, R₂) continue end
