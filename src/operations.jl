@@ -15,7 +15,7 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     # update associated customer nodes
     s.πᶠ -= 0.
     s.πᵒ -= 0.
-    s.πᵖ -= !isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ) * abs(c.qᶜ)
+    s.πᵖ -= (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ)
     s.πᵖ -= abs(c.qᶜ)
     c.jⁿ  = c.jⁿ
     c.iʳ  = r.iʳ
@@ -28,7 +28,7 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     c.r   = r
     s.πᶠ += 0.
     s.πᵒ += 0.
-    s.πᵖ += !isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ) * abs(c.qᶜ)
+    s.πᵖ += (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ)
     # update associated route
     s.πᶠ -= 0.
     s.πᵒ -= r.l * v.πᵈ
@@ -62,72 +62,71 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     s.πᵒ += d.q * d.πᵒ
     s.πᵖ += (d.q > d.qᵈ) * (d.q - d.qᵈ)
     # update en-route parameters
-    if isequal(φᵉ::Bool, true)
-        s.πᵒ -= (v.tᵉ - v.tˢ) * v.πᵗ
-        s.πᵖ -= (d.tˢ > v.tˢ) * (d.tˢ - v.tˢ)
-        s.πᵖ -= (v.tᵉ > d.tᵉ) * (v.tᵉ - d.tᵉ)
-        s.πᵖ -= ((v.tᵉ - v.tˢ) > v.τʷ) * ((v.tᵉ - v.tˢ) - v.τʷ)
-        tᵒ = r.tⁱ
-        tⁱ = r.tⁱ
-        θⁱ = r.θⁱ
-        for r ∈ v.R
-            if r.tⁱ < tᵒ continue end
-            if isopt(r)
-                r.θⁱ = θⁱ
-                r.θˢ = θⁱ + max(0., (r.l/v.lᵛ - r.θⁱ))
-                r.tⁱ = tⁱ
-                r.tˢ = r.tⁱ + v.τᶠ * (r.θˢ - r.θⁱ) + v.τᵈ * r.q
-                cˢ = s.C[r.iˢ]
-                cᵉ = s.C[r.iᵉ]
-                tᵈ = r.tˢ
-                n  = 1
-                q  = r.q
-                l  = s.A[(d.iⁿ,cˢ.iⁿ)].l
-                c  = cˢ
-                while true
-                    cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
-                    cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
-                    qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
-                    s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
-                    s.πᵖ -= (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
-                    s.πᵖ -= (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
-                    s.πᵖ -= (c.l > v.lᵛ) * (c.l - v.lᵛ)
-                    c.tᵃ  = tᵈ + s.A[(c.iᵗ, c.iⁿ)].l/v.sᵛ
-                    c.tᵈ  = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - v.τᶜ) + c.τᶜ
-                    c.n = n
-                    c.q = q
-                    c.l = l
-                    qᵒ  = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
-                    s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
-                    s.πᵖ += (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
-                    s.πᵖ += (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
-                    s.πᵖ += (c.l > v.lᵛ) * (c.l - v.lᵛ)
-                    if isequal(c, cᵉ) break end
-                    tᵈ = c.tᵈ
-                    n += 1
-                    q += -c.qᶜ
-                    l += s.A[(c.iⁿ,c.iʰ)].l
-                    c  = s.C[c.iʰ]
-                end
-                r.θᵉ = r.θˢ - r.l/v.lᵛ
-                r.tᵉ = cᵉ.tᵈ + s.A[(cᵉ.iⁿ, d.iⁿ)].l/v.sᵛ
-            else
-                r.θⁱ = θⁱ
-                r.θˢ = θⁱ
-                r.θᵉ = θⁱ
-                r.tⁱ = tⁱ
-                r.tˢ = tⁱ
-                r.tᵉ = tⁱ
+    if isequal(s.φ, false) return s end
+    s.πᵒ -= (v.tᵉ - v.tˢ) * v.πᵗ
+    s.πᵖ -= (d.tˢ > v.tˢ) * (d.tˢ - v.tˢ)
+    s.πᵖ -= (v.tᵉ > d.tᵉ) * (v.tᵉ - d.tᵉ)
+    s.πᵖ -= ((v.tᵉ - v.tˢ) > v.τʷ) * ((v.tᵉ - v.tˢ) - v.τʷ)
+    tᵒ = r.tⁱ
+    tⁱ = r.tⁱ
+    θⁱ = r.θⁱ
+    for r ∈ v.R
+        if r.tⁱ < tᵒ continue end
+        if isopt(r)
+            r.θⁱ = θⁱ
+            r.θˢ = θⁱ + max(0., (r.l/v.lᵛ - r.θⁱ))
+            r.tⁱ = tⁱ
+            r.tˢ = r.tⁱ + v.τᶠ * (r.θˢ - r.θⁱ) + v.τᵈ * r.q
+            cˢ = s.C[r.iˢ]
+            cᵉ = s.C[r.iᵉ]
+            tᵈ = r.tˢ
+            n  = 1
+            q  = r.q
+            l  = s.A[(d.iⁿ,cˢ.iⁿ)].l
+            c  = cˢ
+            while true
+                cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
+                cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
+                qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
+                s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
+                s.πᵖ -= (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
+                s.πᵖ -= (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
+                s.πᵖ -= (c.l > v.lᵛ) * (c.l - v.lᵛ)
+                c.tᵃ  = tᵈ + s.A[(c.iᵗ, c.iⁿ)].l/v.sᵛ
+                c.tᵈ  = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - v.τᶜ) + c.τᶜ
+                c.n = n
+                c.q = q
+                c.l = l
+                qᵒ  = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
+                s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
+                s.πᵖ += (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
+                s.πᵖ += (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
+                s.πᵖ += (c.l > v.lᵛ) * (c.l - v.lᵛ)
+                if isequal(c, cᵉ) break end
+                tᵈ = c.tᵈ
+                n += 1
+                q += -c.qᶜ
+                l += s.A[(c.iⁿ,c.iʰ)].l
+                c  = s.C[c.iʰ]
             end
-            tⁱ = r.tᵉ
-            θⁱ = r.θᵉ
+            r.θᵉ = r.θˢ - r.l/v.lᵛ
+            r.tᵉ = cᵉ.tᵈ + s.A[(cᵉ.iⁿ, d.iⁿ)].l/v.sᵛ
+        else
+            r.θⁱ = θⁱ
+            r.θˢ = θⁱ
+            r.θᵉ = θⁱ
+            r.tⁱ = tⁱ
+            r.tˢ = tⁱ
+            r.tᵉ = tⁱ
         end
-        (v.tˢ, v.tᵉ) = isempty(v.R) ? (d.tˢ, d.tˢ) : (v.R[firstindex(v.R)].tⁱ, v.R[lastindex(v.R)].tᵉ)
-        s.πᵒ += (v.tᵉ - v.tˢ) * v.πᵗ
-        s.πᵖ += (d.tˢ > v.tˢ) * (d.tˢ - v.tˢ)
-        s.πᵖ += (v.tᵉ > d.tᵉ) * (v.tᵉ - d.tᵉ)
-        s.πᵖ += ((v.tᵉ - v.tˢ) > v.τʷ) * ((v.tᵉ - v.tˢ) - v.τʷ)
+        tⁱ = r.tᵉ
+        θⁱ = r.θᵉ
     end
+    (v.tˢ, v.tᵉ) = isempty(v.R) ? (d.tˢ, d.tˢ) : (v.R[firstindex(v.R)].tⁱ, v.R[lastindex(v.R)].tᵉ)
+    s.πᵒ += (v.tᵉ - v.tˢ) * v.πᵗ
+    s.πᵖ += (d.tˢ > v.tˢ) * (d.tˢ - v.tˢ)
+    s.πᵖ += (v.tᵉ > d.tᵉ) * (v.tᵉ - d.tᵉ)
+    s.πᵖ += ((v.tᵉ - v.tˢ) > v.τʷ) * ((v.tᵉ - v.tˢ) - v.τʷ)
     return s
 end
 """
@@ -147,7 +146,7 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     # update associated customer nodes
     s.πᶠ -= 0.
     s.πᵒ -= 0.
-    s.πᵖ -= !isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ) * abs(c.qᶜ)
+    s.πᵖ -= (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ)
     c.jⁿ  = c.jⁿ
     c.iʳ  = 0
     c.iᵛ  = 0
@@ -159,7 +158,7 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     c.r   = NullRoute
     s.πᶠ += 0.
     s.πᵒ += 0.
-    s.πᵖ += !isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ) * abs(c.qᶜ)
+    s.πᵖ += (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ)
     s.πᵖ += abs(c.qᶜ)
     # update associated route
     s.πᶠ -= 0.
@@ -194,87 +193,86 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     s.πᵒ += d.q * d.πᵒ
     s.πᵖ += (d.q > d.qᵈ) * (d.q - d.qᵈ)
     # update en-route parameters
-    if isequal(φᵉ::Bool, true)
-        s.πᵒ -= (v.tᵉ - v.tˢ) * v.πᵗ
-        s.πᵖ -= (d.tˢ > v.tˢ) * (d.tˢ - v.tˢ)
-        s.πᵖ -= (v.tᵉ > d.tᵉ) * (v.tᵉ - d.tᵉ)
-        s.πᵖ -= ((v.tᵉ - v.tˢ) > v.τʷ) * ((v.tᵉ - v.tˢ) - v.τʷ)
-        tᵒ = r.tⁱ
-        tⁱ = r.tⁱ
-        θⁱ = r.θⁱ
-        qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
-        s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
-        s.πᵖ -= (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
-        s.πᵖ -= (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
-        s.πᵖ -= (c.l > v.lᵛ) * (c.l - v.lᵛ)
-        c.tᵃ  = isdelivery(c) ? c.tˡ : c.tᵉ
-        c.tᵈ  = c.tᵃ + c.τᶜ
-        c.n = 0
-        c.q = 0.
-        c.l = 0.
-        qᵒ  = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
-        s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
-        s.πᵖ += (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
-        s.πᵖ += (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
-        s.πᵖ += (c.l > v.lᵛ) * (c.l - v.lᵛ)
-        for r ∈ v.R
-            if r.tⁱ < tᵒ continue end
-            if isopt(r)
-                r.θⁱ = θⁱ
-                r.θˢ = θⁱ + max(0., (r.l/v.lᵛ - r.θⁱ))
-                r.tⁱ = tⁱ
-                r.tˢ = r.tⁱ + v.τᶠ * (r.θˢ - r.θⁱ) + v.τᵈ * r.q
-                cˢ = s.C[r.iˢ]
-                cᵉ = s.C[r.iᵉ]
-                tᵈ = r.tˢ
-                n  = 1
-                q  = r.q
-                l  = s.A[(d.iⁿ,cˢ.iⁿ)].l
-                c  = cˢ
-                while true
-                    cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
-                    cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
-                    qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
-                    s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
-                    s.πᵖ -= (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
-                    s.πᵖ -= (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
-                    s.πᵖ -= (c.l > v.lᵛ) * (c.l - v.lᵛ)
-                    c.tᵃ  = tᵈ + s.A[(c.iᵗ, c.iⁿ)].l/v.sᵛ
-                    c.tᵈ  = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - v.τᶜ) + c.τᶜ
-                    c.n = n
-                    c.q = q
-                    c.l = l
-                    qᵒ  = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
-                    s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
-                    s.πᵖ += (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
-                    s.πᵖ += (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
-                    s.πᵖ += (c.l > v.lᵛ) * (c.l - v.lᵛ)
-                    if isequal(c, cᵉ) break end
-                    tᵈ = c.tᵈ
-                    n += 1
-                    q += -c.qᶜ
-                    l += s.A[(c.iⁿ,c.iʰ)].l
-                    c  = s.C[c.iʰ]
-                end
-                r.θᵉ = r.θˢ - r.l/v.lᵛ
-                r.tᵉ = cᵉ.tᵈ + s.A[(cᵉ.iⁿ, d.iⁿ)].l/v.sᵛ
-            else
-                r.θⁱ = θⁱ
-                r.θˢ = θⁱ
-                r.θᵉ = θⁱ
-                r.tⁱ = tⁱ
-                r.tˢ = tⁱ
-                r.tᵉ = tⁱ
+    if isequal(s.φ, false) return s end
+    s.πᵒ -= (v.tᵉ - v.tˢ) * v.πᵗ
+    s.πᵖ -= (d.tˢ > v.tˢ) * (d.tˢ - v.tˢ)
+    s.πᵖ -= (v.tᵉ > d.tᵉ) * (v.tᵉ - d.tᵉ)
+    s.πᵖ -= ((v.tᵉ - v.tˢ) > v.τʷ) * ((v.tᵉ - v.tˢ) - v.τʷ)
+    tᵒ = r.tⁱ
+    tⁱ = r.tⁱ
+    θⁱ = r.θⁱ
+    qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
+    s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
+    s.πᵖ -= (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
+    s.πᵖ -= (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
+    s.πᵖ -= (c.l > v.lᵛ) * (c.l - v.lᵛ)
+    c.tᵃ  = isdelivery(c) ? c.tˡ : c.tᵉ
+    c.tᵈ  = c.tᵃ + c.τᶜ
+    c.n = 0
+    c.q = 0.
+    c.l = 0.
+    qᵒ  = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
+    s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
+    s.πᵖ += (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
+    s.πᵖ += (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
+    s.πᵖ += (c.l > v.lᵛ) * (c.l - v.lᵛ)
+    for r ∈ v.R
+        if r.tⁱ < tᵒ continue end
+        if isopt(r)
+            r.θⁱ = θⁱ
+            r.θˢ = θⁱ + max(0., (r.l/v.lᵛ - r.θⁱ))
+            r.tⁱ = tⁱ
+            r.tˢ = r.tⁱ + v.τᶠ * (r.θˢ - r.θⁱ) + v.τᵈ * r.q
+            cˢ = s.C[r.iˢ]
+            cᵉ = s.C[r.iᵉ]
+            tᵈ = r.tˢ
+            n  = 1
+            q  = r.q
+            l  = s.A[(d.iⁿ,cˢ.iⁿ)].l
+            c  = cˢ
+            while true
+                cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
+                cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
+                qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
+                s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
+                s.πᵖ -= (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
+                s.πᵖ -= (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
+                s.πᵖ -= (c.l > v.lᵛ) * (c.l - v.lᵛ)
+                c.tᵃ  = tᵈ + s.A[(c.iᵗ, c.iⁿ)].l/v.sᵛ
+                c.tᵈ  = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - v.τᶜ) + c.τᶜ
+                c.n = n
+                c.q = q
+                c.l = l
+                qᵒ  = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
+                s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
+                s.πᵖ += (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
+                s.πᵖ += (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
+                s.πᵖ += (c.l > v.lᵛ) * (c.l - v.lᵛ)
+                if isequal(c, cᵉ) break end
+                tᵈ = c.tᵈ
+                n += 1
+                q += -c.qᶜ
+                l += s.A[(c.iⁿ,c.iʰ)].l
+                c  = s.C[c.iʰ]
             end
-            tⁱ = r.tᵉ
-            θⁱ = r.θᵉ
+            r.θᵉ = r.θˢ - r.l/v.lᵛ
+            r.tᵉ = cᵉ.tᵈ + s.A[(cᵉ.iⁿ, d.iⁿ)].l/v.sᵛ
+        else
+            r.θⁱ = θⁱ
+            r.θˢ = θⁱ
+            r.θᵉ = θⁱ
+            r.tⁱ = tⁱ
+            r.tˢ = tⁱ
+            r.tᵉ = tⁱ
         end
-        (v.tˢ, v.tᵉ) = isempty(v.R) ? (d.tˢ, d.tˢ) : (v.R[firstindex(v.R)].tⁱ, v.R[lastindex(v.R)].tᵉ)
-        s.πᵒ += (v.tᵉ - v.tˢ) * v.πᵗ
-        s.πᵖ += (d.tˢ > v.tˢ) * (d.tˢ - v.tˢ)
-        s.πᵖ += (v.tᵉ > d.tᵉ) * (v.tᵉ - d.tᵉ)
-        s.πᵖ += ((v.tᵉ - v.tˢ) > v.τʷ) * ((v.tᵉ - v.tˢ) - v.τʷ)
+        tⁱ = r.tᵉ
+        θⁱ = r.θᵉ
     end
+    (v.tˢ, v.tᵉ) = isempty(v.R) ? (d.tˢ, d.tˢ) : (v.R[firstindex(v.R)].tⁱ, v.R[lastindex(v.R)].tᵉ)
+    s.πᵒ += (v.tᵉ - v.tˢ) * v.πᵗ
+    s.πᵖ += (d.tˢ > v.tˢ) * (d.tˢ - v.tˢ)
+    s.πᵖ += (v.tᵉ > d.tᵉ) * (v.tᵉ - d.tᵉ)
+    s.πᵖ += ((v.tᵉ - v.tˢ) > v.τʷ) * ((v.tᵉ - v.tˢ) - v.τʷ)
     return s
 end
 
@@ -420,70 +418,69 @@ function movevehicle!(v::Vehicle, d₁::DepotNode, d₂::DepotNode, s::Solution)
         end
     end
     # update en-route variables
-    if isequal(φᵉ::Bool, true)
-        s.πᵒ -= (v.tᵉ - v.tˢ) * v.πᵗ
-        s.πᵖ -= (d.tˢ > v.tˢ) * (d.tˢ - v.tˢ)
-        s.πᵖ -= (v.tᵉ > d.tᵉ) * (v.tᵉ - d.tᵉ)
-        s.πᵖ -= ((v.tᵉ - v.tˢ) > v.τʷ) * ((v.tᵉ - v.tˢ) - v.τʷ)
-        tⁱ = d.tˢ
-        θⁱ = 1.
-        for r ∈ v.R
-            if isopt(r)
-                r.θⁱ = θⁱ
-                r.θˢ = θⁱ + max(0., (r.l/v.lᵛ - r.θⁱ))
-                r.tⁱ = tⁱ
-                r.tˢ = r.tⁱ + v.τᶠ * (r.θˢ - r.θⁱ) + v.τᵈ * r.q
-                cˢ = s.C[r.iˢ]
-                cᵉ = s.C[r.iᵉ]
-                tᵈ = r.tˢ
-                n  = 1
-                q  = r.q
-                l  = s.A[(d.iⁿ,cˢ.iⁿ)].l
-                c  = cˢ
-                while true
-                    cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
-                    cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
-                    qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
-                    s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
-                    s.πᵖ -= (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
-                    s.πᵖ -= (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
-                    s.πᵖ -= (c.l > v.lᵛ) * (c.l - v.lᵛ)
-                    c.tᵃ  = tᵈ + s.A[(c.iᵗ, c.iⁿ)].l/v.sᵛ
-                    c.tᵈ  = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - v.τᶜ) + c.τᶜ
-                    c.n = n
-                    c.q = q
-                    c.l = l
-                    qᵒ  = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
-                    s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
-                    s.πᵖ += (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
-                    s.πᵖ += (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
-                    s.πᵖ += (c.l > v.lᵛ) * (c.l - v.lᵛ)
-                    if isequal(c, cᵉ) break end
-                    tᵈ = c.tᵈ
-                    n += 1
-                    q += -c.qᶜ
-                    l += s.A[(c.iⁿ,c.iʰ)].l
-                    c  = s.C[c.iʰ]
-                end
-                r.θᵉ = r.θˢ - r.l/v.lᵛ
-                r.tᵉ = cᵉ.tᵈ + s.A[(cᵉ.iⁿ, d.iⁿ)].l/v.sᵛ
-            else
-                r.θⁱ = θⁱ
-                r.θˢ = θⁱ
-                r.θᵉ = θⁱ
-                r.tⁱ = tⁱ
-                r.tˢ = tⁱ
-                r.tᵉ = tⁱ
+    if isequal(s.φ, false) return s end
+    s.πᵒ -= (v.tᵉ - v.tˢ) * v.πᵗ
+    s.πᵖ -= (d.tˢ > v.tˢ) * (d.tˢ - v.tˢ)
+    s.πᵖ -= (v.tᵉ > d.tᵉ) * (v.tᵉ - d.tᵉ)
+    s.πᵖ -= ((v.tᵉ - v.tˢ) > v.τʷ) * ((v.tᵉ - v.tˢ) - v.τʷ)
+    tⁱ = d.tˢ
+    θⁱ = 1.
+    for r ∈ v.R
+        if isopt(r)
+            r.θⁱ = θⁱ
+            r.θˢ = θⁱ + max(0., (r.l/v.lᵛ - r.θⁱ))
+            r.tⁱ = tⁱ
+            r.tˢ = r.tⁱ + v.τᶠ * (r.θˢ - r.θⁱ) + v.τᵈ * r.q
+            cˢ = s.C[r.iˢ]
+            cᵉ = s.C[r.iᵉ]
+            tᵈ = r.tˢ
+            n  = 1
+            q  = r.q
+            l  = s.A[(d.iⁿ,cˢ.iⁿ)].l
+            c  = cˢ
+            while true
+                cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
+                cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
+                qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
+                s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
+                s.πᵖ -= (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
+                s.πᵖ -= (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
+                s.πᵖ -= (c.l > v.lᵛ) * (c.l - v.lᵛ)
+                c.tᵃ  = tᵈ + s.A[(c.iᵗ, c.iⁿ)].l/v.sᵛ
+                c.tᵈ  = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - v.τᶜ) + c.τᶜ
+                c.n = n
+                c.q = q
+                c.l = l
+                qᵒ  = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
+                s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
+                s.πᵖ += (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
+                s.πᵖ += (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
+                s.πᵖ += (c.l > v.lᵛ) * (c.l - v.lᵛ)
+                if isequal(c, cᵉ) break end
+                tᵈ = c.tᵈ
+                n += 1
+                q += -c.qᶜ
+                l += s.A[(c.iⁿ,c.iʰ)].l
+                c  = s.C[c.iʰ]
             end
-            tⁱ = r.tᵉ
-            θⁱ = r.θᵉ
+            r.θᵉ = r.θˢ - r.l/v.lᵛ
+            r.tᵉ = cᵉ.tᵈ + s.A[(cᵉ.iⁿ, d.iⁿ)].l/v.sᵛ
+        else
+            r.θⁱ = θⁱ
+            r.θˢ = θⁱ
+            r.θᵉ = θⁱ
+            r.tⁱ = tⁱ
+            r.tˢ = tⁱ
+            r.tᵉ = tⁱ
         end
-        (v.tˢ, v.tᵉ) = isempty(v.R) ? (d.tˢ, d.tˢ) : (v.R[firstindex(v.R)].tⁱ, v.R[lastindex(v.R)].tᵉ)
-        s.πᵒ += (v.tᵉ - v.tˢ) * v.πᵗ
-        s.πᵖ += (d.tˢ > v.tˢ) * (d.tˢ - v.tˢ)
-        s.πᵖ += (v.tᵉ > d.tᵉ) * (v.tᵉ - d.tᵉ)
-        s.πᵖ += ((v.tᵉ - v.tˢ) > v.τʷ) * ((v.tᵉ - v.tˢ) - v.τʷ)
+        tⁱ = r.tᵉ
+        θⁱ = r.θᵉ
     end
+    (v.tˢ, v.tᵉ) = isempty(v.R) ? (d.tˢ, d.tˢ) : (v.R[firstindex(v.R)].tⁱ, v.R[lastindex(v.R)].tᵉ)
+    s.πᵒ += (v.tᵉ - v.tˢ) * v.πᵗ
+    s.πᵖ += (d.tˢ > v.tˢ) * (d.tˢ - v.tˢ)
+    s.πᵖ += (v.tᵉ > d.tᵉ) * (v.tᵉ - d.tᵉ)
+    s.πᵖ += ((v.tᵉ - v.tˢ) > v.τʷ) * ((v.tᵉ - v.tˢ) - v.τʷ)
     return s
 end
 
@@ -557,10 +554,8 @@ end
 
 Returns solution `s` after performing post-intialization procedures. 
 Deletes routes and vehicles if possible, and subsequently updates indices.
-Additionally, updates route, vehicle, and depot slack time.
 """
 function postinitialize!(s::Solution)
-    # update indices
     for d ∈ s.D
         k = 1
         while true
@@ -590,28 +585,6 @@ function postinitialize!(s::Solution)
         end
     end
     for c ∈ s.C c.iᵛ, c.iʳ = c.r.iᵛ, c.r.iʳ end
-    # update slack
-    if isequal(φᵉ::Bool, false) return s end
-    for d ∈ s.D
-        τ = Inf
-        for v ∈ d.V
-            τ = d.tᵉ - v.tᵉ
-            for r ∈ reverse(v.R)
-                if !isopt(r) continue end
-                cˢ = s.C[r.iˢ]
-                cᵉ = s.C[r.iᵉ]
-                c  = cˢ
-                while true
-                    τ = min(τ, c.tˡ - c.tᵃ - v.τᶜ)
-                    if isequal(c, cᵉ) break end
-                    c = s.C[c.iʰ]
-                end
-                r.τ = τ
-            end
-            v.τ = τ
-        end
-        d.τ = τ
-    end
     return s
 end
 
@@ -629,30 +602,9 @@ end
     postremove!(s::Solution)
 
 Returns solution `s` after performing post-removal procedures.
-Updates route, vehicle, and depot slack time.
+Removes associated pickup/delivery node for every open delivery/pickup node.
 """
 function postremove!(s::Solution)
-    if isequal(φᵉ::Bool, false) return s end
-    for d ∈ s.D
-        τ = Inf
-        for v ∈ d.V
-            τ = d.tᵉ - v.tᵉ
-            for r ∈ reverse(v.R)
-                if !isopt(r) continue end
-                cˢ = s.C[r.iˢ]
-                cᵉ = s.C[r.iᵉ]
-                c  = cˢ
-                while true
-                    τ = min(τ, c.tˡ - c.tᵃ - v.τᶜ)
-                    if isequal(c, cᵉ) break end
-                    c = s.C[c.iʰ]
-                end
-                r.τ = τ
-            end
-            v.τ = τ
-        end
-        d.τ = τ
-    end
     for c ∈ s.C
         cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
         cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
@@ -696,10 +648,8 @@ end
 
 Returns solution `s` after performing post-insertion procedures. 
 Deletes routes and vehicles if possible, and subsequently updates indices.
-Additionally, updates route, vehicle, and depot slack time.
 """
 function postinsert!(s::Solution)
-    # update indices
     for d ∈ s.D
         k = 1
         while true
@@ -729,28 +679,6 @@ function postinsert!(s::Solution)
         end
     end
     for c ∈ s.C c.iᵛ, c.iʳ = c.r.iᵛ, c.r.iʳ end
-    # update slack
-    if isequal(φᵉ::Bool, false) return s end
-    for d ∈ s.D
-        τ = Inf
-        for v ∈ d.V
-            τ = d.tᵉ - v.tᵉ
-            for r ∈ reverse(v.R)
-                if !isopt(r) continue end
-                cˢ = s.C[r.iˢ]
-                cᵉ = s.C[r.iᵉ]
-                c  = cˢ
-                while true
-                    τ = min(τ, c.tˡ - c.tᵃ - v.τᶜ)
-                    if isequal(c, cᵉ) break end
-                    c = s.C[c.iʰ]
-                end
-                r.τ = τ
-            end
-            v.τ = τ
-        end
-        d.τ = τ
-    end
     return s
 end
 
@@ -768,29 +696,7 @@ end
     postlocalsearch!(s::Solution)
 
 Returns solution `s` after performing post-localsearch procedures.
-Updates route, vehicle, and depot slack time.
 """
 function postlocalsearch!(s::Solution)
-    if isequal(φᵉ::Bool, false) return s end
-    for d ∈ s.D
-        τ = Inf
-        for v ∈ d.V
-            τ = d.tᵉ - v.tᵉ
-            for r ∈ reverse(v.R)
-                if !isopt(r) continue end
-                cˢ = s.C[r.iˢ]
-                cᵉ = s.C[r.iᵉ]
-                c  = cˢ
-                while true
-                    τ = min(τ, c.tˡ - c.tᵃ - v.τᶜ)
-                    if isequal(c, cᵉ) break end
-                    c = s.C[c.iʰ]
-                end
-                r.τ = τ
-            end
-            v.τ = τ
-        end
-        d.τ = τ
-    end
     return s
 end
