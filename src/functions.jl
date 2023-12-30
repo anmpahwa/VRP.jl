@@ -147,7 +147,11 @@ Returns a measure of similarity between routes `r₁` and `r₂` based on metric
 """
 function relatedness(m::Symbol, r₁::Route, r₂::Route, s::Solution)
     ϵ  = 1e-5
-    q  = isequal(m, :q) * (abs(r₁.q - r₂.q))
+    d₁ = s.D[r₁.iᵈ]
+    d₂ = s.D[r₂.iᵈ]
+    v₁ = d₁.V[r₁.iᵛ]
+    v₂ = d₂.V[r₂.iᵛ]
+    q  = isequal(m, :q) * (abs(v₁.qᵛ - v₂.qᵛ))
     l  = isequal(m, :l) * (sqrt((r₁.x - r₂.x)^2 + (r₁.y - r₂.y)^2))
     t  = isequal(m, :t) * (abs(r₁.tˢ - r₂.tˢ) + abs(r₁.tᵉ - r₂.tᵉ))
     z  = 1/(q + l + t + ϵ)
@@ -172,7 +176,7 @@ function relatedness(m::Symbol, v₁::Vehicle, v₂::Vehicle, s::Solution)
         x₂ += r.n * r.x / v₂.n
         y₂ += r.n * r.y / v₂.n
     end
-    q  = isequal(m, :q) * (abs(v₁.q - v₂.q))
+    q  = isequal(m, :q) * (abs(v₁.qᵛ - v₂.qᵛ))
     l  = isequal(m, :l) * (sqrt((x₁ - x₂)^2 + (y₁ - y₂)^2))
     t  = isequal(m, :t) * (abs(v₁.tˢ - v₂.tˢ) + abs(v₁.tᵉ - v₂.tᵉ))
     z  = 1/(q + l + t + ϵ)
