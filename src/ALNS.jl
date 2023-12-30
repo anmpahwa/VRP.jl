@@ -57,7 +57,7 @@ function ALNS(rng::AbstractRNG, χ::ALNSparameters, sₒ::Solution; mute=false)
             Cᵢ[i] += 1
             # Step 2.3.2: Using the selected removal and insertion operators destroy and repair the current solution to develop a new solution.
             η = rand(rng)
-            c = sum(isactive.(s.C))
+            c = length(s.C)
             q = Int(floor(((1 - η) * min(c̲, μ̲ * c) + η * min(c̅, μ̅ * c))))
             s′= deepcopy(s)
             remove!(rng, q, s′, Ψᵣ[r])
