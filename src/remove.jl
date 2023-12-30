@@ -136,12 +136,12 @@ function worstcustomer!(rng::AbstractRNG, q::Int, s::Solution)
         r   = c.r
         d   = s.D[r.iᵈ]
         v   = d.V[r.iᵛ]
-        nᵈᵗ = isequal(r.iˢ, cᵈ.iⁿ) ? D[cᵈ.iᵗ] : C[cᵈ.iᵗ]
-        nᵈʰ = isequal(r.iᵉ, cᵈ.iⁿ) ? D[cᵈ.iʰ] : C[cᵈ.iʰ]
-        removenode!(cᵈ, nᵈᵗ, nᵈʰ, r, s)
         nᵖᵗ = isequal(r.iˢ, cᵖ.iⁿ) ? D[cᵖ.iᵗ] : C[cᵖ.iᵗ]
         nᵖʰ = isequal(r.iᵉ, cᵖ.iⁿ) ? D[cᵖ.iʰ] : C[cᵖ.iʰ]
         removenode!(cᵖ, nᵖᵗ, nᵖʰ, r, s)
+        nᵈᵗ = isequal(r.iˢ, cᵈ.iⁿ) ? D[cᵈ.iᵗ] : C[cᵈ.iᵗ]
+        nᵈʰ = isequal(r.iᵉ, cᵈ.iⁿ) ? D[cᵈ.iʰ] : C[cᵈ.iʰ]
+        removenode!(cᵈ, nᵈᵗ, nᵈʰ, r, s)
         n  += 1
         # Step 2.3: Update cost and selection weight vectors
         X[i] = -Inf
