@@ -6,25 +6,25 @@ Plots `instance`. Uses given `backend` to plot (defaults to `gr`).
 function visualize(instance; backend=gr)
     backend()
     D, C, _ = build(instance)
-    fig = plot(legend=:none)
-    K = length(D)+length(C)
-    X = zeros(Float64, K)
-    Y = zeros(Float64, K)
-    M₁= fill("color", K)
-    M₂= zeros(Int, K)
-    M₃= fill(:shape, K)
+    fig= plot(legend=:none)
+    K  = lastindex(C)
+    X  = zeros(Float64, K)
+    Y  = zeros(Float64, K)
+    M₁ = fill("color", K)
+    M₂ = zeros(Int, K)
+    M₃ = fill(:shape, K)
     # Depot nodes
     for (k,d) ∈ pairs(D)
-        X[k] = d.x
-        Y[k] = d.y
+        X[k]  = d.x
+        Y[k]  = d.y
         M₁[k] = "#b4464b"
         M₂[k] = 6
         M₃[k] = :rect
     end
     # Customer nodes
     for (k,c) ∈ pairs(C)
-        X[k] = c.x
-        Y[k] = c.y
+        X[k]  = c.x
+        Y[k]  = c.y
         M₁[k] = isdelivery(c) ? "#d1e0ec" : "#ecddd1"
         M₂[k] = 5
         M₃[k] = :circle
@@ -44,41 +44,46 @@ function visualize(s::Solution; backend=gr)
     C = s.C
     fig = plot(legend=:none)
     # Operational nodes: open depot nodes and closed customer nodes
-    for Z ∈ vectorize(s)
-        K = length(Z)
-        X = zeros(Float64, K)
-        Y = zeros(Float64, K)
-        M₁= fill("color", K)
-        M₂= zeros(Int, K)
-        M₃= fill(:shape, K)
-        for k ∈ 1:K
-            i = Z[k]
-            n = i ≤ length(D) ? D[i] : C[i]
-            X[k] = n.x
-            Y[k] = n.y
-            if isdepot(n) 
-                M₁[k] = "#82b446"
-                M₂[k] = 6
-                M₃[k] = :rect
-            else 
-                M₁[k] = isdelivery(n) ? "#4682b4" : "#b47846"
-                M₂[k] = 5
-                M₃[k] = :circle
+    Z = vectorize(s)
+    for Zᵈ ∈ Z
+        for Zᵛ ∈ Zᵈ
+            for Zʳ ∈ Zᵛ
+                K  = eachindex(Zʳ)
+                X  = zeros(Float64, K)
+                Y  = zeros(Float64, K)
+                M₁ = fill("color", K)
+                M₂ = zeros(Int, K)
+                M₃ = fill(:shape, K)
+                for k ∈ K
+                    i = Zʳ[k]
+                    n = i ≤ lastindex(D) ? D[i] : C[i]
+                    X[k] = n.x
+                    Y[k] = n.y
+                    if isdepot(n) 
+                        M₁[k] = "#82b446"
+                        M₂[k] = 6
+                        M₃[k] = :rect
+                    else 
+                        M₁[k] = isdelivery(n) ? "#4682b4" : "#b47846"
+                        M₂[k] = 5
+                        M₃[k] = :circle
+                    end
+                end
+                scatter!(X, Y, color=M₁, markersize=M₂, markershape=M₃, markerstrokewidth=0)
+                plot!(X, Y, color="#23415a")
             end
         end
-        scatter!(X, Y, color=M₁, markersize=M₂, markershape=M₃, markerstrokewidth=0)
-        plot!(X, Y, color="#23415a")
     end
     # Non-operational nodes: closed depot nodes and open customer nodes
-    Z = Int[] 
+    Z  = Int[] 
     for d ∈ D if !isopt(d) push!(Z, d.iⁿ) end end
     for c ∈ C if isopen(c) push!(Z, c.iⁿ) end end
-    K = length(Z)
-    X = zeros(Float64, K)
-    Y = zeros(Float64, K)
-    M₁= fill("color", K)
-    M₂= zeros(Int, K)
-    M₃= fill(:shape, K)
+    K  = eachindex(Z)
+    X  = zeros(Float64, K)
+    Y  = zeros(Float64, K)
+    M₁ = fill("color", K)
+    M₂ = zeros(Int, K)
+    M₃ = fill(:shape, K)
     for k ∈ 1:K
         i = Z[k]
         n = i ≤ length(D) ? D[i] : C[i]
@@ -140,9 +145,9 @@ Uses given `backend` to plot (defaults to `gr`).
 """
 function pltcnv(Z::OffsetVector{Float64}; backend=gr)
     backend()
-    fig = plot(legend=:none)
-    z⃰ = Z[0]
+    fig= plot(legend=:none)
     Y₁ = Int[]
+    z⃰  = Z[0]
     for (k, z) ∈ pairs(Z)
         if z < 0.99z⃰ 
             z⃰ = z
