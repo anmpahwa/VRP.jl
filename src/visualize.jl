@@ -84,7 +84,7 @@ function visualize(s::Solution; backend=gr)
     M₁ = fill("color", K)
     M₂ = zeros(Int, K)
     M₃ = fill(:shape, K)
-    for k ∈ 1:K
+    for k ∈ K
         i = Z[k]
         n = i ≤ length(D) ? D[i] : C[i]
         X[k] = n.x
