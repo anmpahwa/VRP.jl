@@ -299,6 +299,12 @@ function interswap!(rng::AbstractRNG, k̅::Int, s::Solution)
         if Δ < 0 z = z′
         # Step 2.5: Reswap the nodes and go to step 2.1
         else
+            r₂ = m₂.r
+            r₅ = m₅.r
+            m₁ = isequal(r₂.iˢ, m₂.iⁿ) ? D[m₂.iᵗ] : C[m₂.iᵗ]
+            m₃ = isequal(r₂.iᵉ, m₂.iⁿ) ? D[m₂.iʰ] : C[m₂.iʰ]
+            m₄ = isequal(r₅.iˢ, m₅.iⁿ) ? D[m₅.iᵗ] : C[m₅.iᵗ]
+            m₆ = isequal(r₅.iᵉ, m₅.iⁿ) ? D[m₅.iʰ] : C[m₅.iʰ]
             # m₁ → m₂ (m₄) → m₃ (m₅) → m₆   ⇒   m₁ → m₃ (m₅) → m₂ (m₄) → m₆
             if isequal(m₃, m₅)
                 removenode!(m₂, m₁, m₃, r₂, s)
@@ -314,6 +320,12 @@ function interswap!(rng::AbstractRNG, k̅::Int, s::Solution)
                 insertnode!(m₅, m₁, m₃, r₂, s)
                 insertnode!(m₂, m₄, m₆, r₅, s)
             end
+            r₂ = n₂.r
+            r₅ = n₅.r
+            n₁ = isequal(r₂.iˢ, n₂.iⁿ) ? D[n₂.iᵗ] : C[n₂.iᵗ]
+            n₃ = isequal(r₂.iᵉ, n₂.iⁿ) ? D[n₂.iʰ] : C[n₂.iʰ]
+            n₄ = isequal(r₅.iˢ, n₅.iⁿ) ? D[n₅.iᵗ] : C[n₅.iᵗ]
+            n₆ = isequal(r₅.iᵉ, n₅.iⁿ) ? D[n₅.iʰ] : C[n₅.iʰ]
             # n₁ → n₂ (n₄) → n₃ (n₅) → n₆   ⇒   n₁ → n₃ (n₅) → n₂ (n₄) → n₆
             if isequal(n₃, n₅)
                 removenode!(n₂, n₁, n₃, r₂, s)
