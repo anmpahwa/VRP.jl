@@ -27,7 +27,7 @@ function randomcustomer!(rng::AbstractRNG, q::Int, s::Solution)
     preremove!(s)
     D = s.D
     C = s.C
-    W = isactive.(C)                # W[iⁿ]: selection weight of customer node C[iⁿ]
+    W = ones(eachindex(C))          # W[iⁿ]: selection weight of customer node C[iⁿ]
     # Step 2: Randomly select customer nodes to remove until q customer nodes have been removed
     n = 0
     while n < q
@@ -59,11 +59,11 @@ function relatedcustomer!(rng::AbstractRNG, q::Int, s::Solution)
     D = s.D
     C = s.C
     X = fill(-Inf, eachindex(C))    # X[iⁿ]: relatedness of customer node C[iⁿ] with pivot customer node C[i]
-    W = isactive.(C)                # W[iⁿ]: selection weight of customer node C[iⁿ]
+    W = ones(eachindex(C))          # W[iⁿ]: selection weight of customer node C[iⁿ]
     # Step 2: Randomly select a pivot customer node
     i = sample(rng, eachindex(C), OffsetWeights(W))
     # Step 3: For each customer node, evaluate relatedness to this pivot customer node
-    m = sample(rng, φᵉ::Bool ? [:q, :l, :t] : [:q, :l])
+    m = sample(rng, s.φ ? [:q, :l, :t] : [:q, :l])
     for iⁿ ∈ eachindex(C) X[iⁿ] = isone(W[iⁿ]) ? relatedness(m, C[iⁿ], C[i], s) : -Inf end
     # Step 4: Remove q most related customer nodes
     n = 0
@@ -108,7 +108,6 @@ function worstcustomer!(rng::AbstractRNG, q::Int, s::Solution)
         for i ∈ eachindex(L)
             cᵈ = L[i]
             cᵖ = C[cᵈ.jⁿ]
-            if !isequal(cᵖ.r, cᵈ.r) continue end
             if isopen(cᵈ) || isopen(cᵖ) continue end
             r = cᵈ.r
             j = findfirst(isequal(r), R)
@@ -148,7 +147,7 @@ function worstcustomer!(rng::AbstractRNG, q::Int, s::Solution)
         ϕ .= 0
         for (j,r) ∈ pairs(R) 
             φʳ = isequal(r, cᵈ.r)
-            φᵛ = isequal(r.iᵛ, v.iᵛ) && isless(tⁱ, r.tⁱ) && isequal(φᵉ::Bool, true)
+            φᵛ = isequal(r.iᵛ, v.iᵛ) && isless(tⁱ, r.tⁱ) && isequal(s.φ, true)
             φᵈ = false
             φˢ = φʳ || φᵛ || φᵈ
             if isequal(φˢ, false) continue end
