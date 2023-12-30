@@ -106,8 +106,9 @@ function worstcustomer!(rng::AbstractRNG, q::Int, s::Solution)
         # Step 2.1: For every closed delivery node evaluate removal cost
         z = f(s)
         for i ∈ eachindex(L)
-            cᵈ = L[i]
-            cᵖ = C[cᵈ.jⁿ]
+            c  = L[i]
+            cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
+            cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
             if isopen(cᵈ) || isopen(cᵖ) continue end
             r  = cᵈ.r
             j  = findfirst(isequal(r), R)
@@ -128,15 +129,20 @@ function worstcustomer!(rng::AbstractRNG, q::Int, s::Solution)
             insertnode!(cᵖ, nᵖᵗ, nᵖʰ, r, s)
         end
         # Step 2.2: Remove the delivery node with highest removal cost (savings)
-        i  = argmax(X)
-        c  = L[i]
-        r  = c.r
-        d  = s.D[r.iᵈ]
-        v  = d.V[r.iᵛ]
-        nᵗ = isequal(r.iˢ, c.iⁿ) ? D[c.iᵗ] : C[c.iᵗ]
-        nʰ = isequal(r.iᵉ, c.iⁿ) ? D[c.iʰ] : C[c.iʰ]
-        removenode!(c, nᵗ, nʰ, r, s)
-        n += 1
+        i   = argmax(X)
+        c   = L[i]
+        cᵖ  = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
+        cᵈ  = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
+        r   = c.r
+        d   = s.D[r.iᵈ]
+        v   = d.V[r.iᵛ]
+        nᵈᵗ = isequal(r.iˢ, cᵈ.iⁿ) ? D[cᵈ.iᵗ] : C[cᵈ.iᵗ]
+        nᵈʰ = isequal(r.iᵉ, cᵈ.iⁿ) ? D[cᵈ.iʰ] : C[cᵈ.iʰ]
+        removenode!(cᵈ, nᵈᵗ, nᵈʰ, r, s)
+        nᵖᵗ = isequal(r.iˢ, cᵖ.iⁿ) ? D[cᵖ.iᵗ] : C[cᵖ.iᵗ]
+        nᵖʰ = isequal(r.iᵉ, cᵖ.iⁿ) ? D[cᵖ.iʰ] : C[cᵖ.iʰ]
+        removenode!(cᵖ, nᵖᵗ, nᵖʰ, r, s)
+        n  += 1
         # Step 2.3: Update cost and selection weight vectors
         X[i] = -Inf
         ϕ .= 0
