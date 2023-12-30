@@ -98,21 +98,21 @@ function worstcustomer!(rng::AbstractRNG, q::Int, s::Solution)
     C = s.C
     R = [r for d ∈ D for v ∈ d.V for r ∈ v.R if isactive(r)]
     L = [c for c ∈ C if isactive(c) && isdelivery(c)]
-    X = fill(-Inf, eachindex(L))   # X[i]: removal cost of customer node L[i]
+    X = fill(-Inf, eachindex(L))   # X[i]: removal cost of delivery node L[i]
     ϕ = ones(Int, eachindex(R))    # ϕʳ[j]: binary weight for route R[j]
     # Step 2: Iterate until q customer nodes have been removed
     n = 0
     while n < q
-        # Step 2.1: For every closed customer node evaluate removal cost
+        # Step 2.1: For every closed delivery node evaluate removal cost
         z = f(s)
         for i ∈ eachindex(L)
             cᵈ = L[i]
             cᵖ = C[cᵈ.jⁿ]
             if isopen(cᵈ) || isopen(cᵖ) continue end
-            r = cᵈ.r
-            j = findfirst(isequal(r), R)
+            r  = cᵈ.r
+            j  = findfirst(isequal(r), R)
             if iszero(ϕ[j]) continue end
-            # Step 2.1.1: Remove closed customer node c between tail node nᵗ and head node nʰ in route r
+            # Step 2.1.1: Remove delivery node cᵈ and associated pickup node cᵖ
             nᵖᵗ = isequal(r.iˢ, cᵖ.iⁿ) ? D[cᵖ.iᵗ] : C[cᵖ.iᵗ]
             nᵖʰ = isequal(r.iᵉ, cᵖ.iⁿ) ? D[cᵖ.iʰ] : C[cᵖ.iʰ]
             removenode!(cᵖ, nᵖᵗ, nᵖʰ, r, s)
@@ -123,30 +123,26 @@ function worstcustomer!(rng::AbstractRNG, q::Int, s::Solution)
             z′ = f(s) * (1 + rand(rng, Uniform(-0.2, 0.2)))
             Δ  = z′ - z
             X[i] = -Δ
-            # Step 2.1.3: Re-insert customer node c between tail node nᵗ and head node nʰ in route r
+            # Step 2.1.3: Re-insert delivery node cᵈ and associated pickup node cᵖ
             insertnode!(cᵈ, nᵈᵗ, nᵈʰ, r, s)
             insertnode!(cᵖ, nᵖᵗ, nᵖʰ, r, s)
         end
-        # Step 2.2: Remove the customer node with highest removal cost (savings)
+        # Step 2.2: Remove the delivery node with highest removal cost (savings)
         i  = argmax(X)
-        cᵈ = L[i]
-        cᵖ = C[cᵈ.jⁿ]
-        r  = cᵈ.r
+        c  = L[i]
+        r  = c.r
         d  = s.D[r.iᵈ]
         v  = d.V[r.iᵛ]
-        nᵖᵗ = isequal(r.iˢ, cᵖ.iⁿ) ? D[cᵖ.iᵗ] : C[cᵖ.iᵗ]
-        nᵖʰ = isequal(r.iᵉ, cᵖ.iⁿ) ? D[cᵖ.iʰ] : C[cᵖ.iʰ]
-        removenode!(cᵖ, nᵖᵗ, nᵖʰ, r, s)
-        nᵈᵗ = isequal(r.iˢ, cᵈ.iⁿ) ? D[cᵈ.iᵗ] : C[cᵈ.iᵗ]
-        nᵈʰ = isequal(r.iᵉ, cᵈ.iⁿ) ? D[cᵈ.iʰ] : C[cᵈ.iʰ]
-        removenode!(cᵈ, nᵈᵗ, nᵈʰ, r, s)
+        nᵗ = isequal(r.iˢ, c.iⁿ) ? D[c.iᵗ] : C[c.iᵗ]
+        nʰ = isequal(r.iᵉ, c.iⁿ) ? D[c.iʰ] : C[c.iʰ]
+        removenode!(c, nᵗ, nʰ, r, s)
         tⁱ = r.tⁱ
-        n += 2
+        n += 1
         # Step 2.3: Update cost and selection weight vectors
         X[i] = -Inf
         ϕ .= 0
         for (j,r) ∈ pairs(R) 
-            φʳ = isequal(r, cᵈ.r)
+            φʳ = isequal(r, c.r)
             φᵛ = isequal(r.iᵛ, v.iᵛ) && isless(tⁱ, r.tⁱ) && isequal(s.φ, true)
             φᵈ = false
             φˢ = φʳ || φᵛ || φᵈ
