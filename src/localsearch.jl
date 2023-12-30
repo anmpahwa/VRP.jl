@@ -174,13 +174,13 @@ function intraswap!(rng::AbstractRNG, k̅::Int, s::Solution)
         m  = sample(rng, s.φ ? [:q, :l, :t] : [:q, :l])
         W₅ = [!isequal(n₂.r, n₅.r) || isequal(n₂, n₅) ? 0. : relatedness(m, n₂, n₅, s) for n₅ ∈ C]
         n₅ = sample(rng, C, OffsetWeights(W₅))
+        if isequal(n₂, n₅) continue end
         r₂ = n₂.r
         r₅ = n₅.r
         n₁ = isequal(r₂.iˢ, n₂.iⁿ) ? D[n₂.iᵗ] : C[n₂.iᵗ]
         n₃ = isequal(r₂.iᵉ, n₂.iⁿ) ? D[n₂.iʰ] : C[n₂.iʰ]
         n₄ = isequal(r₅.iˢ, n₅.iⁿ) ? D[n₅.iᵗ] : C[n₅.iᵗ]
         n₆ = isequal(r₅.iᵉ, n₅.iⁿ) ? D[n₅.iʰ] : C[n₅.iʰ]
-        if isequal(n₂, n₅) continue end
         # n₁ → n₂ (n₄) → n₃ (n₅) → n₆   ⇒   n₁ → n₃ (n₅) → n₂ (n₄) → n₆
         if isequal(n₃, n₅)
             removenode!(n₂, n₁, n₃, r₂, s)
@@ -455,9 +455,10 @@ function interopt!(rng::AbstractRNG, k̅::Int, s::Solution)
         r₂ = sample(rng, R, Weights(W₂))
         if !isopt(r₂) continue end
         m  = sample(rng, s.φ ? [:q, :l, :t] : [:q, :l])
-        W₅ = [!isopt(r₅) || isequal(r₂, r₅)  ? 0. : relatedness(m, r₂, r₅, s) for r₅ ∈ R]
+        W₅ = [!isopt(r₅) || isequal(r₂, r₅) ? 0. : relatedness(m, r₂, r₅, s) for r₅ ∈ R]
         r₅ = sample(rng, R, Weights(W₅))
         if !isopt(r₅) continue end
+        if isequal(r₂, r₅) continue end
         d₂ = D[r₂.iᵈ]
         d₅ = D[r₅.iᵈ]
         i  = rand(rng, 1:r₂.n)
