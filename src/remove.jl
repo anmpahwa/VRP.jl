@@ -98,7 +98,7 @@ function worstcustomer!(rng::AbstractRNG, q::Int, s::Solution)
     C = s.C
     R = [r for d ∈ D for v ∈ d.V for r ∈ v.R]
     L = [c for c ∈ C if isdelivery(c)]
-    X = fill(-Inf, eachindex(L))   # X[i]: removal cost of delivery node L[i]
+    X = fill(-Inf, eachindex(L))   # X[i] : removal cost of delivery node L[i]
     ϕ = ones(Int, eachindex(R))    # ϕʳ[j]: binary weight for route R[j]
     # Step 2: Iterate until q customer nodes have been removed
     n = 0
