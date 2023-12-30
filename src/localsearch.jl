@@ -87,7 +87,6 @@ function intermove!(rng::AbstractRNG, k̅::Int, s::Solution)
     D  = s.D
     C  = s.C
     R  = [r for d ∈ D for v ∈ d.V for r ∈ v.R]
-    m  = sample(rng, s.φ ? [:q, :l, :t] : [:q, :l])
     Wᶜ = ones(eachindex(C))
     # Step 2: Iterate for k̅ iterations
     for _ ∈ 1:k̅
@@ -99,6 +98,7 @@ function intermove!(rng::AbstractRNG, k̅::Int, s::Solution)
         if !isequal(cᵖ.r, cᵈ.r) continue end
         r₁ = cᵈ.r
         # Step 2.2: Select a random route
+        m  = sample(rng, s.φ ? [:q, :l, :t] : [:q, :l])
         Wʳ = [isequal(r₁, r₂) ? 0. : relatedness(m, r₁, r₂, s) for r₂ ∈ R]
         r₂ = sample(rng, R, Weights(Wʳ))
         # Step 2.3: Remove these pickup and delivery nodes from their position
@@ -165,13 +165,13 @@ function intraswap!(rng::AbstractRNG, k̅::Int, s::Solution)
     z  = f(s)
     D  = s.D
     C  = s.C
-    m  = sample(rng, s.φ ? [:q, :l, :t] : [:q, :l])
     W₂ = ones(eachindex(C))
     # Step 2: Iterate for k̅ iterations
     for _ ∈ 1:k̅
         # Step 2.1: Swap two randomly selected customer nodes
         # n₁ → n₂ → n₃ and n₄ → n₅ → n₆
         n₂ = sample(rng, C, OffsetWeights(W₂))
+        m  = sample(rng, s.φ ? [:q, :l, :t] : [:q, :l])
         W₅ = [!isequal(n₂.r, n₅.r) || isequal(n₂, n₅) ? 0. : relatedness(m, n₂, n₅, s) for n₅ ∈ C]
         n₅ = sample(rng, C, OffsetWeights(W₅))
         r₂ = n₂.r
@@ -237,13 +237,13 @@ function interswap!(rng::AbstractRNG, k̅::Int, s::Solution)
     z  = f(s)
     D  = s.D
     C  = s.C
-    m  = sample(rng, s.φ ? [:q, :l, :t] : [:q, :l])
     W₂ = ones(eachindex(C))
     # Step 2: Iterate for k̅ iterations
     for _ ∈ 1:k̅
         # Step 2.1: Swap two randomly selected customer nodes
         # n₁ → n₂ → n₃ and n₄ → n₅ → n₆
         n₂ = sample(rng, C, OffsetWeights(W₂))
+        m  = sample(rng, s.φ ? [:q, :l, :t] : [:q, :l])
         W₅ = [isequal(n₂.r, n₅.r) || isequal(n₂, n₅) ? 0. : relatedness(m, n₂, n₅, s) for n₅ ∈ C]
         n₅ = sample(rng, C, OffsetWeights(W₅))
         if isequal(n₂, n₅) continue end
@@ -447,7 +447,6 @@ function interopt!(rng::AbstractRNG, k̅::Int, s::Solution)
     D  = s.D
     C  = s.C
     R  = [r for d ∈ D for v ∈ d.V for r ∈ v.R]
-    m  = sample(rng, s.φ ? [:q, :l, :t] : [:q, :l])
     W₂ = [!isopt(r₂) ? 0 : 1 for r₂ ∈ R]
     # Step 2: Iterate for k̅ iterations
     for _ ∈ 1:k̅
@@ -455,6 +454,7 @@ function interopt!(rng::AbstractRNG, k̅::Int, s::Solution)
         # d₂ → ... → n₁ → n₂ → n₃ → ... → d₂ and d₅ → ... → n₄ → n₅ → n₆ → ... → d₅
         r₂ = sample(rng, R, Weights(W₂))
         if !isopt(r₂) continue end
+        m  = sample(rng, s.φ ? [:q, :l, :t] : [:q, :l])
         W₅ = [!isopt(r₅) || isequal(r₂, r₅)  ? 0. : relatedness(m, r₂, r₅, s) for r₅ ∈ R]
         r₅ = sample(rng, R, Weights(W₅))
         if !isopt(r₅) continue end
