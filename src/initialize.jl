@@ -120,7 +120,7 @@ as follows,
 Optionally specify a random number generator `rng` as the first argument
 (defaults to `Random.GLOBAL_RNG`).
 """
-function savings(rng::AbstractRNG, instance::String, dir=joinpath(dirname(@__DIR__), "instances"))
+function savings(rng::AbstractRNG, instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
     # Step 1: Initialize
     G = build(instance; dir=dir)
     s = Solution(G...)
