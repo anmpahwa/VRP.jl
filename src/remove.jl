@@ -96,8 +96,8 @@ function worstcustomer!(rng::AbstractRNG, q::Int, s::Solution)
     preremove!(s)
     D = s.D
     C = s.C
-    R = [r for d ∈ D for v ∈ d.V for r ∈ v.R if isactive(r)]
-    L = [c for c ∈ C if isactive(c) && isdelivery(c)]
+    R = [r for d ∈ D for v ∈ d.V for r ∈ v.R]
+    L = [c for c ∈ C if isdelivery(c)]
     X = fill(-Inf, eachindex(L))   # X[i]: removal cost of delivery node L[i]
     ϕ = ones(Int, eachindex(R))    # ϕʳ[j]: binary weight for route R[j]
     # Step 2: Iterate until q customer nodes have been removed
