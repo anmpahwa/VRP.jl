@@ -132,7 +132,7 @@ open delivery nodes have been added to the solution.
 Available modes include `:pcs` (precise estimation of insertion cost) 
 and `:ptb` (perturbed estimation of insertion cost).
 """
-function greedy!(rng::AbstractRNG, s::Solution, mode::Symbol)
+function greedy!(rng::AbstractRNG, s::Solution; mode::Symbol)
     # Step 1: Initialize
     preinsert!(s)
     D = s.D
