@@ -8,8 +8,8 @@ let
     χ = ALNSparameters(
         j   =   50                      ,
         k   =   5                       ,
-        n   =   10                      ,
-        m   =   1000                    ,
+        n   =   5                       ,
+        m   =   500                     ,
         Ψᵣ  =   [
                     :randomcustomer!    ,
                     :relatedcustomer!   ,
