@@ -134,17 +134,10 @@ function relatedness(m::Symbol, c₁::CustomerNode, c₂::CustomerNode, s::Solut
     cᵈ₁ = isdelivery(c₁) ? s.C[c₁.iⁿ] : s.C[c₁.jⁿ]
     cᵖ₂ = isdelivery(c₂) ? s.C[c₂.jⁿ] : s.C[c₂.iⁿ] 
     cᵈ₂ = isdelivery(c₂) ? s.C[c₂.iⁿ] : s.C[c₂.jⁿ]
-    r₁  = c₁.r
-    r₂  = c₂.r
-    d₁  = s.D[r₁.iᵈ]
-    d₂  = s.D[r₂.iᵈ]
-    v₁  = d₁.V[r₁.iᵛ]
-    v₂  = d₂.V[r₂.iᵛ]
-    φ   = (1 + isequal(d₁,d₂) + isequal(v₁,v₂) + isequal(r₁,r₂)) / 4
     q   = isequal(m, :q) * (abs(c₁.qᶜ - c₂.qᶜ))
     l   = isequal(m, :l) * (s.A[(cᵖ₁.iⁿ,cᵖ₂.iⁿ)].l + s.A[(cᵈ₁.iⁿ,cᵈ₂.iⁿ)].l)
     t   = isequal(m, :t) * (abs(cᵖ₁.tᵉ - cᵖ₂.tᵉ) + abs(cᵖ₁.tˡ - cᵖ₂.tˡ) + abs(cᵈ₁.tᵉ - cᵈ₂.tᵉ) + abs(cᵈ₁.tˡ - cᵈ₂.tˡ))
-    z   = φ/(q + l + t + ϵ)
+    z   = 1/(q + l + t + ϵ)
     return z
 end
 """
@@ -154,15 +147,10 @@ Returns a measure of similarity between routes `r₁` and `r₂` based on metric
 """
 function relatedness(m::Symbol, r₁::Route, r₂::Route, s::Solution)
     ϵ  = 1e-5
-    d₁ = s.D[r₁.iᵈ]
-    d₂ = s.D[r₂.iᵈ]
-    v₁ = d₁.V[r₁.iᵛ]
-    v₂ = d₂.V[r₂.iᵛ]
-    φ  = (1 + isequal(d₁,d₂) + isequal(v₁,v₂)) / 3
-    q  = isequal(m, :q) * (1 / abs(r₁.q/v₁.qᵛ - r₂.q/v₂.qᵛ))
+    q  = isequal(m, :q) * (0.)
     l  = isequal(m, :l) * (sqrt((r₁.x - r₂.x)^2 + (r₁.y - r₂.y)^2))
     t  = isequal(m, :t) * (abs(r₁.tˢ - r₂.tˢ) + abs(r₁.tᵉ - r₂.tᵉ))
-    z  = φ/(q + l + t + ϵ)
+    z  = 1/(q + l + t + ϵ)
     return z
 end
 """
@@ -184,13 +172,10 @@ function relatedness(m::Symbol, v₁::Vehicle, v₂::Vehicle, s::Solution)
         x₂ += r.n * r.x / v₂.n
         y₂ += r.n * r.y / v₂.n
     end
-    d₁ = s.D[v₁.iᵈ]
-    d₂ = s.D[v₂.iᵈ]
-    φ  = (1 + isequal(d₁,d₂)) / 2
-    q  = isequal(m, :q) * (1 / abs(v₁.q/(length(v₁.R) * v₁.qᵛ) - v₂.q/(length(v₂.R) * v₂.qᵛ)))
+    q  = isequal(m, :q) * (0.)
     l  = isequal(m, :l) * (sqrt((x₁ - x₂)^2 + (y₁ - y₂)^2))
     t  = isequal(m, :t) * (abs(v₁.tˢ - v₂.tˢ) + abs(v₁.tᵉ - v₂.tᵉ))
-    z  = φ/(q + l + t + ϵ)
+    z  = 1/(q + l + t + ϵ)
     return z
 end
 """
@@ -200,11 +185,10 @@ Returns a measure of similarity between depot nodes `d₁` and `d₂` based on m
 """
 function relatedness(m::Symbol, d₁::DepotNode, d₂::DepotNode, s::Solution)
     ϵ  = 1e-5
-    φ  = 1
     q  = isequal(m, :q) * (abs(d₁.qᵈ - d₂.qᵈ))
     l  = isequal(m, :l) * (s.A[(d₁.iⁿ, d₂.iⁿ)].l)
     t  = isequal(m, :t) * (abs(d₁.tˢ - d₂.tˢ) + abs(d₁.tᵉ - d₂.tᵉ))
-    z  = φ/(q + l + t + ϵ)
+    z  = 1/(q + l + t + ϵ)
     return z
 end
 
