@@ -70,10 +70,9 @@ isopt(v::Vehicle) = !iszero(v.n)
     isopt(d::DepotNode)
     
 Returns `true` if depot node `d` is operational.
-A `DepotNode` is defined operational if it serves at least one customer
-unless it is mandated to be operational.
+A `DepotNode` is defined operational if it serves at least one customer.
 """
-isopt(d::DepotNode) = !iszero(d.n) || !iszero(d.φ)
+isopt(d::DepotNode) = !iszero(d.n)
 
 
 
@@ -88,10 +87,9 @@ isopen(c::CustomerNode) = isequal(c.r, NullRoute)
     isopen(d::DepotNode)
 
 Returns `true` if depot node `d` is open.
-A `DepotNode` is defined open if it serves at least one customer
-unless it is mandated to be operational.
+A `DepotNode` is defined open if it serves at least one customer.
 """  
-isopen(d::DepotNode) = !iszero(d.n) || !iszero(d.φ)
+isopen(d::DepotNode) = !iszero(d.n)
 
 
 
@@ -106,10 +104,9 @@ isclose(c::CustomerNode) = !isequal(c.r, NullRoute)
     isclose(d::DepotNode)
 
 Returns `true` if depot node `d` is closed.
-A `DepotNode` is defined closed if it serves no customer
-given it is not mandated to be operational.
+A `DepotNode` is defined closed if it serves no customer.
 """  
-isclose(d::DepotNode) = iszero(d.n) && iszero(d.φ)
+isclose(d::DepotNode) = iszero(d.n)
 
 
 
@@ -293,7 +290,7 @@ end
 """
     vectorize(s::Solution)
 
-Returns `Solution` as a sequence of nodes in the order of visits.
+Returns `Solution` as a sequence of nodes in the order of visits for every depot, vehicle, and route.
 """
 function vectorize(s::Solution)
     Z = [[[Int[] for r ∈ v.R] for v ∈ d.V] for d ∈ s.D]

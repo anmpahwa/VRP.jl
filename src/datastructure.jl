@@ -90,7 +90,7 @@ abstract type Node end
 A `DepotNode` is an origin point on the graph at `(x,y)` with index `iⁿ`, capacity 
 `qᵈ`, working-hours start time `tˢ` and end tme `tᵉ`, total nodes visited `n`, total 
 demand served from the depot `q`, total route length `l`, operational cost `πᵒ` per 
-package, fixed cost `πᶠ`, operations mandate `φ`, and fleet of vehicles `V`.
+package, fixed cost `πᶠ`, and fleet of vehicles `V`.
 """
 mutable struct DepotNode <: Node
     iⁿ::Int                                                                         # Depot node index
@@ -104,7 +104,6 @@ mutable struct DepotNode <: Node
     l::Float64                                                                      # Depot total route length
     πᵒ::Float64                                                                     # Depot operational cost
     πᶠ::Float64                                                                     # Depot fixed cost
-    φ::Int                                                                          # Depot operations mandate
     V::Vector{Vehicle}                                                              # Vector of depot vehicles
 end
 """

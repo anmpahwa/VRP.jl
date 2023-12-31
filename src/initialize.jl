@@ -29,8 +29,7 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         l  = 0.
         πᵒ = df[k,7]
         πᶠ = df[k,8]
-        φ  = df[k,9]
-        d  = DepotNode(iⁿ, x, y, qᵈ, tˢ, tᵉ, n, q, l, πᵒ, πᶠ, φ, Vehicle[])
+        d  = DepotNode(iⁿ, x, y, qᵈ, tˢ, tᵉ, n, q, l, πᵒ, πᶠ, Vehicle[])
         D[iⁿ] = d
     end
     # Customer nodes
