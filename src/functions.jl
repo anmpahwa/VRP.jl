@@ -159,7 +159,7 @@ function relatedness(m::Symbol, r₁::Route, r₂::Route, s::Solution)
     v₁ = d₁.V[r₁.iᵛ]
     v₂ = d₂.V[r₂.iᵛ]
     φ  = (1 + isequal(d₁,d₂) + isequal(v₁,v₂)) / 3
-    q  = isequal(m, :q) * (1 / abs(r₁.n/v₁.qᵛ - r₂.n/v₂.qᵛ))
+    q  = isequal(m, :q) * (1 / abs(r₁.q/v₁.qᵛ - r₂.q/v₂.qᵛ))
     l  = isequal(m, :l) * (sqrt((r₁.x - r₂.x)^2 + (r₁.y - r₂.y)^2))
     t  = isequal(m, :t) * (abs(r₁.tˢ - r₂.tˢ) + abs(r₁.tᵉ - r₂.tᵉ))
     z  = φ/(q + l + t + ϵ)
@@ -187,7 +187,7 @@ function relatedness(m::Symbol, v₁::Vehicle, v₂::Vehicle, s::Solution)
     d₁ = s.D[v₁.iᵈ]
     d₂ = s.D[v₂.iᵈ]
     φ  = (1 + isequal(d₁,d₂)) / 2
-    q  = isequal(m, :q) * (1 / abs(v₁.n/(length(v₁.R) * v₁.qᵛ) - v₂.n/(length(v₂.R) * v₂.qᵛ)))
+    q  = isequal(m, :q) * (1 / abs(v₁.q/(length(v₁.R) * v₁.qᵛ) - v₂.q/(length(v₂.R) * v₂.qᵛ)))
     l  = isequal(m, :l) * (sqrt((x₁ - x₂)^2 + (y₁ - y₂)^2))
     t  = isequal(m, :t) * (abs(v₁.tˢ - v₂.tˢ) + abs(v₁.tᵉ - v₂.tᵉ))
     z  = φ/(q + l + t + ϵ)
