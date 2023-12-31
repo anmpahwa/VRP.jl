@@ -65,6 +65,7 @@ function relatedcustomer!(rng::AbstractRNG, q::Int, s::Solution)
     # Step 3: For each customer node, evaluate relatedness to this pivot customer node
     m = sample(rng, s.φ ? [:q, :l, :t] : [:q, :l])
     for iⁿ ∈ eachindex(C) X[iⁿ] = isone(W[iⁿ]) ? relatedness(m, C[iⁿ], C[i], s) : -Inf end
+    X[i] = Inf
     # Step 4: Remove q most related customer nodes
     n = 0
     while n < q
