@@ -1,6 +1,4 @@
 # TODO
-- Reduce Solution datastructure (remove φ)
-- Modify insertnode!, removenode!, movevehicle!, worstcustomer!, intermove!, intraswap!, interswap!, and interopt!
 - Add more comments to insertnode!, removenode!, and movevehicle!
 - Add refueling stations (F = {f; f ∈ F})
 - Update customer node datastructure to include the nearest refueling station (f)
