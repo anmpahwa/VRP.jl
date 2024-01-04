@@ -228,7 +228,9 @@ function savings(rng::AbstractRNG, instance::String; dir=joinpath(dirname(@__DIR
             :interopt!
          ]
     L  = eachindex(Ψₗ)
-    for l ∈ L localsearch!(rng, 2500, s, Ψₗ[l]) end     
+    x  = max(100, lastindex(C))
+    m  = 100x
+    for l ∈ L localsearch!(rng, m, s, Ψₗ[l]) end     
     postinitialize!(s)
     # Step 4: Return solution
     return s
