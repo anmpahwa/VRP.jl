@@ -25,7 +25,7 @@ let
             # Visualize initial solution
             display(visualize(s₁))
             # Define ALNS parameters
-            x = 25
+            x = max(100, lastindex(s₁.C)) ÷ 2
             χ = ALNSparameters(
                 j   =   50                      ,
                 k   =   5                       ,
@@ -33,8 +33,11 @@ let
                 m   =   100x                    ,
                 Ψᵣ  =   [
                             :randomcustomer!    ,
+                            :randomroute!       ,
                             :relatedcustomer!   ,
-                            :worstcustomer!
+                            :relatedroute!      ,
+                            :worstcustomer!     ,    
+                            :worstroute!
                         ]                       ,
                 Ψᵢ  =   [
                             :best!              ,
