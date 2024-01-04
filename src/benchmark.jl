@@ -25,7 +25,7 @@ let
             # Visualize initial solution
             display(visualize(s₁))
             # Define ALNS parameters
-            x = max(100, lastindex(s₁.C)) ÷ 4
+            x = max(100, lastindex(s₁.C)) ÷ 10
             χ = ALNSparameters(
                 j   =   50                      ,
                 k   =   5                       ,
