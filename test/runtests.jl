@@ -12,8 +12,11 @@ let
         m   =   500                     ,
         Ψᵣ  =   [
                     :randomcustomer!    ,
+                    :randomroute!       ,
                     :relatedcustomer!   ,
-                    :worstcustomer!
+                    :relatedroute!      ,
+                    :worstcustomer!     ,    
+                    :worstroute!
                 ]                       ,
         Ψᵢ  =   [
                     :best!              ,
