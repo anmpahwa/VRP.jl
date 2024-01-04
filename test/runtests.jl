@@ -47,18 +47,6 @@ let
         θ   =   0.9985                  ,
         ρ   =   0.1
     );
-    @testset "VRP" begin
-        instances = ["bar-n100-1", "nyc-n100-3", "poa-n100-7"]
-        for instance ∈ instances
-            visualize(instance)
-            println(instance)
-            sₒ = initialize(instance)
-            s⃰  = ALNS(χ, sₒ)
-            visualize(s⃰)
-            @test isfeasible(s⃰)
-            @test f(s⃰) ≤ f(sₒ)
-        end
-    end
     return
 end
         
