@@ -218,6 +218,17 @@ function savings(rng::AbstractRNG, instance::String; dir=joinpath(dirname(@__DIR
         end
         X .= Inf
     end
+    # Step 4: Perform local search
+    Ψₗ = [
+            :intramove!         ,
+            :intraswap!         ,
+            :intraopt!          ,
+            :intermove!         ,
+            :interswap!         ,
+            :interopt!
+         ]
+    L  = eachindex(Ψₗ)
+    for l ∈ L localsearch!(rng, 2500, s, Ψₗ[l]) end     
     postinitialize!(s)
     # Step 4: Return solution
     return s
