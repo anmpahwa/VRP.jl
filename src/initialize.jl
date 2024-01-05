@@ -151,7 +151,7 @@ function savings(rng::AbstractRNG, instance::String; dir=joinpath(dirname(@__DIR
         for (k₁,r₁) ∈ pairs(R)
             for (k₂,r₂) ∈ pairs(R)
                 if isequal(r₁, r₂) continue end
-                if isopt(r₁) || isopt(r₂) continue end
+                if !isopt(r₁) || !isopt(r₂) continue end
                 # Step 3.1.1: Merge route r₁ into r₂ (r₂ --- r₁)
                 cˢ  = C[r₁.iˢ]
                 cᵉ  = C[r₁.iᵉ] 
