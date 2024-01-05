@@ -10,13 +10,14 @@ let
     # Set B
     B = ["bar-n100-1", "ber-n100-2", "nyc-n100-3", "poa-n100-4", "bar-n100-5", "ber-n100-6", "poa-n100-7"]
     # Define instances
-    instances = [B...]
+    instances = [A..., B...]
     # Define random number generators
-    seeds = [1010]#, 1106, 1509, 1604, 1905, 2104, 2412, 2703, 2710, 2807]
+    seeds = [1010, 1106, 1509, 1604, 1905, 2104, 2412, 2703, 2710, 2807]
     # Dataframes to store solution quality and run time
     df₁ = DataFrame([instances, [zeros(length(instances)) for _ ∈ seeds]...], [iszero(i) ? "instance" : "$(seeds[i])" for i ∈ 0:length(seeds)])
     df₂ = DataFrame([instances, [zeros(length(instances)) for _ ∈ seeds]...], [iszero(i) ? "instance" : "$(seeds[i])" for i ∈ 0:length(seeds)])
     df₃ = DataFrame([instances, [zeros(length(instances)) for _ ∈ seeds]...], [iszero(i) ? "instance" : "$(seeds[i])" for i ∈ 0:length(seeds)])
+    df₄ = DataFrame([instances, [zeros(length(instances)) for _ ∈ seeds]...], [iszero(i) ? "instance" : "$(seeds[i])" for i ∈ 0:length(seeds)])
     for i ∈ eachindex(instances)
         instance = instances[i]
         # Visualize instance
@@ -98,10 +99,12 @@ let
             # Store Results
             df₁[i,j+1] = s₂.πᶠ + s₂.πᵒ + s₂.πᵖ
             df₂[i,j+1] = s₂.πᵒ + s₂.πᵖ
-            df₃[i,j+1] = t
+            df₃[i,j+1] = nᵛ
+            df₄[i,j+1] = t
             println(df₁)
             println(df₂)
             println(df₃)
+            println(df₄)
         end
     end
     return
