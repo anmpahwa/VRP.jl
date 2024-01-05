@@ -187,7 +187,6 @@ function randomroute!(rng::AbstractRNG, q::Int, s::Solution)
         r  = R[iʳ]
         d  = D[r.iᵈ]
         while true
-            if n ≥ q break end
             if !isopt(r) break end
             nᵗ = d
             c  = C[r.iˢ]
@@ -233,7 +232,6 @@ function relatedroute!(rng::AbstractRNG, q::Int, s::Solution)
         r  = R[iʳ]
         d  = D[r.iᵈ]
         while true
-            if n ≥ q break end
             if !isopt(r) break end
             nᵗ = d
             c  = C[r.iˢ]
@@ -279,7 +277,6 @@ function worstroute!(rng::AbstractRNG, q::Int, s::Solution)
         r  = R[iʳ]
         d  = D[r.iᵈ]
         while true
-            if n ≥ q break end
             if !isopt(r) break end
             nᵗ = d
             c  = C[r.iˢ]
