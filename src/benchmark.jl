@@ -6,11 +6,13 @@ using DataFrames
 
 let
     # Set A
-    A = ["lc101", "lc201", "lr101", "lr201", "lrc101", "lrc201"]
+    A = ["lc101", "lc201"]
     # Set B
-    B = ["bar-n100-1", "ber-n100-2", "nyc-n100-3", "poa-n100-4", "bar-n100-5", "ber-n100-6", "poa-n100-7"]
+    B = ["lr101", "lr201"]
+    # Set C
+    C = ["lrc101", "lrc201"]
     # Define instances
-    instances = [A..., B...]
+    instances = [A..., B..., C...]
     # Define random number generators
     seeds = [1010, 1106, 1509, 1604, 1905, 2104, 2412, 2703, 2710, 2807]
     # Dataframes to store solution quality and run time
