@@ -47,6 +47,18 @@ let
         θ   =   0.9965                  ,
         ρ   =   0.1
     );
+    @testset "PDPTW" begin
+        instances = ["lc201", "lr201", "lrc201"]
+        for instance ∈ instances
+            visualize(instance)
+            println(instance)
+            s₁ = initialize(instance)
+            s₂ = ALNS(χ, s₁)
+            visualize(s₂)
+            @test isfeasible(s₂)
+            @test f(s₂) ≤ f(s₁)
+        end
+    end
     return
 end
         
