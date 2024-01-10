@@ -6,9 +6,9 @@ using DataFrames
 
 let
     # Set A
-    A = ["lc101", "lc101", "lrc101"]
+    A = ["lc101", "lr101", "lrc101"]
     # Set B
-    B = ["lr201", "lr201", "lrc101"]
+    B = ["lc201", "lr201", "lrc101"]
     # Define instances
     instances = [A..., B...]
     # Define random number generators
