@@ -40,10 +40,13 @@ let
                 Ψᵣ  =   [
                             :randomcustomer!    ,
                             :randomroute!       ,
+                            :randomvehicle!     ,
                             :relatedcustomer!   ,
                             :relatedroute!      ,
-                            :worstcustomer!     ,    
-                            :worstroute!
+                            :relatedvehicle!    ,
+                            :worstcustomer!     ,
+                            :worstroute!        ,
+                            :worstvehicle!
                         ]                       ,
                 Ψᵢ  =   [
                             :best!              ,
