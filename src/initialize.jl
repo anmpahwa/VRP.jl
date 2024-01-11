@@ -35,7 +35,7 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
     end
     # Customer nodes
     df = DataFrame(CSV.File(joinpath(dir, "$instance/customer_nodes.csv")))
-    I  = (df[1,1]:df[nrow(df),1])::UnitRange{Int}
+    I  = (df[1,1]:df[nrow(df),1])
     C  = OffsetVector{CustomerNode}(undef, I)
     for k ∈ 1:nrow(df)
         iⁿ = df[k,1]
