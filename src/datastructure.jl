@@ -47,8 +47,8 @@ end
 
 A `Vehicle` is a mode of delivery with index `iᵛ`, type index `jᵛ`, depot node index 
 `iᵈ`, capacity `qᵛ`, range `lᵛ`, speed `sᵛ`, refueling time `τᶠ`, service time `τᵈ` 
-at depot node per unit demand, parking time `τᶜ` at customer node, maximum routes 
-permitted `r̅`, working-hours `τʷ`, initial departure time `tˢ`, final arrival time 
+at depot node per unit demand, parking time `τᶜ` at customer node, maximum vehicle
+routes `r̅`, working-hours `τʷ`, initial departure time `tˢ`, final arrival time 
 `tᵉ`, total nodes visited `n`, total demand served from the depot `q`, total route 
 length `l`, operational cost `πᵈ` per unit distance and `πᵗ` per unit time, fixed 
 cost `πᶠ`, and set of routes `R`.
@@ -64,7 +64,7 @@ mutable struct Vehicle
     τᵈ::Float64                                                                     # Depot node service time per unit demand
     τᶜ::Float64                                                                     # Parking time at customer stop
     τʷ::Float64                                                                     # Vehicle working-hours duration
-    r̅::Int                                                                          # Maximum number of vehicle routes permitted
+    r̅::Int                                                                          # Vehicle number of routes limit
     tˢ::Float64                                                                     # Vehicle start time (initial departure time from the depot node)
     tᵉ::Float64                                                                     # Vehicle end time (final arrival time at the depot node)
     n::Int                                                                          # Vehicle total nodes visited
@@ -85,18 +85,19 @@ A `Node` is a point on the graph.
 """
 abstract type Node end
 """
-    DepotNode(iⁿ::Int, x::Float64, y::Float64, qᵈ::Float64, tˢ::Float64, tᵉ::Float64, n::Int, q::Float64, l::Float64, πᵒ::Float64, πᶠ::Float64, V::Vector{Vehicle})
+    DepotNode(iⁿ::Int, x::Float64, y::Float64, qᵈ::Float64, v̅::Int, tˢ::Float64, tᵉ::Float64, n::Int, q::Float64, l::Float64, πᵒ::Float64, πᶠ::Float64, V::Vector{Vehicle})
 
 A `DepotNode` is an origin point on the graph at `(x,y)` with index `iⁿ`, capacity 
-`qᵈ`, working-hours start time `tˢ` and end tme `tᵉ`, total nodes visited `n`, total 
-demand served from the depot `q`, total route length `l`, operational cost `πᵒ` per 
-package, fixed cost `πᶠ`, and fleet of vehicles `V`.
+`qᵈ`, maximum fleet size `v̅`, working-hours start time `tˢ` and end tme `tᵉ`, total 
+nodes visited `n`, total demand served from the depot `q`, total route length `l`, 
+operational cost `πᵒ` per package, fixed cost `πᶠ`, and fleet of vehicles `V`.
 """
 mutable struct DepotNode <: Node
     iⁿ::Int                                                                         # Depot node index
     x::Float64                                                                      # Depot node location on the x-axis
     y::Float64                                                                      # Depot node location in the y-axis
     qᵈ::Float64                                                                     # Depot capacity
+    v̅::Int                                                                          # Depot fleet size limit
     tˢ::Float64                                                                     # Depot working-hours start time
     tᵉ::Float64                                                                     # Depot working-hours end time
     n::Int                                                                          # Depot total nodes visited

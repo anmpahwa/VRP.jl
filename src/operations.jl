@@ -494,8 +494,8 @@ Returns `true` if a route `r` can be added into solution `s`.
 function addroute(r::Route, s::Solution)
     d = s.D[r.iᵈ]
     v = d.V[r.iᵛ]
+    if length(v.R) ≥ v.r̅ return false end
     if any(!isopt, v.R) return false end
-    if isequal(length(v.R), v.r̅) return false end
     return true
 end
 """
@@ -517,6 +517,7 @@ Returns `true` if vehicle `v` can be added into solution `s`.
 """
 function addvehicle(v::Vehicle, s::Solution)
     d = s.D[v.iᵈ]
+    if length(d.V) ≥ d.v̅ return false end
     if any(!isopt, filter(v′ -> isequal(v′.jᵛ, v.jᵛ), d.V)) return false end
     return true 
 end
