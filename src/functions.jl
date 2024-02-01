@@ -270,18 +270,8 @@ function Solution(D::Vector{DepotNode}, C::OffsetVector{CustomerNode}, A::Dict{T
     πᶠ = 0.
     πᵒ = 0.
     πᵖ = 0.
-    φ  = false
-    for c ∈ C
-        πᵖ += abs(c.qᶜ)
-    end
-    for d ∈ D
-        φ = φ || (!iszero(d.tˢ) || !iszero(d.tᵉ))
-        for v ∈ d.V φ = φ || (!iszero(v.τʷ) || !iszero(v.πᵗ)) end
-    end
-    for c ∈ C
-        φ = φ || (!iszero(c.tᵉ) || !iszero(c.tˡ))
-    end
-    return Solution(D, C, A, πᶠ, πᵒ, πᵖ, φ)
+    for c ∈ C πᵖ += abs(c.qᶜ) end
+    return Solution(D, C, A, πᶠ, πᵒ, πᵖ)
 end
 
 

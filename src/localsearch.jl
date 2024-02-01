@@ -98,7 +98,7 @@ function intermove!(rng::AbstractRNG, k̅::Int, s::Solution)
         if !isequal(cᵖ.r, cᵈ.r) continue end
         r₁ = cᵈ.r
         # Step 2.2: Select a random route
-        m  = sample(rng, s.φ ? [:l, :t] : [:l])
+        m  = sample(rng, [:l, :t])
         Wʳ = [isequal(r₁, r₂) ? 0. : relatedness(m, r₁, r₂, s) for r₂ ∈ R]
         r₂ = sample(rng, R, Weights(Wʳ))
         # Step 2.3: Remove these pickup and delivery nodes from their position
@@ -171,7 +171,7 @@ function intraswap!(rng::AbstractRNG, k̅::Int, s::Solution)
         # Step 2.1: Swap two randomly selected customer nodes
         # n₁ → n₂ → n₃ and n₄ → n₅ → n₆
         n₂ = sample(rng, C, OffsetWeights(W₂))
-        m  = sample(rng, s.φ ? [:q, :l, :t] : [:q, :l])
+        m  = sample(rng, [:q, :l, :t])
         W₅ = [!isequal(n₂.r, n₅.r) || isequal(n₂, n₅) ? 0. : relatedness(m, n₂, n₅, s) for n₅ ∈ C]
         n₅ = sample(rng, C, OffsetWeights(W₅))
         if isequal(n₂, n₅) continue end
@@ -243,7 +243,7 @@ function interswap!(rng::AbstractRNG, k̅::Int, s::Solution)
         # Step 2.1: Swap two randomly selected customer nodes
         # n₁ → n₂ → n₃ and n₄ → n₅ → n₆
         n₂ = sample(rng, C, OffsetWeights(W₂))
-        m  = sample(rng, s.φ ? [:q, :l, :t] : [:q, :l])
+        m  = sample(rng, [:q, :l, :t])
         W₅ = [isequal(n₂.r, n₅.r) || isequal(n₂, n₅) ? 0. : relatedness(m, n₂, n₅, s) for n₅ ∈ C]
         n₅ = sample(rng, C, OffsetWeights(W₅))
         if isequal(n₂, n₅) continue end
@@ -454,7 +454,7 @@ function interopt!(rng::AbstractRNG, k̅::Int, s::Solution)
         # d₂ → ... → n₁ → n₂ → n₃ → ... → d₂ and d₅ → ... → n₄ → n₅ → n₆ → ... → d₅
         r₂ = sample(rng, R, Weights(W₂))
         if !isopt(r₂) continue end
-        m  = sample(rng, s.φ ? [:l, :t] : [:l])
+        m  = sample(rng, [:l, :t])
         W₅ = [!isopt(r₅) || isequal(r₂, r₅) ? 0. : relatedness(m, r₂, r₅, s) for r₅ ∈ R]
         r₅ = sample(rng, R, Weights(W₅))
         if !isopt(r₅) continue end

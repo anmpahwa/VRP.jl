@@ -67,7 +67,7 @@ function relatedcustomer!(rng::AbstractRNG, q::Int, s::Solution)
     # Step 2: Randomly select a pivot customer node
     i = sample(rng, eachindex(C), OffsetWeights(W))
     # Step 3: For each customer node, evaluate relatedness to this pivot customer node
-    m = sample(rng, s.φ ? [:q, :l, :t] : [:q, :l])
+    m = sample(rng, [:q, :l, :t])
     for iⁿ ∈ eachindex(C) X[iⁿ] = isone(W[iⁿ]) ? relatedness(m, C[iⁿ], C[i], s) : -Inf end
     X[i] = Inf
     # Step 4: Remove q most related customer nodes
@@ -153,7 +153,7 @@ function worstcustomer!(rng::AbstractRNG, q::Int, s::Solution)
         ϕ .= 0
         for (j,r) ∈ pairs(R) 
             φʳ = isequal(r, c.r)
-            φᵛ = isequal(r.iᵛ, v.iᵛ) && isless(c.r.tⁱ, r.tⁱ) && isequal(s.φ, true)
+            φᵛ = isequal(r.iᵛ, v.iᵛ) && isless(c.r.tⁱ, r.tⁱ)
             φᵈ = false
             φˢ = φʳ || φᵛ || φᵈ
             if isequal(φˢ, false) continue end
@@ -224,7 +224,7 @@ function relatedroute!(rng::AbstractRNG, q::Int, s::Solution)
     # Step 2: Randomly select a pivot route
     i = sample(rng, eachindex(R), Weights(W))  
     # Step 3: For each route, evaluate relatedness to this pivot route
-    m = sample(rng, s.φ ? [:l, :t] : [:l])
+    m = sample(rng, [:l, :t])
     for iʳ ∈ eachindex(R) X[iʳ] = isone(W[iʳ]) ? relatedness(m, R[iʳ], R[i], s) : -Inf end
     X[i] = Inf
     # Step 4: Remove exactly q customers from most related route to this pivot route

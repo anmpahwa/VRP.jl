@@ -142,11 +142,10 @@ end
 
 
 """
-    Solution(D::Vector{DepotNode}, C::OffsetVector{CustomerNode}, A::Dict{Tuple{Int,Int}, Arc}, πᶠ::Float64, πᵒ::Float64, πᵖ::Float64, φ::Bool)
+    Solution(D::Vector{DepotNode}, C::OffsetVector{CustomerNode}, A::Dict{Tuple{Int,Int}, Arc}, πᶠ::Float64, πᵒ::Float64, πᵖ::Float64)
 
 A `Solution` is a graph with depot nodes `D`, customer nodes `C`, arcs `A`, fixed 
 cost `πᶠ`, operational cost `πᵒ`, and penalty `πᵖ`.
-Note, `φ` is an internal binary trigger for en-route parameter evaluation.
 """
 mutable struct Solution
     D::Vector{DepotNode}                                                            # Vector of depot nodes
@@ -155,5 +154,4 @@ mutable struct Solution
     πᶠ::Float64                                                                     # Fixed cost
     πᵒ::Float64                                                                     # Opertaional cost
     πᵖ::Float64                                                                     # Penalty
-    φ::Bool                                                                         # En-route evaluation binary
 end

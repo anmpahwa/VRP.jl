@@ -62,7 +62,6 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     s.πᵒ += d.q * d.πᵒ
     s.πᵖ += (d.q > d.qᵈ) * (d.q - d.qᵈ)
     # update en-route parameters
-    if isequal(s.φ, false) return s end
     s.πᵒ -= (v.tᵉ - v.tˢ) * v.πᵗ
     s.πᵖ -= (d.tˢ > v.tˢ) * (d.tˢ - v.tˢ)
     s.πᵖ -= (v.tᵉ > d.tᵉ) * (v.tᵉ - d.tᵉ)
@@ -193,7 +192,6 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     s.πᵒ += d.q * d.πᵒ
     s.πᵖ += (d.q > d.qᵈ) * (d.q - d.qᵈ)
     # update en-route parameters
-    if isequal(s.φ, false) return s end
     s.πᵒ -= (v.tᵉ - v.tˢ) * v.πᵗ
     s.πᵖ -= (d.tˢ > v.tˢ) * (d.tˢ - v.tˢ)
     s.πᵖ -= (v.tᵉ > d.tᵉ) * (v.tᵉ - d.tᵉ)
@@ -418,7 +416,6 @@ function movevehicle!(v::Vehicle, d₁::DepotNode, d₂::DepotNode, s::Solution)
         end
     end
     # update en-route variables
-    if isequal(s.φ, false) return s end
     s.πᵒ -= (v.tᵉ - v.tˢ) * v.πᵗ
     s.πᵖ -= (d.tˢ > v.tˢ) * (d.tˢ - v.tˢ)
     s.πᵖ -= (v.tᵉ > d.tᵉ) * (v.tᵉ - d.tᵉ)
