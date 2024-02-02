@@ -102,10 +102,9 @@ end
 
 
 """
-    savings([rng::AbstractRNG], instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
+    regret([rng::AbstractRNG], instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
 
-Returns initial `Solution` created by merging routes that render the most 
-savings until no merger can render further savings. 
+Returns initial `Solution` using regret-2 insertion method. 
 
 Note, `dir` locates the the folder containing instance files as sub-folders,
 as follows,
@@ -120,120 +119,151 @@ as follows,
 Optionally specify a random number generator `rng` as the first argument
 (defaults to `Random.GLOBAL_RNG`).
 """
-function savings(rng::AbstractRNG, instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
+function regret(rng::AbstractRNG, instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
     # Step 1: Initialize
+    k̅ = 2
     G = build(instance; dir=dir)
     s = Solution(G...)
+    preinitialize!(s)
     D = s.D
     C = s.C
-    preinitialize!(s)
-    # Step 2: Initialize solution with routes to every pickup and delivery node from the depot node
-    for c ∈ C
-        if ispickup(c) continue end
-        d = sample(rng, D)
-        v = d.V[lastindex(d.V)]
-        r = v.R[lastindex(v.R)]
-        cᵖ = C[c.jⁿ]
-        cᵈ = C[c.iⁿ]
-        insertnode!(cᵖ, d, d, r, s)
-        insertnode!(cᵈ, cᵖ, d, r, s)
-        v = Vehicle(v, d)
-        r = Route(v, d)
-        push!(v.R, r)
-        push!(d.V, v)
-    end
-    # Step 3: Merge routes iteratively until no merger can reduce objective funciton value
-    R = [r for d ∈ s.D for v ∈ d.V for r ∈ v.R]
-    K = eachindex(R)
-    X = fill(Inf, (K,K))            # X[k₁,k₂]: Savings from merging route R[k₁] into route R[k₂] (R[k₂] --- R[k₁])
-    while true
+    R = [r for d ∈ D for v ∈ d.V for r ∈ v.R]
+    L = [c for c ∈ C if isopen(c) && isdelivery(c)]
+    I = eachindex(L)
+    J = eachindex(R)
+    X = ElasticMatrix(fill(Inf, (I,J)))                 # X[i,j]: insertion cost of delivery node L[i] and its associated pickup node at their best position in route R[j]
+    P = ElasticMatrix(fill(((0, 0), (0, 0)), (I,J)))    # P[i,j]: best insertion postion of associated pickup node and the delivery node L[i] in route R[j]
+    Y = fill(Inf, (I,k̅))                                # Y[i,k]: insertion cost of delivery node L[i] and its associated pickup node at kᵗʰ best position
+    ϕ = ones(Int, J)                                    # ϕ[j]  : binary weight for route R[j]
+    N = zeros(Int, (I,k̅))                               # N[i,k]: route index of delivery node L[i] and its associated pickup node at kᵗʰ best position
+    Z = fill(-Inf, I)                                   # Z[i]  : regret-N cost of delivery node L[i] and its associated pickup node
+    # Step 2: Iterate until all open delivery nodes have been inserted into the route
+    for _ ∈ I
+        # Step 2.1: Iterate through all open delivery nodes (and the associated pickup nodes)
         z = f(s)
-        # Step 3.1: Estimate savings from merging every route into every other route
-        for (k₁,r₁) ∈ pairs(R)
-            for (k₂,r₂) ∈ pairs(R)
-                if isequal(r₁, r₂) continue end
-                if !isopt(r₁) || !isopt(r₂) continue end
-                # Step 3.1.1: Merge route r₁ into r₂ (r₂ --- r₁)
-                cˢ  = C[r₁.iˢ]
-                cᵉ  = C[r₁.iᵉ] 
-                c   = cˢ
-                nᵗ₁ = c.iᵗ ≤ lastindex(D) ? D[c.iᵗ] : C[c.iᵗ]
-                nʰ₁ = c.iʰ ≤ lastindex(D) ? D[c.iʰ] : C[c.iʰ]
-                nᵗ₂ = C[r₂.iᵉ]
-                nʰ₂ = D[r₂.iᵈ]
+        for (i,c) ∈ pairs(L)
+            if !isopen(c) continue end
+            cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
+            cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
+            for (j,r) ∈ pairs(R)
+                # Step 2.1.1: Iterate through all possible insertion position in route r
+                if iszero(ϕ[j]) continue end
+                d   = s.D[r.iᵈ]
+                nᵖˢ = isopt(r) ? C[r.iˢ] : D[r.iˢ]
+                nᵖᵉ = isopt(r) ? C[r.iᵉ] : D[r.iᵉ]
+                nᵖᵗ = d
+                nᵖʰ = nᵖˢ
                 while true
-                    removenode!(c, nᵗ₁, nʰ₁, r₁, s)
-                    insertnode!(c, nᵗ₂, nʰ₂, r₂, s)
-                    if isequal(c, cᵉ) break end
-                    c   = C[r₁.iˢ]
-                    nᵗ₁ = c.iᵗ ≤ lastindex(D) ? D[c.iᵗ] : C[c.iᵗ]
-                    nʰ₁ = c.iʰ ≤ lastindex(D) ? D[c.iʰ] : C[c.iʰ]
-                    nᵗ₂ = C[r₂.iᵉ]
-                    nʰ₂ = D[r₂.iᵈ]
-                end
-                # Step 3.1.2: Evaluate savings
-                z′  = f(s)
-                Δ   = z′ - z
-                X[k₁,k₂] = Δ
-                # Step 3.1.3. Split routes r₁ and r₂
-                c   = cᵉ
-                nᵗ₁ = D[r₁.iᵈ]
-                nʰ₁ = D[r₁.iᵈ]
-                nᵗ₂ = c.iᵗ ≤ lastindex(D) ? D[c.iᵗ] : C[c.iᵗ]
-                nʰ₂ = c.iʰ ≤ lastindex(D) ? D[c.iʰ] : C[c.iʰ]
-                while true
-                    removenode!(c, nᵗ₂, nʰ₂, r₂, s)
-                    insertnode!(c, nᵗ₁, nʰ₁, r₁, s)
-                    if isequal(c, cˢ) break end
-                    c   = C[r₂.iᵉ]
-                    nᵗ₁ = D[r₁.iᵈ]
-                    nʰ₁ = C[r₁.iˢ]
-                    nᵗ₂ = c.iᵗ ≤ lastindex(D) ? D[c.iᵗ] : C[c.iᵗ]
-                    nʰ₂ = c.iʰ ≤ lastindex(D) ? D[c.iʰ] : C[c.iʰ]
+                    # Step 2.1.1.1: Insert associated pickup node cᵖ between tail node nᵖᵗ and head node nᵖʰ in route r
+                    insertnode!(cᵖ, nᵖᵗ, nᵖʰ, r, s)
+                    nᵈˢ = isopt(r) ? C[r.iˢ] : D[r.iˢ]
+                    nᵈᵉ = isopt(r) ? C[r.iᵉ] : D[r.iᵉ]
+                    nᵈᵗ = d
+                    nᵈʰ = nᵈˢ
+                    while true
+                        # Step 2.1.1.1.1: Insert delivery node cᵈ between tail node nᵈᵗ and head node nᵈʰ in route r
+                        insertnode!(cᵈ, nᵈᵗ, nᵈʰ, r, s)
+                        # Step 2.1.1.1.2: Compute the insertion cost
+                        z′ = f(s)
+                        Δ  = z′ - z
+                        # Step 2.1.1.1.3: Revise least insertion cost in route r and the corresponding best insertion position in route r
+                        if Δ < X[i,j] X[i,j], P[i,j] = Δ, ((nᵖᵗ.iⁿ, nᵖʰ.iⁿ), (nᵈᵗ.iⁿ, nᵈʰ.iⁿ)) end
+                        # Step 2.1.1.1.4: Revise N least insertion costs
+                        k̲ = 1
+                        for k ∈ 1:k̅ 
+                            k̲ = k
+                            if Δ < Y[i,k] break end
+                        end
+                        for k ∈ k̅:-1:k̲ 
+                            Y[i,k] = isequal(k, k̲) ? Δ : Y[i,k-1]
+                            N[i,k] = isequal(k, k̲) ? r.iʳ : N[i,k-1]
+                        end
+                        # Step 2.1.1.1.5: Remove delivery node cᵈ from its position between tail node nᵈᵗ and head node nᵈʰ in route r
+                        removenode!(cᵈ, nᵈᵗ, nᵈʰ, r, s)
+                        if isequal(nᵈᵗ, nᵈᵉ) break end
+                        nᵈᵗ = nᵈʰ
+                        nᵈʰ = isequal(r.iᵉ, nᵈᵗ.iⁿ) ? D[nᵈᵗ.iʰ] : C[nᵈᵗ.iʰ]
+                    end
+                    # Step 2.1.1.2: Remove associated pickup node cᵖ between tail node nᵖᵗ and head node nᵖʰ in route r
+                    removenode!(cᵖ, nᵖᵗ, nᵖʰ, r, s)
+                    if isequal(nᵖᵗ, nᵖᵉ) break end
+                    nᵖᵗ = nᵖʰ
+                    nᵖʰ = isequal(r.iᵉ, nᵖᵗ.iⁿ) ? D[nᵖᵗ.iʰ] : C[nᵖᵗ.iʰ]
                 end
             end
+            # Step 2.1.2: Compute regret cost for delivery node L[i]
+            Z[i] = 0.
+            for k ∈ 1:k̅ Z[i] += Y[i,k] - Y[i,1] end
         end
-        # Step 3.2: If no merger renders savings, go to step 4. else go to step 3.3.
-        k₁,k₂ = Tuple(argmin(X))
-        Δ = X[k₁,k₂]
-        if Δ > 0 break end 
-        # Step 3.3: Merge the routes that render the most savings 
-        r₁  = R[k₁]
-        r₂  = R[k₂]
-        cˢ  = C[r₁.iˢ]
-        cᵉ  = C[r₁.iᵉ] 
-        c   = cˢ
-        nᵗ₁ = c.iᵗ ≤ lastindex(D) ? D[c.iᵗ] : C[c.iᵗ]
-        nʰ₁ = c.iʰ ≤ lastindex(D) ? D[c.iʰ] : C[c.iʰ]
-        nᵗ₂ = C[r₂.iᵉ]
-        nʰ₂ = D[r₂.iᵈ]
-        while true
-            removenode!(c, nᵗ₁, nʰ₁, r₁, s)
-            insertnode!(c, nᵗ₂, nʰ₂, r₂, s)
-            if isequal(c, cᵉ) break end
-            c   = C[r₁.iˢ]
-            nᵗ₁ = c.iᵗ ≤ lastindex(D) ? D[c.iᵗ] : C[c.iᵗ]
-            nʰ₁ = c.iʰ ≤ lastindex(D) ? D[c.iʰ] : C[c.iʰ]
-            nᵗ₂ = C[r₂.iᵉ]
-            nʰ₂ = D[r₂.iᵈ]
+        # Step 2.2: Insert delivery node and the associated pickup node with highest regret cost in its best position (break ties by inserting the nodes with the lowest insertion cost)
+        I̲  = findall(isequal.(Z, maximum(Z)))
+        i,j= Tuple(argmin(X[I̲,:]))
+        i  = I̲[i]
+        c  = L[i]
+        cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
+        cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
+        r  = R[j]
+        d  = s.D[r.iᵈ]
+        v  = d.V[r.iᵛ]
+        iᵖᵗ = P[i,j][1][1]
+        iᵖʰ = P[i,j][1][2]
+        iᵈᵗ = P[i,j][2][1]
+        iᵈʰ = P[i,j][2][2]
+        nᵖᵗ = iᵖᵗ ≤ lastindex(D) ? D[iᵖᵗ] : C[iᵖᵗ]
+        nᵖʰ = iᵖʰ ≤ lastindex(D) ? D[iᵖʰ] : C[iᵖʰ]
+        nᵈᵗ = iᵈᵗ ≤ lastindex(D) ? D[iᵈᵗ] : C[iᵈᵗ]
+        nᵈʰ = iᵈʰ ≤ lastindex(D) ? D[iᵈʰ] : C[iᵈʰ]
+        insertnode!(cᵖ, nᵖᵗ, nᵖʰ, r, s)
+        insertnode!(cᵈ, nᵈᵗ, nᵈʰ, r, s)
+        # Step 2.3: Revise vectors appropriately
+        X[i,:] .= Inf
+        P[i,:] .= (((0 ,0), (0, 0)), )
+        Y[i,:] .= Inf
+        N[i,:] .= 0
+        Z .= -Inf 
+        for (i,c) ∈ pairs(L)
+            for k ∈ 1:k̅
+                if iszero(N[i,k]) break end
+                j = findfirst(r -> isequal(r.iʳ, N[i,k]), R)
+                r = R[j]
+                if isequal(r.iᵛ, v.iᵛ) Y[i,k], N[i,k] = Inf, 0 end
+            end
+            K = sortperm(Y[i,:])
+            Y[i,:] .= Y[i,K]
+            N[i,:] .= N[i,K]
         end
-        X .= Inf
+        ϕ .= 0
+        for (j,r) ∈ pairs(R) 
+            φʳ = isequal(r, c.r)
+            φᵛ = isequal(r.iᵛ, v.iᵛ) && isless(c.r.tⁱ, r.tⁱ)
+            φᵈ = isequal(r.iᵈ, d.iⁿ) && !hasslack(d)
+            φˢ = φʳ || φᵛ || φᵈ
+            if isequal(φˢ, false) continue end
+            X[:,j] .= Inf
+            ϕ[j] = 1  
+        end
+        # Step 2.4: Update solution appropriately     
+        if addroute(r, s)
+            r = Route(v, d)
+            push!(v.R, r)
+            push!(R, r)
+            append!(X, fill(Inf, (I,1)))
+            append!(P, fill(((0, 0), (0, 0)), (I,1)))
+            push!(ϕ, 1)
+        end
+        if addvehicle(v, s)
+            v = Vehicle(v, d)
+            r = Route(v, d)
+            push!(d.V, v)
+            push!(v.R, r) 
+            push!(R, r)
+            append!(X, fill(Inf, (I,1)))
+            append!(P, fill(((0, 0), (0, 0)), (I,1)))
+            push!(ϕ, 1)
+        end
     end
-    # Step 4: Perform local search
-    Ψₗ = [
-            :intramove!         ,
-            :intraswap!         ,
-            :intraopt!          ,
-            :intermove!         ,
-            :interswap!         ,
-            :interopt!
-         ]
-    L  = eachindex(Ψₗ)
-    x  = max(100, lastindex(C))
-    m  = 100x
-    for l ∈ L localsearch!(rng, m, s, Ψₗ[l]) end     
     postinitialize!(s)
-    # Step 4: Return solution
+    # Step 3: Return solution
     return s
 end
 
@@ -257,5 +287,5 @@ as follows,
 Optionally specify a random number generator `rng` as the first argument
 (defaults to `Random.GLOBAL_RNG`).
 """
-initialize(rng::AbstractRNG, instance::String; dir=joinpath(dirname(@__DIR__), "instances")) = savings(rng, instance; dir=dir)
+initialize(rng::AbstractRNG, instance::String; dir=joinpath(dirname(@__DIR__), "instances")) = regret(rng, instance; dir=dir)
 initialize(instance::String; dir=joinpath(dirname(@__DIR__), "instances")) = initialize(Random.GLOBAL_RNG, instance; dir=dir)
