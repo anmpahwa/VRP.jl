@@ -29,11 +29,11 @@ let
             println("\n instance: $instance | seed: $seed")
             rng = MersenneTwister(seed);
             # Define inital solution method and build the initial solution
-            s₁ = initialize(rng, instance);
+            s₁ = VRP.regretk!(rng, VRP.Solution((build(instance))...), 2)
             # Visualize initial solution
             display(visualize(s₁))
             # Define ALNS parameters
-            x = max(100, lastindex(s₁.C))
+            x = max(100, lastindex(s₁.C)) ÷ 4
             χ = ALNSparameters(
                 j   =   50                      ,
                 k   =   5                       ,
@@ -42,11 +42,17 @@ let
                 Ψᵣ  =   [
                             :randomcustomer!    ,
                             :randomroute!       ,
+                            :randomvehicle!     ,
+                            :randomdepot!       ,
                             :relatedcustomer!   ,
                             :relatedroute!      ,
-                            :worstcustomer!     ,    
-                            :worstroute!
-                        ]                       ,
+                            :relatedvehicle!    ,
+                            :relateddepot!      ,
+                            :worstcustomer!     ,
+                            :worstroute!        ,
+                            :worstvehicle!      ,
+                            :worstdepot!
+                        ]                         ,
                 Ψᵢ  =   [
                             :best!              ,
                             :precise!           ,
@@ -73,7 +79,7 @@ let
                 τ̅   =   0.5                     ,
                 ω̲   =   0.01                    ,
                 τ̲   =   0.01                    ,
-                θ   =   0.9985                  ,
+                θ   =   0.9972                  ,
                 ρ   =   0.1
             );
             # Run ALNS and fetch best solution
@@ -82,22 +88,27 @@ let
             display(visualize(s₂))
             # Optimal solution characteristics
             println("Optimal solution characteristics:")
-            nᵈ, nᵛ, nʳ = 0, 0, 0
-            for d ∈ s₂.D nᵈ += VRP.isopt(d) end
-            for d ∈ s₂.D for v ∈ d.V nᵛ += VRP.isopt(v) end end
-            for d ∈ s₂.D for v ∈ d.V for r ∈ v.R nʳ += VRP.isopt(r) end end end
+            nᵈ₁, nᵛ₁, nʳ₁ = 0, 0, 0
+            nᵈ₂, nᵛ₂, nʳ₂ = 0, 0, 0
+            for d ∈ s₁.D nᵈ₁ += VRP.isopt(d) end
+            for d ∈ s₂.D nᵈ₂ += VRP.isopt(d) end
+            for d ∈ s₁.D for v ∈ d.V nᵛ₁ += VRP.isopt(v) end end
+            for d ∈ s₂.D for v ∈ d.V nᵛ₂ += VRP.isopt(v) end end
+            for d ∈ s₁.D for v ∈ d.V for r ∈ v.R nʳ₁ += VRP.isopt(r) end end end
+            for d ∈ s₂.D for v ∈ d.V for r ∈ v.R nʳ₂ += VRP.isopt(r) end end end
             # Fetch objective function values
             println("Objective function value:")
             println("   Initial: $(round(s₁.πᶠ + s₁.πᵒ, digits=3))")
             println("   Optimal: $(round(s₂.πᶠ + s₂.πᵒ, digits=3))")
             # Fetch lexicograohic objective function values
             println("Lexicographic objective function value:")
-            println("   Initial: $(nᵛ) | $(round(s₁.πᵒ, digits=3))")
-            println("   Optimal: $(nᵛ) | $(round(s₂.πᵒ, digits=3))")
+            println("   Initial: $(nᵛ₁) | $(round(s₁.πᵒ, digits=3))")
+            println("   Optimal: $(nᵛ₂) | $(round(s₂.πᵒ, digits=3))")
             # Check if the solutions are feasible
             println("Solution feasibility:")
             println("   Initial: $(isfeasible(s₁)) | $(round(s₁.πᵖ, digits=3))")
             println("   Optimal: $(isfeasible(s₂)) | $(round(s₂.πᵖ, digits=3))")
+            #=
             # Store Results
             df₁[i,j+1] = s₂.πᶠ + s₂.πᵒ + s₂.πᵖ
             df₂[i,j+1] = s₂.πᵒ + s₂.πᵖ
@@ -107,6 +118,7 @@ let
             println(df₂)
             println(df₃)
             println(df₄)
+            =#
         end
     end
     return
