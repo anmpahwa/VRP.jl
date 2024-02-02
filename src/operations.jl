@@ -16,7 +16,6 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     s.πᶠ -= 0.
     s.πᵒ -= 0.
     s.πᵖ -= (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ)
-    s.πᵖ -= abs(c.qᶜ)
     c.jⁿ  = c.jⁿ
     c.iʳ  = r.iʳ
     c.iᵛ  = r.iᵛ
@@ -158,7 +157,6 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     s.πᶠ += 0.
     s.πᵒ += 0.
     s.πᵖ += (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ)
-    s.πᵖ += abs(c.qᶜ)
     # update associated route
     s.πᶠ -= 0.
     s.πᵒ -= r.l * v.πᵈ
