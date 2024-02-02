@@ -33,10 +33,16 @@ This package uses Adaptive Large Neighborhood Search (ALNS) algorithm to find an
 The ALNS metaheuristic iteratively removes a set of nodes using,
 - Random Customer Node Removal  : `:randomcustomer!`
 - Random Route Removal          : `:randomroute!`
+- Random Vehicle Removal        : `:randomvehicle!`
+- Random Depot Node Removal     : `:randomdepot!` 
 - Related Customer Node Removal : `:relatedcustomer!`
-- Related Route removal         : `:relatedroute!`
+- Related Route Removal         : `:relatedroute!`
+- Related Vehicle Removal       : `:relatedvehicle!`
+- Related Depot Node Removal    : `:relateddepot!`
 - Worst Customer Node Removal   : `:worstcustomer!`
 - Worst Route Removal           : `:worstroute!`
+- Worst Vehicle Removal         : `:worstvehicle!`
+- Worst Depot NodeRemoval       : `:worstdepot!`
 
 and consequently inserts removed nodes using,
 - Best Insertion           : `:best!`
