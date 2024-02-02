@@ -29,11 +29,11 @@ let
             println("\n instance: $instance | seed: $seed")
             rng = MersenneTwister(seed);
             # Define inital solution method and build the initial solution
-            s₁ = VRP.regretk!(rng, VRP.Solution((build(instance))...), 2)
+            s₁ = initialize(rng, instance)
             # Visualize initial solution
             display(visualize(s₁))
             # Define ALNS parameters
-            x = max(100, lastindex(s₁.C)) ÷ 4
+            x = max(100, lastindex(s₁.C))
             χ = ALNSparameters(
                 j   =   50                      ,
                 k   =   5                       ,
@@ -52,7 +52,7 @@ let
                             :worstroute!        ,
                             :worstvehicle!      ,
                             :worstdepot!
-                        ]                         ,
+                        ]                       ,
                 Ψᵢ  =   [
                             :best!              ,
                             :precise!           ,
@@ -79,7 +79,7 @@ let
                 τ̅   =   0.5                     ,
                 ω̲   =   0.01                    ,
                 τ̲   =   0.01                    ,
-                θ   =   0.9972                  ,
+                θ   =   0.9985                  ,
                 ρ   =   0.1
             );
             # Run ALNS and fetch best solution
@@ -108,17 +108,15 @@ let
             println("Solution feasibility:")
             println("   Initial: $(isfeasible(s₁)) | $(round(s₁.πᵖ, digits=3))")
             println("   Optimal: $(isfeasible(s₂)) | $(round(s₂.πᵖ, digits=3))")
-            #=
             # Store Results
             df₁[i,j+1] = s₂.πᶠ + s₂.πᵒ + s₂.πᵖ
             df₂[i,j+1] = s₂.πᵒ + s₂.πᵖ
-            df₃[i,j+1] = nᵛ
+            df₃[i,j+1] = nᵛ₂
             df₄[i,j+1] = t
             println(df₁)
             println(df₂)
             println(df₃)
             println(df₄)
-            =#
         end
     end
     return
