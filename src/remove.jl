@@ -9,7 +9,7 @@ Available methods include,
 - Random Vehicle Removal        : `:randomvehicle!`
 - Random Depot Node Removal     : `:randomdepot!` 
 - Related Customer Node Removal : `:relatedcustomer!`
-- Related Route removal         : `:relatedroute!`
+- Related Route Removal         : `:relatedroute!`
 - Related Vehicle Removal       : `:relatedvehicle!`
 - Related Depot Node Removal    : `:relateddepot!`
 - Worst Customer Node Removal   : `:worstcustomer!`
