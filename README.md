@@ -62,4 +62,4 @@ See benchmark.jl for usage.
 
 Additional removal, insertion, and local search methods can be defined.
 
-Note, this tool is set up for a future development of a mixed pikcup and delivery problem wherein certain delivery nodes have a specified pickup node while others can be serviced directly from a depot node.
+Note, this tool is set up for a future development of a mixed pickup and delivery problem wherein certain delivery nodes have a specified pickup node while others can be serviced directly from a depot node.
