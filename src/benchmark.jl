@@ -6,13 +6,11 @@ using DataFrames
 
 let
     # Set A
-    A = ["lc101", "lc201"]
+    A = ["lc101", "lc103", "lc109", "lr101", "lr104", "lr105", "lrc101", "lrc106", "lrc108"]
     # Set B
-    B = ["lr101", "lr201"]
-    # Set C
-    C = ["lrc101", "lrc201"]
+    B = ["lc201", "lc204", "lc207", "lr201", "lr202", "lr208", "lrc201", "lrc203", "lrc205"]
     # Define instances
-    instances = [A..., B..., C...]
+    instances = [A, B]
     # Define random number generators
     seeds = [1010, 1106, 1509, 1604, 1905, 2104, 2412, 2703, 2710, 2807]
     # Dataframes to store solution quality and run time
@@ -50,7 +48,7 @@ let
                             :relateddepot!      ,
                             :worstcustomer!     ,
                             :worstroute!        ,
-                            :worstvehicle!      ,
+                            :worstvehicle!
                             :worstdepot!
                         ]                       ,
                 Ψᵢ  =   [
@@ -79,7 +77,7 @@ let
                 τ̅   =   0.5                     ,
                 ω̲   =   0.01                    ,
                 τ̲   =   0.01                    ,
-                θ   =   0.9985                  ,
+                θ   =   0.9993                  ,
                 ρ   =   0.1
             );
             # Run ALNS and fetch best solution
