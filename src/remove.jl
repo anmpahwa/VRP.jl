@@ -170,6 +170,7 @@ function worstcustomer!(rng::AbstractRNG, q::Int, s::Solution)
         end
         # Step 2.2: Remove the delivery node with highest removal cost (savings)
         i   = argmax(X)
+        j   = findfirst(isequal(c.r), R)
         c   = L[i]
         cᵖ  = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
         cᵈ  = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
@@ -520,7 +521,7 @@ function worstvehicle!(rng::AbstractRNG, q::Int, s::Solution)
     X = fill(Inf, eachindex(V))     # X[iᵛ]: utilization of vehicle V[iᵛ]
     W = isopt.(V)                   # W[iᵛ]: selection weight for vehicle V[iᵛ]
     # Step 2: Evaluate utilization for each vehicle
-    for (iᵛ,v) ∈ pairs(V) X[iᵛ] = isone(W[iᵛ]) ? v.n/(length(v.R) * v.qᵛ) : Inf end
+    for (iᵛ,v) ∈ pairs(V) X[iᵛ] = isone(W[iᵛ]) ? v.n/v.qᵛ : Inf end
     # Step 3: Iteratively select low-utilization route and remove customer nodes from it until at least q customer nodes are removed
     n = 0
     while n < q
@@ -695,7 +696,7 @@ function worstdepot!(rng::AbstractRNG, q::Int, s::Solution)
     X = fill(Inf, eachindex(D))     # X[iᵈ]: utilization of vehicle D[iᵈ]
     W = isopt.(D)                   # W[iᵈ]: selection weight for vehicle D[iᵈ]
     # Step 2: Evaluate utilization for each depot
-    for (iᵈ,d) ∈ pairs(D) X[iᵈ] = isone(W[iᵈ]) ? d.n/d.qᵈ : Inf end
+    for (iᵈ,d) ∈ pairs(D) X[iᵈ] = isone(W[iᵈ]) ? d.n/(length(d.V) * v.qᵛ) : Inf end
     # Step 3: Iteratively select low-utilization route and remove customer nodes from it until at least q customer nodes are removed
     n = 0
     while n < q
