@@ -47,31 +47,29 @@ function visualize(s::Solution; backend=gr)
     Z = vectorize(s)
     for Zᵈ ∈ Z
         for Zᵛ ∈ Zᵈ
-            for Zʳ ∈ Zᵛ
-                K  = eachindex(Zʳ)
-                X  = zeros(Float64, K)
-                Y  = zeros(Float64, K)
-                M₁ = fill("color", K)
-                M₂ = zeros(Int, K)
-                M₃ = fill(:shape, K)
-                for k ∈ K
-                    i = Zʳ[k]
-                    n = i ≤ lastindex(D) ? D[i] : C[i]
-                    X[k] = n.x
-                    Y[k] = n.y
-                    if isdepot(n) 
-                        M₁[k] = "#82b446"
-                        M₂[k] = 6
-                        M₃[k] = :rect
-                    else 
-                        M₁[k] = isdelivery(n) ? "#4682b4" : "#b47846"
-                        M₂[k] = 5
-                        M₃[k] = :circle
-                    end
+            K  = eachindex(Zᵛ)
+            X  = zeros(Float64, K)
+            Y  = zeros(Float64, K)
+            M₁ = fill("color", K)
+            M₂ = zeros(Int, K)
+            M₃ = fill(:shape, K)
+            for k ∈ K
+                i = Zᵛ[k]
+                n = i ≤ lastindex(D) ? D[i] : C[i]
+                X[k] = n.x
+                Y[k] = n.y
+                if isdepot(n) 
+                    M₁[k] = "#82b446"
+                    M₂[k] = 6
+                    M₃[k] = :rect
+                else 
+                    M₁[k] = isdelivery(n) ? "#4682b4" : "#b47846"
+                    M₂[k] = 5
+                    M₃[k] = :circle
                 end
-                scatter!(X, Y, color=M₁, markersize=M₂, markershape=M₃, markerstrokewidth=0)
-                plot!(X, Y, color="#23415a")
             end
+            scatter!(X, Y, color=M₁, markersize=M₂, markershape=M₃, markerstrokewidth=0)
+            plot!(X, Y, color="#23415a")
         end
     end
     # Non-operational nodes: closed depot nodes and open customer nodes
