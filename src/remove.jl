@@ -80,7 +80,6 @@ most related to a randomly selected pivot customer node.
 """
 function relatedcustomer!(rng::AbstractRNG, q::Int, s::Solution)
     # Step 1: Initialize
-    preremove!(s)
     D = s.D
     C = s.C
     X = fill(-Inf, eachindex(C))    # X[iⁿ]: relatedness of customer node C[iⁿ] with pivot customer node C[i]
@@ -134,7 +133,6 @@ with highest removal cost (savings).
 """
 function worstcustomer!(rng::AbstractRNG, q::Int, s::Solution)
     # Step 1: Initialize
-    preremove!(s)
     D = s.D
     C = s.C
     R = [v.r for d ∈ D for v ∈ d.V]
@@ -223,7 +221,6 @@ removed.
 """
 function randomroute!(rng::AbstractRNG, q::Int, s::Solution)
     # Step 1: Initialize
-    preremove!(s)
     D = s.D
     C = s.C
     R = [v.r for d ∈ D for v ∈ d.V]
@@ -278,7 +275,6 @@ pivot route.
 """
 function relatedroute!(rng::AbstractRNG, q::Int, s::Solution)
     # Step 1: Initialize
-    preremove!(s)
     D = s.D
     C = s.C
     R = [v.r for d ∈ D for v ∈ d.V]
@@ -340,7 +336,6 @@ nodes from low-utilization routes.
 """
 function worstroute!(rng::AbstractRNG, q::Int, s::Solution)
     # Step 1: Initialize
-    preremove!(s)
     D = s.D
     C = s.C
     R = [v.r for d ∈ D for v ∈ d.V]
@@ -404,7 +399,6 @@ are removed.
 """
 function randomvehicle!(rng::AbstractRNG, q::Int, s::Solution)
     # Step 1: Initialize
-    preremove!(s)
     D = s.D
     C = s.C
     V = [v for d ∈ D for v ∈ d.V]
@@ -459,7 +453,6 @@ selected pivot vehicle.
 """
 function relatedvehicle!(rng::AbstractRNG, q::Int, s::Solution)
     # Step 1: Initialize
-    preremove!(s)
     D = s.D
     C = s.C
     V = [v for d ∈ D for v ∈ d.V]
@@ -521,7 +514,6 @@ nodes from routes of low-utilization vehicles.
 """
 function worstvehicle!(rng::AbstractRNG, q::Int, s::Solution)
     # Step 1: Initialize
-    preremove!(s)
     D = s.D
     C = s.C
     V = [v for d ∈ D for v ∈ d.V]
@@ -581,7 +573,6 @@ are removed.
 """
 function randomdepot!(rng::AbstractRNG, q::Int, s::Solution)
     # Step 1: Initialize
-    preremove!(s)
     D = s.D
     C = s.C
     W = isopt.(D)                   # W[iᵈ]: selection weight for depot node D[iᵈ]
@@ -637,7 +628,6 @@ pivot depot node.
 """
 function relateddepot!(rng::AbstractRNG, q::Int, s::Solution)
     # Step 1: Initialize
-    preremove!(s)
     D = s.D
     C = s.C
     X = fill(-Inf, eachindex(D))    # X[iᵛ]: relatedness of depot node D[iⁿ] with pivot depot node D[i]
@@ -700,7 +690,6 @@ nodes from routes of low-utilization depot nodes.
 """
 function worstdepot!(rng::AbstractRNG, q::Int, s::Solution)
     # Step 1: Initialize
-    preremove!(s)
     D = s.D
     C = s.C
     X = fill(Inf, eachindex(D))     # X[iᵈ]: utilization of vehicle D[iᵈ]
