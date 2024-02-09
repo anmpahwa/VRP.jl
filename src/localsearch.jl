@@ -27,7 +27,6 @@ in objective function value, repeating for `k̅` iterations.
 """
 function intramove!(rng::AbstractRNG, k̅::Int, s::Solution)
     # Step 1: Initialize
-    prelocalsearch!(s)
     D = s.D
     C = s.C
     W = ones(eachindex(C))
@@ -70,7 +69,6 @@ function intramove!(rng::AbstractRNG, k̅::Int, s::Solution)
         nʰ = iʰ ≤ length(D) ? D[iʰ] : C[iʰ]
         insertnode!(c, nᵗ, nʰ, r, s)
     end
-    postlocalsearch!(s)
     # Step 3: Return solution
     return s
 end
@@ -83,10 +81,9 @@ in objective function value, repeating for `k̅` iterations.
 """
 function intermove!(rng::AbstractRNG, k̅::Int, s::Solution)
     # Step 1: Initialize
-    prelocalsearch!(s)
     D  = s.D
     C  = s.C
-    R  = [r for d ∈ D for v ∈ d.V for r ∈ v.R]
+    R  = [v.r for d ∈ D for v ∈ d.V]
     Wᶜ = ones(eachindex(C))
     # Step 2: Iterate for k̅ iterations
     for _ ∈ 1:k̅
@@ -145,7 +142,6 @@ function intermove!(rng::AbstractRNG, k̅::Int, s::Solution)
         insertnode!(cᵖ, nᵖᵗ, nᵖʰ, r, s)
         insertnode!(cᵈ, nᵈᵗ, nᵈʰ, r, s)
     end
-    postlocalsearch!(s)
     # Step 3: Return solution
     return s
 end
@@ -161,7 +157,6 @@ value, repeating for `k̅` iterations.
 """
 function intraswap!(rng::AbstractRNG, k̅::Int, s::Solution)
     # Step 1: Initialize
-    prelocalsearch!(s)
     z  = f(s)
     D  = s.D
     C  = s.C
@@ -220,7 +215,6 @@ function intraswap!(rng::AbstractRNG, k̅::Int, s::Solution)
             end
         end
     end
-    postlocalsearch!(s)
     # Step 3: Return solution
     return s
 end
@@ -233,7 +227,6 @@ a reduction in objective function value, repeating for `k̅` iterations.
 """
 function interswap!(rng::AbstractRNG, k̅::Int, s::Solution)
     # Step 1: Initialize
-    prelocalsearch!(s)
     z  = f(s)
     D  = s.D
     C  = s.C
@@ -343,7 +336,6 @@ function interswap!(rng::AbstractRNG, k̅::Int, s::Solution)
             end
         end
     end
-    postlocalsearch!(s)
     # Step 3: Return solution
     return s
 end
@@ -360,11 +352,10 @@ for `k̅` iterations.
 """
 function intraopt!(rng::AbstractRNG, k̅::Int, s::Solution)
     # Step 1: Initialize
-    prelocalsearch!(s)
     z = f(s)
     D = s.D
     C = s.C
-    R = [r for d ∈ D for v ∈ d.V for r ∈ v.R]
+    R = [v.r for d ∈ D for v ∈ d.V]
     W = [!isopt(r) ? 0 : 1 for r ∈ R]
     # Step 2: Iterate for k̅ iterations
     for _ ∈ 1:k̅
@@ -428,7 +419,6 @@ function intraopt!(rng::AbstractRNG, k̅::Int, s::Solution)
             end
         end
     end
-    postlocalsearch!(s)
     # Step 3: Return solution
     return s
 end
@@ -442,11 +432,10 @@ repeating for `k̅` iterations.
 """
 function interopt!(rng::AbstractRNG, k̅::Int, s::Solution)
     # Step 1: Initialize
-    prelocalsearch!(s)
     z  = f(s)
     D  = s.D
     C  = s.C
-    R  = [r for d ∈ D for v ∈ d.V for r ∈ v.R]
+    R  = [v.r for d ∈ D for v ∈ d.V]
     W₂ = [!isopt(r₂) ? 0 : 1 for r₂ ∈ R]
     # Step 2: Iterate for k̅ iterations
     for _ ∈ 1:k̅
@@ -549,7 +538,6 @@ function interopt!(rng::AbstractRNG, k̅::Int, s::Solution)
             end
         end
     end
-    postlocalsearch!(s)
     # Step 3: Return solution
     return s
 end
