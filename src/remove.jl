@@ -34,7 +34,6 @@ selected randomly.
 """
 function randomcustomer!(rng::AbstractRNG, q::Int, s::Solution)
     # Step 1: Initialize
-    preremove!(s)
     D = s.D
     C = s.C
     W = ones(eachindex(C))          # W[iⁿ]: selection weight of customer node C[iⁿ]
@@ -50,8 +49,24 @@ function randomcustomer!(rng::AbstractRNG, q::Int, s::Solution)
         n += 1
         W[iⁿ] = 0
     end
-    postremove!(s)
-    # Step 3: Return solution
+    # Step 3: Remove associated pickup/delivery node for every open customer node
+    for c ∈ C
+        cᵖ = isdelivery(c) ? C[c.jⁿ] : C[c.iⁿ] 
+        cᵈ = isdelivery(c) ? C[c.iⁿ] : C[c.jⁿ]
+        if isopen(cᵈ) && isclose(cᵖ)
+            nᵗ = cᵖ.iᵗ ≤ lastindex(D) ? D[cᵖ.iᵗ] : C[cᵖ.iᵗ]
+            nʰ = cᵖ.iʰ ≤ lastindex(D) ? D[cᵖ.iʰ] : C[cᵖ.iʰ]
+            r  = cᵖ.r
+            removenode!(cᵖ, nᵗ, nʰ, r, s)
+        end
+        if isopen(cᵖ) && isclose(cᵈ)
+            nᵗ = cᵈ.iᵗ ≤ lastindex(D) ? D[cᵈ.iᵗ] : C[cᵈ.iᵗ]
+            nʰ = cᵈ.iʰ ≤ lastindex(D) ? D[cᵈ.iʰ] : C[cᵈ.iʰ]
+            r  = cᵈ.r
+            removenode!(cᵈ, nᵗ, nʰ, r, s)
+        end
+    end
+    # Step 4: Return solution
     return s
 end
 
@@ -88,8 +103,23 @@ function relatedcustomer!(rng::AbstractRNG, q::Int, s::Solution)
         n += 1
         X[iⁿ] = -Inf
     end
-    # Step 5: Remove redundant vehicles and routes
-    postremove!(s)
+    # Step 5: Remove associated pickup/delivery node for every open customer node
+    for c ∈ C
+        cᵖ = isdelivery(c) ? C[c.jⁿ] : C[c.iⁿ] 
+        cᵈ = isdelivery(c) ? C[c.iⁿ] : C[c.jⁿ]
+        if isopen(cᵈ) && isclose(cᵖ)
+            nᵗ = cᵖ.iᵗ ≤ lastindex(D) ? D[cᵖ.iᵗ] : C[cᵖ.iᵗ]
+            nʰ = cᵖ.iʰ ≤ lastindex(D) ? D[cᵖ.iʰ] : C[cᵖ.iʰ]
+            r  = cᵖ.r
+            removenode!(cᵖ, nᵗ, nʰ, r, s)
+        end
+        if isopen(cᵖ) && isclose(cᵈ)
+            nᵗ = cᵈ.iᵗ ≤ lastindex(D) ? D[cᵈ.iᵗ] : C[cᵈ.iᵗ]
+            nʰ = cᵈ.iʰ ≤ lastindex(D) ? D[cᵈ.iʰ] : C[cᵈ.iʰ]
+            r  = cᵈ.r
+            removenode!(cᵈ, nᵗ, nʰ, r, s)
+        end
+    end
     # Step 6: Return solution
     return s
 end
@@ -107,7 +137,7 @@ function worstcustomer!(rng::AbstractRNG, q::Int, s::Solution)
     preremove!(s)
     D = s.D
     C = s.C
-    R = [r for d ∈ D for v ∈ d.V for r ∈ v.R]
+    R = [v.r for d ∈ D for v ∈ d.V]
     L = [c for c ∈ C if isdelivery(c)]
     X = fill(-Inf, eachindex(L))    # X[i] : removal cost of delivery node L[i]
     ϕ = ones(Int, eachindex(R))     # ϕʳ[j]: binary weight for route R[j]
@@ -156,19 +186,28 @@ function worstcustomer!(rng::AbstractRNG, q::Int, s::Solution)
         removenode!(cᵈ, nᵈᵗ, nᵈʰ, r, s)
         n  += 1
         # Step 2.3: Update cost and selection weight vectors
-        X[i] = -Inf
         ϕ .= 0
-        for (j,r) ∈ pairs(R) 
-            φʳ = isequal(r, c.r)
-            φᵛ = isequal(r.iᵛ, v.iᵛ) && isless(c.r.tⁱ, r.tⁱ)
-            φᵈ = false
-            φˢ = φʳ || φᵛ || φᵈ
-            if isequal(φˢ, false) continue end
-            ϕ[j] = 1
+        X[i] = -Inf
+        ϕ[j] = 1
+    end
+    # Step 3: Remove associated pickup/delivery node for every open customer node
+    for c ∈ C
+        cᵖ = isdelivery(c) ? C[c.jⁿ] : C[c.iⁿ] 
+        cᵈ = isdelivery(c) ? C[c.iⁿ] : C[c.jⁿ]
+        if isopen(cᵈ) && isclose(cᵖ)
+            nᵗ = cᵖ.iᵗ ≤ lastindex(D) ? D[cᵖ.iᵗ] : C[cᵖ.iᵗ]
+            nʰ = cᵖ.iʰ ≤ lastindex(D) ? D[cᵖ.iʰ] : C[cᵖ.iʰ]
+            r  = cᵖ.r
+            removenode!(cᵖ, nᵗ, nʰ, r, s)
+        end
+        if isopen(cᵖ) && isclose(cᵈ)
+            nᵗ = cᵈ.iᵗ ≤ lastindex(D) ? D[cᵈ.iᵗ] : C[cᵈ.iᵗ]
+            nʰ = cᵈ.iʰ ≤ lastindex(D) ? D[cᵈ.iʰ] : C[cᵈ.iʰ]
+            r  = cᵈ.r
+            removenode!(cᵈ, nᵗ, nʰ, r, s)
         end
     end
-    postremove!(s)
-    # Step 3: Return solution
+    # Step 4: Return solution
     return s
 end
 
@@ -187,7 +226,7 @@ function randomroute!(rng::AbstractRNG, q::Int, s::Solution)
     preremove!(s)
     D = s.D
     C = s.C
-    R = [r for d ∈ D for v ∈ d.V for r ∈ v.R]
+    R = [v.r for d ∈ D for v ∈ d.V]
     W = isopt.(R)                   # W[iʳ]: selection weight for route R[iʳ]
     # Step 2: Iteratively select a random route and remove customer nodes from it until exactly q customer nodes are removed
     n = 0
@@ -207,8 +246,24 @@ function randomroute!(rng::AbstractRNG, q::Int, s::Solution)
         end
         W[iʳ] = 0
     end
-    postremove!(s)
-    # Step 3: Return solution
+    # Step 3: Remove associated pickup/delivery node for every open customer node
+    for c ∈ C
+        cᵖ = isdelivery(c) ? C[c.jⁿ] : C[c.iⁿ] 
+        cᵈ = isdelivery(c) ? C[c.iⁿ] : C[c.jⁿ]
+        if isopen(cᵈ) && isclose(cᵖ)
+            nᵗ = cᵖ.iᵗ ≤ lastindex(D) ? D[cᵖ.iᵗ] : C[cᵖ.iᵗ]
+            nʰ = cᵖ.iʰ ≤ lastindex(D) ? D[cᵖ.iʰ] : C[cᵖ.iʰ]
+            r  = cᵖ.r
+            removenode!(cᵖ, nᵗ, nʰ, r, s)
+        end
+        if isopen(cᵖ) && isclose(cᵈ)
+            nᵗ = cᵈ.iᵗ ≤ lastindex(D) ? D[cᵈ.iᵗ] : C[cᵈ.iᵗ]
+            nʰ = cᵈ.iʰ ≤ lastindex(D) ? D[cᵈ.iʰ] : C[cᵈ.iʰ]
+            r  = cᵈ.r
+            removenode!(cᵈ, nᵗ, nʰ, r, s)
+        end
+    end
+    # Step 4: Return solution
     return s
 end
 
@@ -226,7 +281,7 @@ function relatedroute!(rng::AbstractRNG, q::Int, s::Solution)
     preremove!(s)
     D = s.D
     C = s.C
-    R = [r for d ∈ D for v ∈ d.V for r ∈ v.R]
+    R = [v.r for d ∈ D for v ∈ d.V]
     X = fill(-Inf, eachindex(R))    # X[iʳ]: relatedness of route R[iʳ] with pivot route R[i]
     W = isopt.(R)                   # W[iʳ]: selection weight for route R[iʳ]
     # Step 2: Randomly select a pivot route
@@ -254,8 +309,24 @@ function relatedroute!(rng::AbstractRNG, q::Int, s::Solution)
         X[iʳ] = -Inf
         W[iʳ] = 0
     end
-    postremove!(s)
-    # Step 5: Return solution
+    # Step 5: Remove associated pickup/delivery node for every open customer node
+    for c ∈ C
+        cᵖ = isdelivery(c) ? C[c.jⁿ] : C[c.iⁿ] 
+        cᵈ = isdelivery(c) ? C[c.iⁿ] : C[c.jⁿ]
+        if isopen(cᵈ) && isclose(cᵖ)
+            nᵗ = cᵖ.iᵗ ≤ lastindex(D) ? D[cᵖ.iᵗ] : C[cᵖ.iᵗ]
+            nʰ = cᵖ.iʰ ≤ lastindex(D) ? D[cᵖ.iʰ] : C[cᵖ.iʰ]
+            r  = cᵖ.r
+            removenode!(cᵖ, nᵗ, nʰ, r, s)
+        end
+        if isopen(cᵖ) && isclose(cᵈ)
+            nᵗ = cᵈ.iᵗ ≤ lastindex(D) ? D[cᵈ.iᵗ] : C[cᵈ.iᵗ]
+            nʰ = cᵈ.iʰ ≤ lastindex(D) ? D[cᵈ.iʰ] : C[cᵈ.iʰ]
+            r  = cᵈ.r
+            removenode!(cᵈ, nᵗ, nʰ, r, s)
+        end
+    end
+    # Step 6: Return solution
     return s
 end
 
@@ -272,7 +343,7 @@ function worstroute!(rng::AbstractRNG, q::Int, s::Solution)
     preremove!(s)
     D = s.D
     C = s.C
-    R = [r for d ∈ D for v ∈ d.V for r ∈ v.R]
+    R = [v.r for d ∈ D for v ∈ d.V]
     X = fill(Inf, eachindex(R))     # X[iʳ]: utilization of route R[iʳ]
     W = isopt.(R)                   # W[iʳ]: selection weight for route R[iʳ]
     # Step 2: Evaluate utilization of each route
@@ -300,8 +371,24 @@ function worstroute!(rng::AbstractRNG, q::Int, s::Solution)
         X[iʳ] = Inf
         W[iʳ] = 0
     end
-    postremove!(s)
-    # Step 4: Return solution
+    # Step 4: Remove associated pickup/delivery node for every open customer node
+    for c ∈ C
+        cᵖ = isdelivery(c) ? C[c.jⁿ] : C[c.iⁿ] 
+        cᵈ = isdelivery(c) ? C[c.iⁿ] : C[c.jⁿ]
+        if isopen(cᵈ) && isclose(cᵖ)
+            nᵗ = cᵖ.iᵗ ≤ lastindex(D) ? D[cᵖ.iᵗ] : C[cᵖ.iᵗ]
+            nʰ = cᵖ.iʰ ≤ lastindex(D) ? D[cᵖ.iʰ] : C[cᵖ.iʰ]
+            r  = cᵖ.r
+            removenode!(cᵖ, nᵗ, nʰ, r, s)
+        end
+        if isopen(cᵖ) && isclose(cᵈ)
+            nᵗ = cᵈ.iᵗ ≤ lastindex(D) ? D[cᵈ.iᵗ] : C[cᵈ.iᵗ]
+            nʰ = cᵈ.iʰ ≤ lastindex(D) ? D[cᵈ.iʰ] : C[cᵈ.iʰ]
+            r  = cᵈ.r
+            removenode!(cᵈ, nᵗ, nʰ, r, s)
+        end
+    end
+    # Step 5: Return solution
     return s
 end
 
@@ -328,22 +415,36 @@ function randomvehicle!(rng::AbstractRNG, q::Int, s::Solution)
         iᵛ = sample(rng, eachindex(V), Weights(W))
         v  = V[iᵛ]
         d  = D[v.iᵈ]
-        for r ∈ v.R
-            if n ≥ q break end
-            if !isopt(r) continue end
-            while true
-                nᵗ = d
-                c  = C[r.iˢ]
-                nʰ = isequal(r.iᵉ, c.iⁿ) ? D[c.iʰ] : C[c.iʰ] 
-                removenode!(c, nᵗ, nʰ, r, s)
-                n += 1
-                if isequal(nʰ, d) break end
-            end
+        r  = v.r
+        while true
+            if !isopt(r) break end
+            nᵗ = d
+            c  = C[r.iˢ]
+            nʰ = isequal(r.iᵉ, c.iⁿ) ? D[c.iʰ] : C[c.iʰ] 
+            removenode!(c, nᵗ, nʰ, r, s)
+            n += 1
+            if isequal(nʰ, d) break end
         end
         W[iᵛ] = 0
     end
-    postremove!(s)
-    # Step 3: Return solution
+    # Step 3: Remove associated pickup/delivery node for every open customer node
+    for c ∈ C
+        cᵖ = isdelivery(c) ? C[c.jⁿ] : C[c.iⁿ] 
+        cᵈ = isdelivery(c) ? C[c.iⁿ] : C[c.jⁿ]
+        if isopen(cᵈ) && isclose(cᵖ)
+            nᵗ = cᵖ.iᵗ ≤ lastindex(D) ? D[cᵖ.iᵗ] : C[cᵖ.iᵗ]
+            nʰ = cᵖ.iʰ ≤ lastindex(D) ? D[cᵖ.iʰ] : C[cᵖ.iʰ]
+            r  = cᵖ.r
+            removenode!(cᵖ, nᵗ, nʰ, r, s)
+        end
+        if isopen(cᵖ) && isclose(cᵈ)
+            nᵗ = cᵈ.iᵗ ≤ lastindex(D) ? D[cᵈ.iᵗ] : C[cᵈ.iᵗ]
+            nʰ = cᵈ.iʰ ≤ lastindex(D) ? D[cᵈ.iʰ] : C[cᵈ.iʰ]
+            r  = cᵈ.r
+            removenode!(cᵈ, nᵗ, nʰ, r, s)
+        end
+    end
+    # Step 4: Return solution
     return s
 end
 
@@ -376,23 +477,37 @@ function relatedvehicle!(rng::AbstractRNG, q::Int, s::Solution)
         iᵛ = argmax(X)
         v  = V[iᵛ]
         d  = D[v.iᵈ] 
-        for r ∈ v.R
-            if n ≥ q break end
-            if !isopt(r) continue end
-            while true
-                nᵗ = d
-                c  = C[r.iˢ]
-                nʰ = isequal(r.iᵉ, c.iⁿ) ? D[c.iʰ] : C[c.iʰ]
-                removenode!(c, nᵗ, nʰ, r, s)
-                n += 1
-                if isequal(nʰ, d) break end
-            end
+        r  = v.r
+        while true
+            if !isopt(r) break end
+            nᵗ = d
+            c  = C[r.iˢ]
+            nʰ = isequal(r.iᵉ, c.iⁿ) ? D[c.iʰ] : C[c.iʰ] 
+            removenode!(c, nᵗ, nʰ, r, s)
+            n += 1
+            if isequal(nʰ, d) break end
         end
         X[iᵛ] = -Inf
         W[iᵛ] = 0
     end
-    postremove!(s)
-    # Step 5: Return solution
+    # Step 5: Remove associated pickup/delivery node for every open customer node
+    for c ∈ C
+        cᵖ = isdelivery(c) ? C[c.jⁿ] : C[c.iⁿ] 
+        cᵈ = isdelivery(c) ? C[c.iⁿ] : C[c.jⁿ]
+        if isopen(cᵈ) && isclose(cᵖ)
+            nᵗ = cᵖ.iᵗ ≤ lastindex(D) ? D[cᵖ.iᵗ] : C[cᵖ.iᵗ]
+            nʰ = cᵖ.iʰ ≤ lastindex(D) ? D[cᵖ.iʰ] : C[cᵖ.iʰ]
+            r  = cᵖ.r
+            removenode!(cᵖ, nᵗ, nʰ, r, s)
+        end
+        if isopen(cᵖ) && isclose(cᵈ)
+            nᵗ = cᵈ.iᵗ ≤ lastindex(D) ? D[cᵈ.iᵗ] : C[cᵈ.iᵗ]
+            nʰ = cᵈ.iʰ ≤ lastindex(D) ? D[cᵈ.iʰ] : C[cᵈ.iʰ]
+            r  = cᵈ.r
+            removenode!(cᵈ, nᵗ, nʰ, r, s)
+        end
+    end
+    # Step 6: Return solution
     return s
 end
 
@@ -405,37 +520,52 @@ Returns solution `s` after removing at least `q` customer
 nodes from routes of low-utilization vehicles.
 """
 function worstvehicle!(rng::AbstractRNG, q::Int, s::Solution)
+    # Step 1: Initialize
     preremove!(s)
     D = s.D
     C = s.C
     V = [v for d ∈ D for v ∈ d.V]
-    X = fill(Inf, eachindex(V))     # X[iʳ]: utilization of vehicle V[iᵛ]
+    X = fill(Inf, eachindex(V))     # X[iᵛ]: utilization of vehicle V[iᵛ]
     W = isopt.(V)                   # W[iᵛ]: selection weight for vehicle V[iᵛ]
-    # Step 1: Evaluate utilization for each vehicle
+    # Step 2: Evaluate utilization for each vehicle
     for (iᵛ,v) ∈ pairs(V) X[iᵛ] = isone(W[iᵛ]) ? v.n/(length(v.R) * v.qᵛ) : Inf end
-    # Step 2: Iteratively select low-utilization route and remove customer nodes from it until at least q customer nodes are removed
+    # Step 3: Iteratively select low-utilization route and remove customer nodes from it until at least q customer nodes are removed
     n = 0
     while n < q
         iᵛ = argmin(X)
         v  = V[iᵛ]
         d  = D[v.iᵈ]
-        for r ∈ v.R
-            if n ≥ q break end
-            if !isopt(r) continue end
-            while true
-                nᵗ = d
-                c  = C[r.iˢ]
-                nʰ = isequal(r.iᵉ, c.iⁿ) ? D[c.iʰ] : C[c.iʰ]
-                removenode!(c, nᵗ, nʰ, r, s)
-                n += 1
-                if isequal(nʰ, d) break end
-            end
+        r  = v.r
+        while true
+            if !isopt(r) break end
+            nᵗ = d
+            c  = C[r.iˢ]
+            nʰ = isequal(r.iᵉ, c.iⁿ) ? D[c.iʰ] : C[c.iʰ] 
+            removenode!(c, nᵗ, nʰ, r, s)
+            n += 1
+            if isequal(nʰ, d) break end
         end
         X[iᵛ] = Inf
         W[iᵛ] = 0
     end
-    postremove!(s)
-    # Step 3: Return solution
+    # Step 4: Remove associated pickup/delivery node for every open customer node
+    for c ∈ C
+        cᵖ = isdelivery(c) ? C[c.jⁿ] : C[c.iⁿ] 
+        cᵈ = isdelivery(c) ? C[c.iⁿ] : C[c.jⁿ]
+        if isopen(cᵈ) && isclose(cᵖ)
+            nᵗ = cᵖ.iᵗ ≤ lastindex(D) ? D[cᵖ.iᵗ] : C[cᵖ.iᵗ]
+            nʰ = cᵖ.iʰ ≤ lastindex(D) ? D[cᵖ.iʰ] : C[cᵖ.iʰ]
+            r  = cᵖ.r
+            removenode!(cᵖ, nᵗ, nʰ, r, s)
+        end
+        if isopen(cᵖ) && isclose(cᵈ)
+            nᵗ = cᵈ.iᵗ ≤ lastindex(D) ? D[cᵈ.iᵗ] : C[cᵈ.iᵗ]
+            nʰ = cᵈ.iʰ ≤ lastindex(D) ? D[cᵈ.iʰ] : C[cᵈ.iʰ]
+            r  = cᵈ.r
+            removenode!(cᵈ, nᵗ, nʰ, r, s)
+        end
+    end
+    # Step 5: Return solution
     return s
 end
 
@@ -450,33 +580,49 @@ removing customer nodes from its routes until at least `q` customer nodes
 are removed.
 """
 function randomdepot!(rng::AbstractRNG, q::Int, s::Solution)
+    # Step 1: Initialize
     preremove!(s)
     D = s.D
     C = s.C
     W = isopt.(D)                   # W[iᵈ]: selection weight for depot node D[iᵈ]
-    # Step 1: Iteratively select a random depot and remove customer nodes from it until at least q customer nodes are removed
+    # Step 2: Iteratively select a random depot and remove customer nodes from it until at least q customer nodes are removed
     n = 0
     while n < q
         iᵈ = sample(rng, eachindex(D), Weights(W))
         d  = D[iᵈ]
         for v ∈ d.V
             if n ≥ q break end
-            for r ∈ v.R
-                if !isopt(r) continue end
-                while true
-                    nᵗ = d
-                    c  = C[r.iˢ]
-                    nʰ = isequal(r.iᵉ, c.iⁿ) ? D[c.iʰ] : C[c.iʰ]
-                    removenode!(c, nᵗ, nʰ, r, s)
-                    n += 1
-                    if isequal(nʰ, d) break end
-                end
+            r  = v.r
+            while true
+                if !isopt(r) break end
+                nᵗ = d
+                c  = C[r.iˢ]
+                nʰ = isequal(r.iᵉ, c.iⁿ) ? D[c.iʰ] : C[c.iʰ] 
+                removenode!(c, nᵗ, nʰ, r, s)
+                n += 1
+                if isequal(nʰ, d) break end
             end
         end
         W[iᵈ] = 0
     end
-    postremove!(s)
-    # Step 2: Return solution
+    # Step 3: Remove associated pickup/delivery node for every open customer node
+    for c ∈ C
+        cᵖ = isdelivery(c) ? C[c.jⁿ] : C[c.iⁿ] 
+        cᵈ = isdelivery(c) ? C[c.iⁿ] : C[c.jⁿ]
+        if isopen(cᵈ) && isclose(cᵖ)
+            nᵗ = cᵖ.iᵗ ≤ lastindex(D) ? D[cᵖ.iᵗ] : C[cᵖ.iᵗ]
+            nʰ = cᵖ.iʰ ≤ lastindex(D) ? D[cᵖ.iʰ] : C[cᵖ.iʰ]
+            r  = cᵖ.r
+            removenode!(cᵖ, nᵗ, nʰ, r, s)
+        end
+        if isopen(cᵖ) && isclose(cᵈ)
+            nᵗ = cᵈ.iᵗ ≤ lastindex(D) ? D[cᵈ.iᵗ] : C[cᵈ.iᵗ]
+            nʰ = cᵈ.iʰ ≤ lastindex(D) ? D[cᵈ.iʰ] : C[cᵈ.iʰ]
+            r  = cᵈ.r
+            removenode!(cᵈ, nᵗ, nʰ, r, s)
+        end
+    end
+    # Step 4: Return solution
     return s
 end
 
@@ -490,41 +636,57 @@ from the routes of the depots most related to a randomly selected
 pivot depot node.
 """
 function relateddepot!(rng::AbstractRNG, q::Int, s::Solution)
+    # Step 1: Initialize
     preremove!(s)
     D = s.D
     C = s.C
     X = fill(-Inf, eachindex(D))    # X[iᵛ]: relatedness of depot node D[iⁿ] with pivot depot node D[i]
     W = isclose.(D)                 # W[iᵈ]: selection weight for depot node D[iᵈ]
-    # Step 1: Select a random closed depot node
+    # Step 2: Select a random closed depot node
     i = sample(rng, eachindex(D), Weights(W))
-    # Step 2: Evaluate relatedness of this depot node to every depot node
-    m = sample(rng, [:q, :l, :t])
+    # Step 3: Evaluate relatedness of this depot node to every depot node
+    m = sample(rng, [:l, :t])
     for iᵈ ∈ eachindex(D) X[iᵈ] = iszero(W[iᵈ]) ? relatedness(m, D[iᵈ], D[i], s) : -Inf end
     X[i] = Inf
-    # Step 3: Remove at least q customer nodes most related to this pivot depot node
+    # Step 4: Remove at least q customer nodes most related to this pivot depot node
     n = 0
     while n < q
         iᵈ = argmax(X)
         d  = D[iᵈ]
         for v ∈ d.V
             if n ≥ q break end
-            for r ∈ v.R
-                if !isopt(r) continue end
-                while true
-                    nᵗ = d
-                    c  = C[r.iˢ]
-                    nʰ = isequal(r.iᵉ, c.iⁿ) ? D[c.iʰ] : C[c.iʰ]
-                    removenode!(c, nᵗ, nʰ, r, s)
-                    n += 1
-                    if isequal(nʰ, d) break end
-                end
+            r  = v.r
+            while true
+                if !isopt(r) break end
+                nᵗ = d
+                c  = C[r.iˢ]
+                nʰ = isequal(r.iᵉ, c.iⁿ) ? D[c.iʰ] : C[c.iʰ] 
+                removenode!(c, nᵗ, nʰ, r, s)
+                n += 1
+                if isequal(nʰ, d) break end
             end
         end
         X[iᵈ] = -Inf
         W[iᵈ] = 0
     end
-    postremove!(s)
-    # Step 4: Return solution
+    # Step 5: Remove associated pickup/delivery node for every open customer node
+    for c ∈ C
+        cᵖ = isdelivery(c) ? C[c.jⁿ] : C[c.iⁿ] 
+        cᵈ = isdelivery(c) ? C[c.iⁿ] : C[c.jⁿ]
+        if isopen(cᵈ) && isclose(cᵖ)
+            nᵗ = cᵖ.iᵗ ≤ lastindex(D) ? D[cᵖ.iᵗ] : C[cᵖ.iᵗ]
+            nʰ = cᵖ.iʰ ≤ lastindex(D) ? D[cᵖ.iʰ] : C[cᵖ.iʰ]
+            r  = cᵖ.r
+            removenode!(cᵖ, nᵗ, nʰ, r, s)
+        end
+        if isopen(cᵖ) && isclose(cᵈ)
+            nᵗ = cᵈ.iᵗ ≤ lastindex(D) ? D[cᵈ.iᵗ] : C[cᵈ.iᵗ]
+            nʰ = cᵈ.iʰ ≤ lastindex(D) ? D[cᵈ.iʰ] : C[cᵈ.iʰ]
+            r  = cᵈ.r
+            removenode!(cᵈ, nᵗ, nʰ, r, s)
+        end
+    end
+    # Step 6: Return solution
     return s
 end
 
@@ -537,36 +699,52 @@ Returns solution `s` after removing at least `q` customer
 nodes from routes of low-utilization depot nodes.
 """
 function worstdepot!(rng::AbstractRNG, q::Int, s::Solution)
+    # Step 1: Initialize
     preremove!(s)
     D = s.D
     C = s.C
     X = fill(Inf, eachindex(D))     # X[iᵈ]: utilization of vehicle D[iᵈ]
     W = isopt.(D)                   # W[iᵈ]: selection weight for vehicle D[iᵈ]
-    # Step 1: Evaluate utilization for each depot
+    # Step 2: Evaluate utilization for each depot
     for (iᵈ,d) ∈ pairs(D) X[iᵈ] = isone(W[iᵈ]) ? d.n/d.qᵈ : Inf end
-    # Step 2: Iteratively select low-utilization route and remove customer nodes from it until at least q customer nodes are removed
+    # Step 3: Iteratively select low-utilization route and remove customer nodes from it until at least q customer nodes are removed
     n = 0
     while n < q
         iᵈ = argmin(X)
         d  = D[iᵈ]
         for v ∈ d.V
             if n ≥ q break end
-            for r ∈ v.R
-                if !isopt(r) continue end
-                while true
-                    nᵗ = d
-                    c  = C[r.iˢ]
-                    nʰ = isequal(r.iᵉ, c.iⁿ) ? D[c.iʰ] : C[c.iʰ]
-                    removenode!(c, nᵗ, nʰ, r, s)
-                    n += 1
-                    if isequal(nʰ, d) break end
-                end
+            r  = v.r
+            while true
+                if !isopt(r) break end
+                nᵗ = d
+                c  = C[r.iˢ]
+                nʰ = isequal(r.iᵉ, c.iⁿ) ? D[c.iʰ] : C[c.iʰ] 
+                removenode!(c, nᵗ, nʰ, r, s)
+                n += 1
+                if isequal(nʰ, d) break end
             end
         end
         X[iᵈ] = Inf
         W[iᵈ] = 0
     end
-    postremove!(s)
-    # Step 3: Return solution
+    # Step 4: Remove associated pickup/delivery node for every open customer node
+    for c ∈ C
+        cᵖ = isdelivery(c) ? C[c.jⁿ] : C[c.iⁿ] 
+        cᵈ = isdelivery(c) ? C[c.iⁿ] : C[c.jⁿ]
+        if isopen(cᵈ) && isclose(cᵖ)
+            nᵗ = cᵖ.iᵗ ≤ lastindex(D) ? D[cᵖ.iᵗ] : C[cᵖ.iᵗ]
+            nʰ = cᵖ.iʰ ≤ lastindex(D) ? D[cᵖ.iʰ] : C[cᵖ.iʰ]
+            r  = cᵖ.r
+            removenode!(cᵖ, nᵗ, nʰ, r, s)
+        end
+        if isopen(cᵖ) && isclose(cᵈ)
+            nᵗ = cᵈ.iᵗ ≤ lastindex(D) ? D[cᵈ.iᵗ] : C[cᵈ.iᵗ]
+            nʰ = cᵈ.iʰ ≤ lastindex(D) ? D[cᵈ.iʰ] : C[cᵈ.iʰ]
+            r  = cᵈ.r
+            removenode!(cᵈ, nᵗ, nʰ, r, s)
+        end
+    end
+    # Step 5: Return solution
     return s
 end
