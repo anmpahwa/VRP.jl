@@ -31,7 +31,7 @@ let
             # Visualize initial solution
             display(visualize(s₁))
             # Define ALNS parameters
-            x = max(100, lastindex(s₁.C))
+            x = max(100, lastindex(s₁.C)) ÷ 4
             χ = ALNSparameters(
                 j   =   50                      ,
                 k   =   5                       ,
@@ -48,7 +48,7 @@ let
                             :relateddepot!      ,
                             :worstcustomer!     ,
                             :worstroute!        ,
-                            :worstvehicle!
+                            :worstvehicle!      ,
                             :worstdepot!
                         ]                       ,
                 Ψᵢ  =   [
@@ -77,7 +77,7 @@ let
                 τ̅   =   0.5                     ,
                 ω̲   =   0.01                    ,
                 τ̲   =   0.01                    ,
-                θ   =   0.9993                  ,
+                θ   =   0.9972                  ,
                 ρ   =   0.1
             );
             # Run ALNS and fetch best solution
@@ -86,14 +86,12 @@ let
             display(visualize(s₂))
             # Optimal solution characteristics
             println("Optimal solution characteristics:")
-            nᵈ₁, nᵛ₁, nʳ₁ = 0, 0, 0
-            nᵈ₂, nᵛ₂, nʳ₂ = 0, 0, 0
+            nᵈ₁, nᵛ₁ = 0, 0
+            nᵈ₂, nᵛ₂ = 0, 0
             for d ∈ s₁.D nᵈ₁ += VRP.isopt(d) end
             for d ∈ s₂.D nᵈ₂ += VRP.isopt(d) end
             for d ∈ s₁.D for v ∈ d.V nᵛ₁ += VRP.isopt(v) end end
             for d ∈ s₂.D for v ∈ d.V nᵛ₂ += VRP.isopt(v) end end
-            for d ∈ s₁.D for v ∈ d.V for r ∈ v.R nʳ₁ += VRP.isopt(r) end end end
-            for d ∈ s₂.D for v ∈ d.V for r ∈ v.R nʳ₂ += VRP.isopt(r) end end end
             # Fetch objective function values
             println("Objective function value:")
             println("   Initial: $(round(s₁.πᶠ + s₁.πᵒ, digits=3))")
