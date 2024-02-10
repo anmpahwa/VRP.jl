@@ -4,9 +4,9 @@
 [![Build Status](https://github.com/anmol1104/VRP.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/anmol1104/VRP.jl/actions/workflows/CI.yml?query=branch%3Amaster)
 [![Coverage](https://codecov.io/gh/anmol1104/VRP.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/anmol1104/VRP.jl)
 
-### capacitated vehicle routing problem with pickup and delivery, time-windows, and heterogeneous fleet of multi-route delivery vehicles
+### capacitated vehicle routing problem with pickup and delivery, time-windows, and heterogeneous fleet of multi-route delivery vehicles with intra-route re-fueling
 
-Given, a graph `G = (D, C, A)` with set of depots `D`, set of customer nodes `C`, and set of arcs `A`, the objective is to develop least cost routes from depot nodes using select vehicles such that every customer node is visited exactly once while accounting for customer service and time-window constraints; vehicle range, capacity, and working-hours constraints; and depot operations mandate and capacity constraints.
+Given, a graph `G = (D, C, F, A)` with set of depots `D`, set of customer nodes `C`, set of fueling station nodes `F`, and set of arcs `A`, the objective is to develop least cost routes from depot nodes using select vehicles such that every customer node is visited exactly once while accounting for customer service and time-window constraints; vehicle range, capacity, and working-hours constraints; and depot operations mandate and capacity constraints.
 
 This package uses Adaptive Large Neighborhood Search (ALNS) algorithm to find an optimal solution for the location routing problem given an initial solution (here, developed using iterated clustering method) and ALNS optimization parameters,
 - `j`     :   Number of segments in the ALNS
@@ -61,5 +61,3 @@ In every few iterations, the ALNS metaheuristic performs local search with,
 See benchmark.jl for usage.
 
 Additional removal, insertion, and local search methods can be defined.
-
-Note, this tool is set up for a future development of a mixed pickup and delivery problem wherein certain delivery nodes have a specified pickup node while others can be serviced directly from a depot node.
