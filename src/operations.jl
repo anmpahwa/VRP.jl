@@ -61,7 +61,7 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         cᵉ = s.C[r.iᵉ]
         tᵈ = r.tˢ
         n  = 1
-        q  = r.q
+        q  = 0.
         l  = s.A[(d.iⁿ,cˢ.iⁿ)].l
         c  = cˢ
         while true
@@ -180,7 +180,7 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         cᵉ = s.C[r.iᵉ]
         tᵈ = d.tˢ
         n  = 1
-        q  = r.q
+        q  = 0.
         l  = s.A[(d.iⁿ,cˢ.iⁿ)].l
         c  = cˢ
         while true
@@ -265,7 +265,7 @@ function movevehicle!(v::Vehicle, d₁::DepotNode, d₂::DepotNode, s::Solution)
         cᵉ = s.C[r.iᵉ]
         tᵈ = d₂.tˢ
         n  = 1
-        q  = r.q
+        q  = 0.
         l  = s.A[(d₂.iⁿ,cˢ.iⁿ)].l
         c  = cˢ
         while true
