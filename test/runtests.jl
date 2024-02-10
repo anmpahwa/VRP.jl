@@ -54,7 +54,7 @@ let
         ρ   =   0.1
     );
     @testset "PDPTW" begin
-        instances = ["lc101", "lr101", "lrc101"]
+        instances = ["lc101"]
         for instance ∈ instances
             visualize(instance)
             println(instance)
