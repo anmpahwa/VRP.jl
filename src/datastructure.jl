@@ -135,15 +135,15 @@ end
 
 A `FuelStationNode` is a re-fueling point on the graph at `(x,y)` with index `iⁿ`, 
 re-fueling events `n`, amount re-fueled `q`, range restored `l`, operational cost 
-`πᵒ` per unit fuel consumed re-fueling, and fixed cost `πᶠ`, that can re-fuel 
-vehicles of type `jⁿ` at `ρᵛ` re-fueling rate.
+`πᵒ` per unit fuel consumed re-fueling, and fixed cost `πᶠ`, that re-fuels vehicles 
+of type `jᵛ` at re-fueling rate of `ρᵛ`.
 """
 mutable struct FuelStationNode <: Node
     iⁿ::Int                                                                         # Fuel Station node index
     jⁿ::Int                                                                         # Fuel Station type (consistent with vehicle type)
     x::Float64                                                                      # Location on the x-axis
     y::Float64                                                                      # Location in the y-axis
-    ρᵛ::Float64                                                                     # Refueling rate
+    ρᵛ::Float64                                                                     # Vehicle re-fueling rate
     n::Int                                                                          # Number of re-fueling events
     q::Float64                                                                      # Amount re-fueled
     l::Float64                                                                      # Range restored
