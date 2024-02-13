@@ -14,8 +14,7 @@ as follows,
         |-fuelstation_nodes.csv
         |-vehicles.csv
 """
-function build(instance::String)
-    dir=joinpath(dirname(@__DIR__), "instances")
+function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
     # Depot Nodes
     df = DataFrame(CSV.File(joinpath(dir, "$instance/depot_nodes.csv")))
     D  = Vector{DepotNode}(undef, nrow(df))
