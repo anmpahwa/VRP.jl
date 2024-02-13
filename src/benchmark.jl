@@ -10,7 +10,7 @@ let
     # Set B
     B = ["lc201", "lc204", "lc207", "lr201", "lr202", "lr208", "lrc201", "lrc203", "lrc205"]
     # Define instances
-    instances = [A, B]
+    instances = [A..., B...]
     # Define random number generators
     seeds = [1010, 1106, 1509, 1604, 1905, 2104, 2412, 2703, 2710, 2807]
     # Dataframes to store solution quality and run time
