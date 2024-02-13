@@ -14,7 +14,8 @@ as follows,
         |-fuelstation_nodes.csv
         |-vehicles.csv
 """
-function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
+function build(instance::String)
+    dir=joinpath(dirname(@__DIR__), "instances")
     # Depot Nodes
     df = DataFrame(CSV.File(joinpath(dir, "$instance/depot_nodes.csv")))
     D  = Vector{DepotNode}(undef, nrow(df))
@@ -31,61 +32,6 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         πᶠ = df[k,7]
         d  = DepotNode(iⁿ, x, y, tˢ, tᵉ, Vehicle[], n, q, l, πᵒ, πᶠ)
         D[iⁿ] = d
-    end
-    # Customer Nodes
-    df = DataFrame(CSV.File(joinpath(dir, "$instance/customer_nodes.csv")))
-    I  = (df[1,1]:df[nrow(df),1])::UnitRange{Int64}
-    C  = OffsetVector{CustomerNode}(undef, I)
-    for k ∈ 1:nrow(df)
-        iⁿ = df[k,1]
-        jⁿ = df[k,2]
-        iᵛ = 0
-        iᵈ = 0
-        Iᶠ = parse.(Int, split(string(df[k,3]), ","))
-        x  = df[k,4]
-        y  = df[k,5]
-        qᶜ = df[k,6]
-        τᶜ = df[k,7]
-        tᵉ = df[k,8]
-        tˡ = df[k,9]
-        iᵗ = 0
-        iʰ = 0
-        tᵃ = qᶜ > 0. ? tˡ : tᵉ
-        tᵈ = tᵃ + τᶜ
-        n  = 0
-        q  = 0.
-        l  = 0.
-        c  = CustomerNode(iⁿ, jⁿ, iᵛ, iᵈ, Iᶠ, x, y, qᶜ, τᶜ, tᵉ, tˡ, NullRoute, iᵗ, iʰ, tᵃ, tᵈ, n, q, l)
-        C[iⁿ] = c
-    end
-    # Fuel Station Nodes
-    df = DataFrame(CSV.File(joinpath(dir, "$instance/fuelstation_nodes.csv")))
-    I  = (df[1,1]:df[nrow(df),1])::UnitRange{Int64}
-    F  = OffsetVector{FuelStationNode}(undef, I)
-    for k ∈ 1:nrow(df)
-        iⁿ = df[k,1]
-        jⁿ = df[k,2]
-        x  = df[k,3]
-        y  = df[k,4]
-        ρᵛ = df[k,5]
-        n  = 0
-        q  = 0.
-        l  = 0.
-        πᵒ = df[k,6]
-        πᶠ = df[k,7]
-        f = FuelStationNode(iⁿ, jⁿ, x, y, ρᵛ, n, q, l, πᵒ, πᶠ)
-        F[iⁿ] = f
-    end
-    # Arcs
-    df = DataFrame(CSV.File(joinpath(dir, "$instance/arcs.csv"), header=false))
-    A  = Dict{Tuple{Int,Int},Arc}()
-    n  = lastindex(F)
-    for iᵗ ∈ 1:n
-        for iʰ ∈ 1:n
-            l = df[iᵗ,iʰ] 
-            a = Arc(iᵗ, iʰ, l)
-            A[(iᵗ,iʰ)] = a
-        end
     end
     # Vehicles
     df = DataFrame(CSV.File(joinpath(dir, "$instance/vehicles.csv")))
@@ -117,6 +63,76 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         r  = Route(iᵛ, iᵈ, x, y, iˢ, iᵉ, tˢ, tᵉ, n, q, l)
         v  = Vehicle(iᵛ, jᵛ, iᵈ, qᵛ, lᵛ, sᵛ, ρᵛ, θˡ, θᵘ, τᶜ, τʷ, r, tˢ, tᵉ, n, q, l, πᵈ, πᵗ, πᶠ)
         push!(d.V, v)
+    end
+    # Customer Nodes
+    df = DataFrame(CSV.File(joinpath(dir, "$instance/customer_nodes.csv")))
+    I  = (df[1,1]:df[nrow(df),1])::UnitRange{Int64}
+    C  = OffsetVector{CustomerNode}(undef, I)
+    for k ∈ 1:nrow(df)
+        iⁿ = df[k,1]
+        jⁿ = df[k,2]
+        iᵛ = 0
+        iᵈ = 0
+        Iᶠ = Int64[]
+        x  = df[k,4]
+        y  = df[k,5]
+        qᶜ = df[k,6]
+        τᶜ = df[k,7]
+        tᵉ = df[k,8]
+        tˡ = df[k,9]
+        iᵗ = 0
+        iʰ = 0
+        tᵃ = qᶜ > 0. ? tˡ : tᵉ
+        tᵈ = tᵃ + τᶜ
+        n  = 0
+        q  = 0.
+        l  = 0.
+        c  = CustomerNode(iⁿ, jⁿ, iᵛ, iᵈ, Iᶠ, x, y, qᶜ, τᶜ, tᵉ, tˡ, NullRoute, iᵗ, iʰ, tᵃ, tᵈ, n, q, l)
+        C[iⁿ] = c
+    end
+    # Fuel Station Nodes
+    df = DataFrame(CSV.File(joinpath(dir, "$instance/fuelstation_nodes.csv")))
+    I  = (df[1,1]:df[nrow(df),1])::UnitRange{Int64}
+    F  = OffsetVector{FuelStationNode}(undef, I)
+    for k ∈ 1:nrow(df)
+        iⁿ = df[k,1]
+        jⁿ = df[k,2]
+        x  = df[k,3]
+        y  = df[k,4]
+        ρᵛ = df[k,5]
+        n  = 0
+        q  = 0.
+        l  = 0.
+        πᵒ = df[k,6]
+        πᶠ = df[k,7]
+        f  = FuelStationNode(iⁿ, jⁿ, x, y, ρᵛ, n, q, l, πᵒ, πᶠ)
+        F[iⁿ] = f
+    end
+    # Arcs
+    df = DataFrame(CSV.File(joinpath(dir, "$instance/arcs.csv"), header=false))
+    A  = Dict{Tuple{Int,Int},Arc}()
+    n  = lastindex(F)
+    for iᵗ ∈ 1:n
+        for iʰ ∈ 1:n
+            l = df[iᵗ,iʰ] 
+            a = Arc(iᵗ, iʰ, l)
+            A[(iᵗ,iʰ)] = a
+        end
+    end
+    V  = [v for d ∈ D for v ∈ d.V]
+    Jᵛ = eachindex(unique(getproperty.(V, :jᵛ)))
+    for (iᵗ,c) ∈ pairs(C)
+        Iᶠ = zeros(Int, Jᵛ)
+        Lᶠ = fill(Inf, Jᵛ)
+        for (iʰ,f) ∈ pairs(F)
+            jᵛ = f.jⁿ
+            a  = A[(iᵗ,iʰ)]
+            l  = Lᶠ[jᵛ]
+            l′ = a.l
+            Lᶠ[jᵛ] = l′ < l ? l′ : Lᶠ[jᵛ]
+            Iᶠ[jᵛ] = l′ < l ? iʰ : Iᶠ[jᵛ]
+        end
+        c.Iᶠ = Iᶠ
     end
     G = (D, C, F, A)
     return G
