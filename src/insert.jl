@@ -168,11 +168,11 @@ function greedy!(rng::AbstractRNG, s::Solution; mode::Symbol)
             end
         end
         # Step 2.2: Insert the delivery node and the associated pickup node with least insertion cost at their best position
-        i,j= Tuple(argmin(X))
-        c  = L[i]
-        cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
-        cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
-        r  = R[j]
+        i,j = Tuple(argmin(X))
+        c   = L[i]
+        cᵖ  = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
+        cᵈ  = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
+        r   = R[j]
         iᵖᵗ = P[i,j][1][1]
         iᵖʰ = P[i,j][1][2]
         iᵈᵗ = P[i,j][2][1]
@@ -291,13 +291,13 @@ function regretk!(rng::AbstractRNG, s::Solution, k̅::Int)
             for k ∈ 1:k̅ Z[i] += U[k] - U[1] end
         end
         # Step 2.2: Insert delivery node and the associated pickup node with highest regret cost in its best position (break ties by inserting the nodes with the lowest insertion cost)
-        I̲  = findall(isequal.(Z, maximum(Z)))
-        i,j= Tuple(argmin(X[I̲,:]))
-        i  = I̲[i]
-        c  = L[i]
-        cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
-        cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
-        r  = R[j]
+        I̲   = findall(isequal.(Z, maximum(Z)))
+        i,j = Tuple(argmin(X[I̲,:]))
+        i   = I̲[i]
+        c   = L[i]
+        cᵖ  = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
+        cᵈ  = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
+        r   = R[j]
         iᵖᵗ = P[i,j][1][1]
         iᵖʰ = P[i,j][1][2]
         iᵈᵗ = P[i,j][2][1]
