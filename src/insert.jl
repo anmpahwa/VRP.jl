@@ -33,9 +33,9 @@ function best!(rng::AbstractRNG, s::Solution)
     L = [c for c ∈ C if isopen(c) && isdelivery(c)]
     I = eachindex(L)
     J = eachindex(R)
-    W = ones(Int, I)                                    # W[j]  : selection weight for delivery node L[i]
-    X = fill(Inf, (I,J))                                # X[i,j]: insertion cost of delivery node L[i] and its associated pickup node at their best position in route R[j]
-    P = fill(((0, 0), (0, 0)), (I,J))                   # P[i,j]: best insertion postion of associated pickup node and the delivery node L[i] in route R[j]
+    W = ones(Int, I)                                                        # W[j]  : selection weight for delivery node L[i]
+    X = fill(Inf, (I,J))                                                    # X[i,j]: insertion cost of delivery node L[i] and its associated pickup node at their best position in route R[j]
+    P = fill(((0, 0), (0, 0)), (I,J))                                       # P[i,j]: best insertion postion of associated pickup node and the delivery node L[i] in route R[j]
     # Step 2: Iterate until all open delivery nodes have been inserted into the route
     for _ ∈ I
         # Step 2.1: Randomly select an open delivery node (and the associated pickup node) and iterate through all possible insertion positions in each route
@@ -120,9 +120,11 @@ function greedy!(rng::AbstractRNG, s::Solution; mode::Symbol)
     L = [c for c ∈ C if isopen(c) && isdelivery(c)]
     I = eachindex(L)
     J = eachindex(R)
-    X = fill(Inf, (I,J))                                # X[i,j]: insertion cost of delivery node L[i] and its associated pickup node at their best position in route R[j]
-    P = fill(((0, 0), (0, 0)), (I,J))                   # P[i,j]: best insertion postion of associated pickup node and the delivery node L[i] in route R[j]
-    ϕ = ones(Int, J)                                    # ϕ[j]  : binary weight for route R[j]
+    X = fill(Inf, (I,J))                                                    # X[i,j]: insertion cost of delivery node L[i] and its associated pickup node at their best position in route R[j]
+    P = fill(((0, 0), (0, 0)), (I,J))                                       # P[i,j]: best insertion postion of associated pickup node and the delivery node L[i] in route R[j]
+    U = ["$(d.iⁿ)$(v.jᵛ)$(isopt(v.r) ? v.iᵛ : 0)" for d ∈ D for v ∈ d.V]    # U[j]  : Unique identifier for route R[j]
+    ϕ = zeros(Int, J)                                                       # ϕ[j]  : binary weight for route R[j]
+    for j ∈ unique(j -> U[j], J) ϕ[j] = 1 end
     # Step 2: Iterate until all open delivery nodes have been inserted into the route
     for _ ∈ I
         # Step 2.1: Iterate through all open delivery nodes (and the associated pickup nodes) through every possible insertion position in each route
@@ -173,6 +175,8 @@ function greedy!(rng::AbstractRNG, s::Solution; mode::Symbol)
         cᵖ  = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
         cᵈ  = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
         r   = R[j]
+        d   = s.D[r.iᵈ]
+        v   = d.V[r.iᵛ]
         iᵖᵗ = P[i,j][1][1]
         iᵖʰ = P[i,j][1][2]
         iᵈᵗ = P[i,j][2][1]
@@ -189,7 +193,9 @@ function greedy!(rng::AbstractRNG, s::Solution; mode::Symbol)
         P[i,:] .= (((0 ,0), (0, 0)), )
         X[:,j] .= Inf
         P[:,j] .= (((0 ,0), (0, 0)), )
+        U[j] = "$(d.iⁿ)$(v.jᵛ)$(v.iᵛ)"
         ϕ[j] = 1
+        for j ∈ unique(j -> U[j], J) ϕ[j] = !isopt(R[j]) ? 1 : ϕ[j] end
     end
     # Step 3: Return solution
     return s
@@ -233,11 +239,13 @@ function regretk!(rng::AbstractRNG, s::Solution, k̅::Int)
     L = [c for c ∈ C if isopen(c) && isdelivery(c)]
     I = eachindex(L)
     J = eachindex(R)
-    X = fill(Inf, (I,J))                                # X[i,j]  : insertion cost of delivery node L[i] and its associated pickup node at their best position in route R[j]
-    Y = fill(Inf, (k̅,I,J))                              # Y[k,i,j]: insertion cost of delivery node L[i] and its associated pickup node at kᵗʰ best position in route R[j]
-    Z = fill(0., I)                                     # Z[i]    : regret-k cost of delivery node L[i] and its associated pickup node
-    P = fill(((0, 0), (0, 0)), (I,J))                   # P[i,j]  : best insertion postion of associated pickup node and the delivery node L[i] in route R[j]
-    ϕ = ones(Int, J)                                    # ϕ[j]    : binary weight for route R[j]
+    X = fill(Inf, (I,J))                                                    # X[i,j]  : insertion cost of delivery node L[i] and its associated pickup node at their best position in route R[j]
+    Y = fill(Inf, (k̅,I,J))                                                  # Y[k,i,j]: insertion cost of delivery node L[i] and its associated pickup node at kᵗʰ best position in route R[j]
+    Z = fill(0., I)                                                         # Z[i]    : regret-k cost of delivery node L[i] and its associated pickup node
+    P = fill(((0, 0), (0, 0)), (I,J))                                       # P[i,j]  : best insertion postion of associated pickup node and the delivery node L[i] in route R[j]
+    U = ["$(d.iⁿ)$(v.jᵛ)$(isopt(v.r) ? v.iᵛ : 0)" for d ∈ D for v ∈ d.V]    # U[j]    : Unique identifier for route R[j]
+    ϕ = zeros(Int, J)                                                       # ϕ[j]    : binary weight for route R[j]
+    for j ∈ unique(j -> U[j], J) ϕ[j] = 1 end
     # Step 2: Iterate until all open delivery nodes have been inserted into the route
     for _ ∈ I
         # Step 2.1: Iterate through all open delivery nodes (and the associated pickup nodes)
@@ -287,8 +295,8 @@ function regretk!(rng::AbstractRNG, s::Solution, k̅::Int)
                 end
             end
             # Step 2.1.2: Compute regret cost for delivery node L[i]
-            U = sort(vec(Y[:,i,:]))
-            for k ∈ 1:k̅ Z[i] += U[k] - U[1] end
+            W = sort(vec(Y[:,i,:]))
+            for k ∈ 1:k̅ Z[i] += W[k] - W[1] end
         end
         # Step 2.2: Insert delivery node and the associated pickup node with highest regret cost in its best position (break ties by inserting the nodes with the lowest insertion cost)
         I̲   = findall(isequal.(Z, maximum(Z)))
@@ -298,6 +306,8 @@ function regretk!(rng::AbstractRNG, s::Solution, k̅::Int)
         cᵖ  = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
         cᵈ  = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
         r   = R[j]
+        d   = s.D[r.iᵈ]
+        v   = d.V[r.iᵛ]
         iᵖᵗ = P[i,j][1][1]
         iᵖʰ = P[i,j][1][2]
         iᵈᵗ = P[i,j][2][1]
@@ -317,7 +327,9 @@ function regretk!(rng::AbstractRNG, s::Solution, k̅::Int)
         X[:,j] .= Inf
         Y[:,:,j] .= Inf
         P[:,j] .= (((0 ,0), (0, 0)), )
+        U[j] = "$(d.iⁿ)$(v.jᵛ)$(v.iᵛ)"
         ϕ[j] = 1
+        for j ∈ unique(j -> U[j], J) ϕ[j] = !isopt(R[j]) ? 1 : ϕ[j] end
     end
     # Step 3: Return solution
     return s
