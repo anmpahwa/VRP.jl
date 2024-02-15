@@ -37,14 +37,14 @@ end
 
 
 """
-    Vehicle(iᵛ::Int, jᵛ::Int, iᵈ::Int, qᵛ::Float64, lᵛ::Float64, sᵛ::Float64, ρᵛ::Float64, θˡ::Float64, θᵘ::Float64, τᶜ::Float64, τʷ::Float64, r::Route, tˢ::Float64, tᵉ::Float64, n::Int, q::Float64, l::Float64, πᵈ::Float64, πᵗ::Float64, πᶠ::Float64)
+    Vehicle(iᵛ::Int, jᵛ::Int, iᵈ::Int, qᵛ::Float64, lᵛ::Float64, sᵛ::Float64, θˡ::Float64, θᵘ::Float64, τᶜ::Float64, τʷ::Float64, r::Route, tˢ::Float64, tᵉ::Float64, n::Int, q::Float64, l::Float64, πᵈ::Float64, πᵗ::Float64, πᶠ::Float64)
 
 A `Vehicle` is a mode of delivery with index `iᵛ`, type index `jᵛ`, depot node index 
-`iᵈ`, capacity `qᵛ`, range `lᵛ`, speed `sᵛ`, fuel consumption rate `ρᵛ`, tank status 
-lower threshold `θˡ` and upper threshold `θᵘ`, parking time `τᶜ` at customer node, 
-driver working-hours `τʷ`, associated vehicle route `r`, initial departure time `tˢ`, 
-final arrival time `tᵉ`, customers served `n`, demand served `q`, route length `l`, 
-operational cost `πᵈ` per unit distance and `πᵗ` per unit time, and fixed cost `πᶠ`.
+`iᵈ`, capacity `qᵛ`, range `lᵛ`, speed `sᵛ`, tank status lower threshold `θˡ` and 
+upper threshold `θᵘ`, parking time `τᶜ` at customer node, driver working-hours `τʷ`, 
+associated vehicle route `r`, initial departure time `tˢ`, final arrival time `tᵉ`, 
+customers served `n`, demand served `q`, route length `l`, operational cost `πᵈ` per 
+unit distance and `πᵗ` per unit time, and fixed cost `πᶠ`.
 """
 mutable struct Vehicle
     iᵛ::Int                                                                         # Vehicle index
@@ -53,7 +53,6 @@ mutable struct Vehicle
     qᵛ::Float64                                                                     # Capacity
     lᵛ::Float64                                                                     # Range
     sᵛ::Float64                                                                     # Speed
-    ρᵛ::Float64                                                                     # Fuel consumption rate
     θˡ::Float64                                                                     # Tank status lower threshold
     θᵘ::Float64                                                                     # Tank status upper threshold
     τᶜ::Float64                                                                     # Parking time at customer node
@@ -131,19 +130,19 @@ mutable struct CustomerNode <: Node
     l::Float64                                                                      # Route length on arrival
 end
 """
-    FuelStationNode(iⁿ::Int, jⁿ::Int, x::Float64, y::Float64, ρᵛ::Float64, n::Int, q::Float64, l::Float64, πᵒ::Float64, πᶠ::Float64)
+    FuelStationNode(iⁿ::Int, jⁿ::Int, x::Float64, y::Float64, τᵛ::Float64, n::Int, q::Float64, l::Float64, πᵒ::Float64, πᶠ::Float64)
 
 A `FuelStationNode` is a re-fueling point on the graph at `(x,y)` with index `iⁿ`, 
 re-fueling events `n`, amount re-fueled `q`, range restored `l`, operational cost 
 `πᵒ` per unit fuel consumed re-fueling, and fixed cost `πᶠ`, that re-fuels vehicles 
-of type `jᵛ` at re-fueling rate of `ρᵛ`.
+of type `jᵛ` at re-fueling rate of `τᵛ`.
 """
 mutable struct FuelStationNode <: Node
     iⁿ::Int                                                                         # Fuel Station node index
     jⁿ::Int                                                                         # Fuel Station type (consistent with vehicle type)
     x::Float64                                                                      # Location on the x-axis
     y::Float64                                                                      # Location in the y-axis
-    ρᵛ::Float64                                                                     # Vehicle re-fueling rate
+    τᵛ::Float64                                                                     # Vehicle re-fueling rate
     n::Int                                                                          # Number of re-fueling events
     q::Float64                                                                      # Amount re-fueled
     l::Float64                                                                      # Range restored
