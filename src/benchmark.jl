@@ -31,7 +31,7 @@ let
             # Visualize initial solution
             display(visualize(s₁))
             # Define ALNS parameters
-            x = max(100, lastindex(s₁.C)) ÷ 4
+            x = max(100, lastindex(s₁.C))
             χ = ALNSparameters(
                 j   =   50                      ,
                 k   =   5                       ,
@@ -77,7 +77,7 @@ let
                 τ̅   =   0.5                     ,
                 ω̲   =   0.01                    ,
                 τ̲   =   0.01                    ,
-                θ   =   0.9972                  ,
+                θ   =   0.9993                  ,
                 ρ   =   0.1
             );
             # Run ALNS and fetch best solution
