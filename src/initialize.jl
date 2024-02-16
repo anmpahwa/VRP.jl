@@ -24,12 +24,10 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         y  = df[k,3]
         tˢ = df[k,4]
         tᵉ = df[k,5]
-        n  = 0
-        q  = 0.
-        l  = 0.
         πᵒ = df[k,6]
         πᶠ = df[k,7]
-        d  = DepotNode(iⁿ, x, y, tˢ, tᵉ, Vehicle[], n, q, l, πᵒ, πᶠ)
+        n  = 0
+        d  = DepotNode(iⁿ, x, y, tˢ, tᵉ, Vehicle[], πᵒ, πᶠ, n)
         D[iⁿ] = d
     end
     # Vehicles
@@ -46,6 +44,9 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         θᵘ = df[k,8]
         τᶜ = df[k,9]
         τʷ = df[k,10]
+        πᵈ = df[k,11]
+        πᵗ = df[k,12]
+        πᶠ = df[k,13]
         x  = 0.
         y  = 0. 
         iˢ = iᵈ
@@ -53,13 +54,9 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         tˢ = d.tˢ
         tᵉ = d.tˢ
         n  = 0 
-        q  = 0.
         l  = 0.
-        πᵈ = df[k,11]
-        πᵗ = df[k,12]
-        πᶠ = df[k,13]
-        r  = Route(iᵛ, iᵈ, x, y, iˢ, iᵉ, tˢ, tᵉ, n, q, l)
-        v  = Vehicle(iᵛ, jᵛ, iᵈ, qᵛ, lᵛ, sᵛ, θˡ, θᵘ, τᶜ, τʷ, r, tˢ, tᵉ, n, q, l, πᵈ, πᵗ, πᶠ)
+        r  = Route(iᵛ, iᵈ, x, y, iˢ, iᵉ, tˢ, tᵉ, n, l)
+        v  = Vehicle(iᵛ, jᵛ, iᵈ, qᵛ, lᵛ, sᵛ, θˡ, θᵘ, τᶜ, τʷ, πᵈ, πᵗ, πᶠ, r)
         push!(d.V, v)
     end
     # Customer Nodes
@@ -69,23 +66,21 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
     for k ∈ 1:nrow(df)
         iⁿ = df[k,1]
         jⁿ = df[k,2]
-        iᵛ = 0
-        iᵈ = 0
-        Iᶠ = Int64[]
         x  = df[k,3]
         y  = df[k,4]
         qᶜ = df[k,5]
         τᶜ = df[k,6]
         tᵉ = df[k,7]
         tˡ = df[k,8]
+        F  = FuelStationNode[]
         iᵗ = 0
         iʰ = 0
         tᵃ = qᶜ > 0. ? tˡ : tᵉ
         tᵈ = tᵃ + τᶜ
-        n  = 0
+        θ  = 1.
         q  = 0.
-        l  = 0.
-        c  = CustomerNode(iⁿ, jⁿ, iᵛ, iᵈ, Iᶠ, x, y, qᶜ, τᶜ, tᵉ, tˡ, NullRoute, iᵗ, iʰ, tᵃ, tᵈ, n, q, l)
+        r  = NullRoute
+        c  = CustomerNode(iⁿ, jⁿ, x, y, qᶜ, τᶜ, tᵉ, tˡ, F, iᵗ, iʰ, tᵃ, tᵈ, θ, q, r)
         C[iⁿ] = c
     end
     # Fuel Station Nodes
@@ -98,12 +93,10 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         x  = df[k,3]
         y  = df[k,4]
         τᵛ = df[k,5]
-        n  = 0
-        q  = 0.
-        l  = 0.
         πᵒ = df[k,6]
         πᶠ = df[k,7]
-        f  = FuelStationNode(iⁿ, jⁿ, x, y, τᵛ, n, q, l, πᵒ, πᶠ)
+        q  = 0.
+        f  = FuelStationNode(iⁿ, jⁿ, x, y, τᵛ, πᵒ, πᶠ, q)
         F[iⁿ] = f
     end
     # Arcs
@@ -130,7 +123,7 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
             Lᶠ[jᵛ] = l′ < l ? l′ : Lᶠ[jᵛ]
             Iᶠ[jᵛ] = l′ < l ? iʰ : Iᶠ[jᵛ]
         end
-        c.Iᶠ = Iᶠ
+        c.F = [F[iⁿ] for iⁿ ∈ Iᶠ]
     end
     G = (D, C, F, A)
     return G
