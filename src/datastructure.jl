@@ -71,9 +71,10 @@ abstract type Node end
 """
     DepotNode(iⁿ::Int, x::Float64, y::Float64, tˢ::Float64, tᵉ::Float64, V::Vector{Vehicle}, n::Int)
 
-A `DepotNode` is an origin point on the graph at `(x,y)` with index `iⁿ`, capacity 
-`qᵈ`, working-hours start time `tˢ` and end time `tᵉ`, and a fleet of vehicles `V` 
-serving `n` customers.
+A `DepotNode` is an origin point on the graph at `(x,y)` with index `iⁿ`, working-
+hours start time `tˢ` and end time `tᵉ`, operational cost `πᵒ` per customer and 
+fixed cost `πᶠ`, serving `n` customers with a fleet of vehicles `V`. 
+
 """
 mutable struct DepotNode <: Node
     iⁿ::Int                                                                         # Depot node index
@@ -92,9 +93,9 @@ end
 A `CustomerNode` is a source/sink point on the graph at `(x,y)` with index `iⁿ`, 
 associated delivery or pickup node index `jⁿ`, demand `qᶜ`, service time `τᶜ`, 
 earliest service time `tᵉ` and latest service time `tˡ`, set `F` with the nearest 
-fuel station for every vehicle type, tail node index `iᵗ` and head node index `iʰ`, 
-vehicle arrival time `tᵃ` and departure time `tᵈ`, on-arrival vehicle tank status 
-`θ` and load `q` on route `r`.
+fuel station for every vehicle type, tail node index `iᵗ` and head node index `iʰ`,
+serviced on route `r` with vehicle arrival time `tᵃ` and departure time `tᵈ`, and
+vehicle tank status `θ` and load `q` on-arrival.
 """
 mutable struct CustomerNode <: Node
     iⁿ::Int                                                                         # Customer node index
