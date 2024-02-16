@@ -70,7 +70,7 @@ isopt(r::Route) = !iszero(r.n)
 Returns `true` if vehicle `v` is operational.
 A `Vehicle` is defined operational if it serves at least one customer.
 """
-isopt(v::Vehicle) = !iszero(v.n)
+isopt(v::Vehicle) = !iszero(v.r.n)
 """
     isopt(d::DepotNode)
     
@@ -84,7 +84,7 @@ isopt(d::DepotNode) = !iszero(d.n)
 Returns `true` if fuel station node `f` is operational.
 A `FuelStationNode` is defined operational if it refuels at least one vehicle.
 """
-isopt(f::FuelStationNode) = !iszero(f.n)
+isopt(f::FuelStationNode) = !iszero(f.q)
 
 
 
@@ -177,14 +177,14 @@ function relatedness(m::Symbol, v₁::Vehicle, v₂::Vehicle, s::Solution)
     ϵ  = 1e-5
     r₁ = v₁.r
     r₂ = v₂.r
-    x₁ = r₁.n * r₁.x / v₁.n
-    x₂ = r₂.n * r₂.x / v₂.n
-    y₁ = r₁.n * r₁.y / v₁.n 
-    y₂ = r₂.n * r₂.y / v₂.n
+    x₁ = r₁.x
+    x₂ = r₂.x
+    y₁ = r₁.y
+    y₂ = r₂.y
     φ = 1
     q = isequal(m, :q) * (0.)
     l = isequal(m, :l) * (sqrt((x₁ - x₂)^2 + (y₁ - y₂)^2))
-    t = isequal(m, :t) * (abs(v₁.tˢ - v₂.tˢ) + abs(v₁.tᵉ - v₂.tᵉ))
+    t = isequal(m, :t) * (abs(r₁.tˢ - r₂.tˢ) + abs(r₁.tᵉ - r₂.tᵉ))
     z = φ/(q + l + t + ϵ)
     return z
 end
@@ -210,7 +210,7 @@ end
 
 A `NullRoute` is a fictitious out-of-service route.
 """           
-const NullRoute = Route(0, 0, 0., 0., 0, 0, Inf, Inf, 0, 0, Inf)
+const NullRoute = Route(0, 0, 0., 0., 0, 0, Inf, Inf, 0, Inf)
 
 
 
@@ -275,14 +275,14 @@ function isfeasible(s::Solution)
                 qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
                 if !isequal(cᵖ.r, cᵈ.r) return false end                    # Service constraint (order of service)
                 if cᵖ.tᵃ > cᵈ.tᵃ return false end                           # Service constraint (order of service)
-                if c.l > v.lᵛ return false end                              # Vehicle range constraint
+                if c.θ < 0. return false end                                # Vehicle range constraint
                 if qᵒ > v.qᵛ return false end                               # Vehicle capacity constraint
                 if isequal(c, cᵉ) break end
                 c = s.C[c.iʰ]
             end
-            if d.tˢ > v.tˢ return false end                                 # Working-hours constraint (start time)
-            if v.tᵉ > d.tᵉ return false end                                 # Working-hours constraint (end time)
-            if v.tᵉ - v.tˢ > v.τʷ return false end                          # Working-hours constraint (duration)
+            if d.tˢ > r.tˢ return false end                                 # Working-hours constraint (start time)
+            if r.tᵉ > d.tᵉ return false end                                 # Working-hours constraint (end time)
+            if r.tᵉ - r.tˢ > v.τʷ return false end                          # Working-hours constraint (duration)
         end
     end
     return true

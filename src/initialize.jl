@@ -26,8 +26,9 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         tᵉ = df[k,5]
         πᵒ = df[k,6]
         πᶠ = df[k,7]
+        V  = Vehicle[]
         n  = 0
-        d  = DepotNode(iⁿ, x, y, tˢ, tᵉ, Vehicle[], πᵒ, πᶠ, n)
+        d  = DepotNode(iⁿ, x, y, tˢ, tᵉ, πᵒ, πᶠ, V, n)
         D[iⁿ] = d
     end
     # Vehicles

@@ -54,8 +54,8 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     s.πᵖ += 0.
     # update en-route parameters
     s.πᶠ -= 0.
-    s.πᵒ -= (v.tᵉ - v.tˢ) * v.πᵗ
-    s.πᵖ -= (d.tˢ > v.tˢ) * (d.tˢ - v.tˢ) + (v.tᵉ > d.tᵉ) * (v.tᵉ - d.tᵉ) + ((v.tᵉ - v.tˢ) > v.τʷ) * ((v.tᵉ - v.tˢ) - v.τʷ)
+    s.πᵒ -= (r.tᵉ - r.tˢ) * v.πᵗ
+    s.πᵖ -= (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ)
     if isopt(r)
         cˢ = s.C[r.iˢ]
         cᵉ = s.C[r.iᵉ]
@@ -90,10 +90,9 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         r.tˢ = d.tˢ
         r.tᵉ = r.tˢ
     end
-    (v.tˢ, v.tᵉ) = (r.tˢ, r.tᵉ)
     s.πᶠ += 0.
-    s.πᵒ += (v.tᵉ - v.tˢ) * v.πᵗ
-    s.πᵖ += (d.tˢ > v.tˢ) * (d.tˢ - v.tˢ) + (v.tᵉ > d.tᵉ) * (v.tᵉ - d.tᵉ) + ((v.tᵉ - v.tˢ) > v.τʷ) * ((v.tᵉ - v.tˢ) - v.τʷ)
+    s.πᵒ += (r.tᵉ - r.tˢ) * v.πᵗ
+    s.πᵖ += (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ)
     return s
 end
 """
@@ -137,7 +136,6 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     if isdepot(nᵗ) r.iˢ = nʰ.iⁿ end
     if isdepot(nʰ) r.iᵉ = nᵗ.iⁿ end
     r.n  -= 1
-    r.q  -= isdelivery(c) ? c.qᶜ : 0.
     r.l  -= aᵗ.l + aʰ.l - aᵒ.l
     s.πᶠ += 0.
     s.πᵒ += r.l * v.πᵈ
@@ -159,8 +157,8 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     s.πᵖ += 0.
     # update en-route parameters
     s.πᶠ -= 0.
-    s.πᵒ -= (v.tᵉ - v.tˢ) * v.πᵗ
-    s.πᵖ -= (d.tˢ > v.tˢ) * (d.tˢ - v.tˢ) + (v.tᵉ > d.tᵉ) * (v.tᵉ - d.tᵉ) + ((v.tᵉ - v.tˢ) > v.τʷ) * ((v.tᵉ - v.tˢ) - v.τʷ)
+    s.πᵒ -= (r.tᵉ - r.tˢ) * v.πᵗ
+    s.πᵖ -= (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ)
     if isopt(r)
         cˢ = s.C[r.iˢ]
         cᵉ = s.C[r.iᵉ]
@@ -195,9 +193,8 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         r.tˢ = d.tˢ
         r.tᵉ = r.tˢ
     end
-    (v.tˢ, v.tᵉ) = (r.tˢ, r.tᵉ)
     s.πᶠ += 0.
-    s.πᵒ += (v.tᵉ - v.tˢ) * v.πᵗ
-    s.πᵖ += (d.tˢ > v.tˢ) * (d.tˢ - v.tˢ) + (v.tᵉ > d.tᵉ) * (v.tᵉ - d.tᵉ) + ((v.tᵉ - v.tˢ) > v.τʷ) * ((v.tᵉ - v.tˢ) - v.τʷ)
+    s.πᵒ += (r.tᵉ - r.tˢ) * v.πᵗ
+    s.πᵖ += (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ)
     return s
 end

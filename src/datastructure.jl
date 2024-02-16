@@ -88,6 +88,24 @@ mutable struct DepotNode <: Node
     n::Int                                                                          # Customers served
 end
 """
+    FuelStationNode(iⁿ::Int, jⁿ::Int, x::Float64, y::Float64, τᵛ::Float64, πᵒ::Float64, πᶠ::Float64, q::Float64)
+
+A `FuelStationNode` is a re-fueling point on the graph at `(x,y)` with index `iⁿ`, 
+associated with vehicle type `jᵛ`, with a re-fueling rate of `τᵛ`, operational cost 
+`πᵒ` per unit fuel consumed re-fueling, fixed cost `πᶠ`, and amount re-fueled `q`.
+
+"""
+mutable struct FuelStationNode <: Node
+    iⁿ::Int                                                                         # Fuel Station node index
+    jⁿ::Int                                                                         # Fuel Station type (consistent with vehicle type)
+    x::Float64                                                                      # Location on the x-axis
+    y::Float64                                                                      # Location in the y-axis
+    τᵛ::Float64                                                                     # Vehicle re-fueling rate
+    πᵒ::Float64                                                                     # Operational cost
+    πᶠ::Float64                                                                     # Fixed cost
+    q::Float64                                                                      # Amount re-fueled
+end
+"""
     CustomerNode(iⁿ::Int, jⁿ::Int, x::Float64, y::Float64, qᶜ::Float64, τᶜ::Float64, tᵉ::Float64, tˡ::Float64, F::Vector{FuelStationNode}, iᵗ::Int, iʰ::Int, tᵃ::Float64, tᵈ::Float64, θ::Float64, q::Float64, r::Route)
 
 A `CustomerNode` is a source/sink point on the graph at `(x,y)` with index `iⁿ`, 
@@ -114,24 +132,6 @@ mutable struct CustomerNode <: Node
     θ::Float64                                                                      # Vehicle tank status on arrival
     q::Float64                                                                      # Vehicle load on arrival
     r::Route                                                                        # Route visiting the customer node
-end
-"""
-    FuelStationNode(iⁿ::Int, jⁿ::Int, x::Float64, y::Float64, τᵛ::Float64, πᵒ::Float64, πᶠ::Float64, q::Float64)
-
-A `FuelStationNode` is a re-fueling point on the graph at `(x,y)` with index `iⁿ`, 
-associated with vehicle type `jᵛ`, with a re-fueling rate of `τᵛ`, operational cost 
-`πᵒ` per unit fuel consumed re-fueling, fixed cost `πᶠ`, and amount re-fueled `q`.
-
-"""
-mutable struct FuelStationNode <: Node
-    iⁿ::Int                                                                         # Fuel Station node index
-    jⁿ::Int                                                                         # Fuel Station type (consistent with vehicle type)
-    x::Float64                                                                      # Location on the x-axis
-    y::Float64                                                                      # Location in the y-axis
-    τᵛ::Float64                                                                     # Vehicle re-fueling rate
-    πᵒ::Float64                                                                     # Operational cost
-    πᶠ::Float64                                                                     # Fixed cost
-    q::Float64                                                                      # Amount re-fueled
 end
 
 
