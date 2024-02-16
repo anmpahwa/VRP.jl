@@ -38,10 +38,10 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     s.πᶠ += isopt(v) ? v.πᶠ : 0.
     # update associated depot
     s.πᶠ -= isopt(d) ? d.πᶠ : 0.
-    s.πᵒ -= d.q * d.πᵒ
+    s.πᵒ -= d.n * d.πᵒ
     d.n  += 1
     s.πᶠ += isopt(d) ? d.πᶠ : 0.
-    s.πᵒ += d.q * d.πᵒ
+    s.πᵒ += d.n * d.πᵒ
     # update en-route parameters
     s.πᵒ -= (r.tᵉ - r.tˢ) * v.πᵗ
     s.πᵖ -= (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ)
@@ -73,9 +73,8 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
             s.πᵖ += (c.θ < 0) * abs(c.θ)
             if isequal(c, cᵉ) break end
             tᵈ = c.tᵈ
-            n += 1
-            q += -c.qᶜ
-            l += s.A[(c.iⁿ,c.iʰ)].l
+            q -= c.qᶜ
+            θ -= s.A[(c.iⁿ,c.iʰ)].l/v.lᵛ
             c  = s.C[c.iʰ]
         end
         r.tˢ = d.tˢ
@@ -84,7 +83,6 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         r.tˢ = d.tˢ
         r.tᵉ = r.tˢ
     end
-    (v.tˢ, v.tᵉ) = (r.tˢ, r.tᵉ)
     s.πᵒ += (r.tᵉ - r.tˢ) * v.πᵗ
     s.πᵖ += (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ)
     s.πᵖ += (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ)
@@ -145,10 +143,10 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     s.πᶠ += isopt(v) ? v.πᶠ : 0.
     # update associated depot
     s.πᶠ -= isopt(d) ? d.πᶠ : 0.
-    s.πᵒ -= d.q * d.πᵒ
+    s.πᵒ -= d.n * d.πᵒ
     d.n  -= 1
     s.πᶠ += isopt(d) ? d.πᶠ : 0.
-    s.πᵒ += d.q * d.πᵒ
+    s.πᵒ += d.n * d.πᵒ
     # update en-route parameters
     s.πᵒ -= (r.tᵉ - r.tˢ) * v.πᵗ
     s.πᵖ -= (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ)
@@ -158,9 +156,8 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         cˢ = s.C[r.iˢ]
         cᵉ = s.C[r.iᵉ]
         tᵈ = d.tˢ
-        n  = 1
+        θ  = 1.
         q  = 0.
-        l  = s.A[(d.iⁿ,cˢ.iⁿ)].l
         c  = cˢ
         while true
             cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
@@ -172,9 +169,8 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
             s.πᵖ -= (c.θ < 0) * abs(c.θ)
             c.tᵃ  = tᵈ + s.A[(c.iᵗ, c.iⁿ)].l/v.sᵛ
             c.tᵈ  = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - v.τᶜ) + c.τᶜ
-            c.n   = n
+            c.θ   = θ
             c.q   = q
-            c.l   = l
             qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
             s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
             s.πᵖ += (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
@@ -182,9 +178,8 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
             s.πᵖ += (c.θ < 0) * abs(c.θ)
             if isequal(c, cᵉ) break end
             tᵈ = c.tᵈ
-            n += 1
-            q += -c.qᶜ
-            l += s.A[(c.iⁿ,c.iʰ)].l
+            q -= c.qᶜ
+            θ -= s.A[(c.iⁿ,c.iʰ)].l/v.lᵛ
             c  = s.C[c.iʰ]
         end
         r.tˢ = d.tˢ
@@ -193,7 +188,6 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         r.tˢ = d.tˢ
         r.tᵉ = r.tˢ
     end
-    (v.tˢ, v.tᵉ) = (r.tˢ, r.tᵉ)
     s.πᵒ += (r.tᵉ - r.tˢ) * v.πᵗ
     s.πᵖ += (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ)
     s.πᵖ += (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ)
