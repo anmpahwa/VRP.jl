@@ -24,8 +24,8 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     s.πᶠ += 0.
     s.πᵒ += 0.
     s.πᵖ += (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ)
-    # update associated route
-    s.πᶠ -= 0.
+    # update associated vehicle-route
+    s.πᶠ -= isopt(v) ? v.πᶠ : 0.
     s.πᵒ -= r.l * v.πᵈ
     s.πᵖ -= 0.
     r.x   = (r.n * r.x + c.x)/(r.n + 1)
@@ -34,7 +34,7 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     if isdepot(nʰ) r.iᵉ = c.iⁿ end
     r.n  += 1
     r.l  += aᵗ.l + aʰ.l - aᵒ.l
-    s.πᶠ += 0.
+    s.πᶠ += isopt(v) ? v.πᶠ : 0.
     s.πᵒ += r.l * v.πᵈ
     s.πᵖ += 0.
     # update associated vehicle
@@ -127,8 +127,8 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     s.πᶠ += 0.
     s.πᵒ += 0.
     s.πᵖ += (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ) + (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ) + (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ) + (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ) + (c.θ < 0.) * abs(c.θ)
-    # update associated route
-    s.πᶠ -= 0.
+    # update associated vehicle-route
+    s.πᶠ -= isopt(v) ? v.πᶠ : 0.
     s.πᵒ -= r.l * v.πᵈ
     s.πᵖ - 0.
     r.x   = isone(r.n) ? 0. : (r.n * r.x - c.x)/(r.n - 1)
@@ -137,15 +137,8 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     if isdepot(nʰ) r.iᵉ = nᵗ.iⁿ end
     r.n  -= 1
     r.l  -= aᵗ.l + aʰ.l - aᵒ.l
-    s.πᶠ += 0.
-    s.πᵒ += r.l * v.πᵈ
-    s.πᵖ += 0.
-    # update associated vehicle
-    s.πᶠ -= isopt(v) ? v.πᶠ : 0.
-    s.πᵒ -= 0.
-    s.πᵖ -= 0.
     s.πᶠ += isopt(v) ? v.πᶠ : 0.
-    s.πᵒ += 0.
+    s.πᵒ += r.l * v.πᵈ
     s.πᵖ += 0.
     # update associated depot
     s.πᶠ -= isopt(d) ? d.πᶠ : 0.
