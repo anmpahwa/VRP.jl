@@ -37,13 +37,6 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     s.πᶠ += isopt(v) ? v.πᶠ : 0.
     s.πᵒ += r.l * v.πᵈ
     s.πᵖ += 0.
-    # update associated vehicle
-    s.πᶠ -= isopt(v) ? v.πᶠ : 0.
-    s.πᵒ -= 0.
-    s.πᵖ -= 0.
-    s.πᶠ += isopt(v) ? v.πᶠ : 0.
-    s.πᵒ += 0.
-    s.πᵖ += 0.
     # update associated depot
     s.πᶠ -= isopt(d) ? d.πᶠ : 0.
     s.πᵒ -= d.n * d.πᵒ
@@ -130,7 +123,7 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     # update associated vehicle-route
     s.πᶠ -= isopt(v) ? v.πᶠ : 0.
     s.πᵒ -= r.l * v.πᵈ
-    s.πᵖ - 0.
+    s.πᵖ -= 0.
     r.x   = isone(r.n) ? 0. : (r.n * r.x - c.x)/(r.n - 1)
     r.y   = isone(r.n) ? 0. : (r.n * r.y - c.y)/(r.n - 1)
     if isdepot(nᵗ) r.iˢ = nʰ.iⁿ end
@@ -191,27 +184,3 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     s.πᵖ += (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ)
     return s
 end
-#=
-tᶠ = 0.
-θʳ = 1.
-
-tᶠ    = 0. 
-θʳ   -= s.A[(c.iᵗ, c.iⁿ)].l/v.lᵛ
-if θʳ ≤ v.θˡ 
-    f  = c.Iᶠ[v.jᵛ]
-    aᵒ = s.A[(c.iⁿ, c.iʰ)]
-    aᵗ = s.A[(c.iⁿ, f.iⁿ)]
-    aʰ = s.A[(f.iⁿ, c.iʰ)]
-    r.l += aᵗ.l + aʰ.l - aᵒ.l
-    v.l += aᵗ.l + aʰ.l - aᵒ.l
-    d.l += aᵗ.l + aʰ.l - aᵒ.l
-    l   += aᵗ.l
-    tᶠ  += s.A[(c.iⁿ, f.iⁿ)].l/v.sᵛ
-    θʳ  -= s.A[(c.iⁿ, f.iⁿ)].l/v.lᵛ
-    tᶠ  += (v.θᵘ - l/v.lᵛ) * f.τᵛ
-    θʳ   = v.θᵘ
-    tᶠ  += s.A[(f.iⁿ, c.iʰ)].l/v.sᵛ
-    θʳ  -= s.A[(f.iⁿ, c.iʰ)].l/v.lᵛ
-    l   += aʰ.l
-end
-=#
