@@ -48,7 +48,9 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     # update en-route parameters
     s.πᶠ -= 0.
     s.πᵒ -= (r.tᵉ - r.tˢ) * v.πᵗ
-    s.πᵖ -= (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ)
+    s.πᵖ -= (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ)
+    s.πᵖ -= (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ)
+    s.πᵖ -= ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ)
     if isopt(r)
         cˢ = s.C[r.iˢ]
         cᵉ = s.C[r.iᵉ]
@@ -62,7 +64,10 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
             qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
             s.πᶠ -= 0.
             s.πᵒ -= 0.
-            s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ) + (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ) + (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ) + (c.θ < 0.) * abs(c.θ)
+            s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
+            s.πᵖ -= (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
+            s.πᵖ -= (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
+            s.πᵖ -= (c.θ < 0.) * abs(c.θ)
             c.tᵃ  = tᵈ + s.A[(c.iᵗ, c.iⁿ)].l/v.sᵛ
             c.tᵈ  = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - v.τᶜ) + c.τᶜ
             c.θ   = θ
@@ -70,7 +75,10 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
             qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
             s.πᶠ += 0.
             s.πᵒ += 0.
-            s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ) + (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ) + (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ) + (c.θ < 0.) * abs(c.θ)
+            s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
+            s.πᵖ += (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
+            s.πᵖ += (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
+            s.πᵖ += (c.θ < 0.) * abs(c.θ)
             if isequal(c, cᵉ) break end
             tᵈ = c.tᵈ
             q -= c.qᶜ
@@ -85,7 +93,9 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     end
     s.πᶠ += 0.
     s.πᵒ += (r.tᵉ - r.tˢ) * v.πᵗ
-    s.πᵖ += (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ)
+    s.πᵖ += (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ)
+    s.πᵖ += (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ)
+    s.πᵖ += ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ)
     return s
 end
 """
@@ -106,7 +116,11 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
     s.πᶠ -= 0.
     s.πᵒ -= 0.
-    s.πᵖ -= (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ) + (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ) + (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ) + (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ) + (c.θ < 0.) * abs(c.θ)
+    s.πᵖ -= (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ)
+    s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
+    s.πᵖ -= (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
+    s.πᵖ -= (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
+    s.πᵖ -= (c.θ < 0.) * abs(c.θ)
     if iscustomer(nᵗ) nᵗ.iʰ = nʰ.iⁿ end
     if iscustomer(nʰ) nʰ.iᵗ = nᵗ.iⁿ end
     c.iᵗ  = 0
@@ -119,7 +133,11 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
     s.πᶠ += 0.
     s.πᵒ += 0.
-    s.πᵖ += (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ) + (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ) + (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ) + (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ) + (c.θ < 0.) * abs(c.θ)
+    s.πᵖ += (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ)
+    s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
+    s.πᵖ += (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
+    s.πᵖ += (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
+    s.πᵖ += (c.θ < 0.) * abs(c.θ)
     # update associated vehicle-route
     s.πᶠ -= isopt(v) ? v.πᶠ : 0.
     s.πᵒ -= r.l * v.πᵈ
@@ -144,7 +162,9 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     # update en-route parameters
     s.πᶠ -= 0.
     s.πᵒ -= (r.tᵉ - r.tˢ) * v.πᵗ
-    s.πᵖ -= (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ)
+    s.πᵖ -= (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ)
+    s.πᵖ -= (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ)
+    s.πᵖ -= ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ)
     if isopt(r)
         cˢ = s.C[r.iˢ]
         cᵉ = s.C[r.iᵉ]
@@ -158,7 +178,10 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
             qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
             s.πᶠ -= 0.
             s.πᵒ -= 0.
-            s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ) + (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ) + (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ) + (c.θ < 0.) * abs(c.θ)
+            s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
+            s.πᵖ -= (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
+            s.πᵖ -= (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
+            s.πᵖ -= (c.θ < 0.) * abs(c.θ)
             c.tᵃ  = tᵈ + s.A[(c.iᵗ, c.iⁿ)].l/v.sᵛ
             c.tᵈ  = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - v.τᶜ) + c.τᶜ
             c.θ   = θ
@@ -166,7 +189,10 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
             qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
             s.πᶠ += 0.
             s.πᵒ += 0.
-            s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ) + (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ) + (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ) + (c.θ < 0.) * abs(c.θ)
+            s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ)
+            s.πᵖ += (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
+            s.πᵖ += (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ)
+            s.πᵖ += (c.θ < 0.) * abs(c.θ)
             if isequal(c, cᵉ) break end
             tᵈ = c.tᵈ
             q -= c.qᶜ
@@ -181,6 +207,32 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     end
     s.πᶠ += 0.
     s.πᵒ += (r.tᵉ - r.tˢ) * v.πᵗ
-    s.πᵖ += (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ)
+    s.πᵖ += (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ)
+    s.πᵖ += (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ)
+    s.πᵖ += ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ)
     return s
 end
+#=
+tᶠ = 0.
+θʳ = 1.
+
+tᶠ    = 0. 
+θʳ   -= s.A[(c.iᵗ, c.iⁿ)].l/v.lᵛ
+if θʳ ≤ v.θˡ 
+    f  = c.Iᶠ[v.jᵛ]
+    aᵒ = s.A[(c.iⁿ, c.iʰ)]
+    aᵗ = s.A[(c.iⁿ, f.iⁿ)]
+    aʰ = s.A[(f.iⁿ, c.iʰ)]
+    r.l += aᵗ.l + aʰ.l - aᵒ.l
+    v.l += aᵗ.l + aʰ.l - aᵒ.l
+    d.l += aᵗ.l + aʰ.l - aᵒ.l
+    l   += aᵗ.l
+    tᶠ  += s.A[(c.iⁿ, f.iⁿ)].l/v.sᵛ
+    θʳ  -= s.A[(c.iⁿ, f.iⁿ)].l/v.lᵛ
+    tᶠ  += (v.θᵘ - l/v.lᵛ) * f.τᵛ
+    θʳ   = v.θᵘ
+    tᶠ  += s.A[(f.iⁿ, c.iʰ)].l/v.sᵛ
+    θʳ  -= s.A[(f.iⁿ, c.iʰ)].l/v.lᵛ
+    l   += aʰ.l
+end
+=#
