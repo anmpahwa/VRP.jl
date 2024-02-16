@@ -106,11 +106,11 @@ mutable struct FuelStationNode <: Node
     q::Float64                                                                      # Amount re-fueled
 end
 """
-    CustomerNode(iⁿ::Int, jⁿ::Int, x::Float64, y::Float64, qᶜ::Float64, τᶜ::Float64, tᵉ::Float64, tˡ::Float64, F::Vector{FuelStationNode}, iᵗ::Int, iʰ::Int, tᵃ::Float64, tᵈ::Float64, θ::Float64, q::Float64, r::Route)
+    CustomerNode(iⁿ::Int, jⁿ::Int, x::Float64, y::Float64, qᶜ::Float64, τᶜ::Float64, tᵉ::Float64, tˡ::Float64, Fᶜ::Vector{FuelStationNode}, iᵗ::Int, iʰ::Int, tᵃ::Float64, tᵈ::Float64, θ::Float64, q::Float64, r::Route)
 
 A `CustomerNode` is a source/sink point on the graph at `(x,y)` with index `iⁿ`, 
 associated delivery or pickup node index `jⁿ`, demand `qᶜ`, service time `τᶜ`, 
-earliest service time `tᵉ` and latest service time `tˡ`, set `F` with the nearest 
+earliest service time `tᵉ` and latest service time `tˡ`, set `Fᶜ` with the nearest 
 fuel station for every vehicle type, tail node index `iᵗ` and head node index `iʰ`,
 serviced on route `r` with vehicle arrival time `tᵃ` and departure time `tᵈ`, and
 vehicle tank status `θ` and load `q` on-arrival.
@@ -124,7 +124,7 @@ mutable struct CustomerNode <: Node
     τᶜ::Float64                                                                     # Service time
     tᵉ::Float64                                                                     # Earliest service time
     tˡ::Float64                                                                     # Latest service time
-    F::Vector{FuelStationNode}                                                      # Nearest fuel station nodes
+    Fᶜ::Vector{FuelStationNode}                                                     # Nearest fuel station nodes
     iᵗ::Int                                                                         # Tail (predecessor) node index
     iʰ::Int                                                                         # Head (successor) node index
     tᵃ::Float64                                                                     # Vehicle arrival time
@@ -137,18 +137,18 @@ end
 
 
 """
-    Solution(D::Vector{DepotNode}, C::OffsetVector{CustomerNode, Vector{CustomerNode}}, F::OffsetVector{FuelStationNode, Vector{FuelStationNode}}, A::Dict{Tuple{Int,Int}, Arc}, πᶠ::Float64, πᵒ::Float64, πᵖ::Float64)
+    Solution(D::Vector{DepotNode}, F::OffsetVector{FuelStationNode, Vector{FuelStationNode}}, C::OffsetVector{CustomerNode, Vector{CustomerNode}}, A::Dict{Tuple{Int,Int}, Arc}, πᶠ::Float64, πᵒ::Float64, πᵖ::Float64)
 
-A `Solution` is a graph with depot nodes `D`, customer nodes `C`, fuel station nodes
-`F`, arcs `A`, fixed cost `πᶠ`, operational cost `πᵒ`, and penalty `πᵖ`.
+A `Solution` is a graph with depot nodes `D`, fuel station nodes `F`, customer nodes 
+`C`, arcs `A`, fixed cost `πᶠ`, operational cost `πᵒ`, and penalty `πᵖ`.
 """
 mutable struct Solution
     D::Vector{DepotNode}                                                            # Vector of depot nodes
-    C::OffsetVector{CustomerNode, Vector{CustomerNode}}                             # Vector of customer nodes
     F::OffsetVector{FuelStationNode, Vector{FuelStationNode}}                       # Vector of fuel station nodes
+    C::OffsetVector{CustomerNode, Vector{CustomerNode}}                             # Vector of customer nodes
     A::Dict{Tuple{Int,Int}, Arc}                                                    # Set of arcs
     πᶠ::Float64                                                                     # Fixed cost
     πᵒ::Float64                                                                     # Opertaional cost
     πᵖ::Float64                                                                     # Penalty
-    Solution(D, C, F, A) = new(D, C, F, A, 0., 0., 0.)
+    Solution(D, F, C, A) = new(D, F, C, A, 0., 0., 0.)
 end

@@ -60,30 +60,6 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         v  = Vehicle(iᵛ, jᵛ, iᵈ, qᵛ, lᵛ, sᵛ, θˡ, θᵘ, τᶜ, τʷ, πᵈ, πᵗ, πᶠ, r)
         push!(d.V, v)
     end
-    # Customer Nodes
-    df = DataFrame(CSV.File(joinpath(dir, "$instance/customer_nodes.csv")))
-    I  = (df[1,1]:df[nrow(df),1])::UnitRange{Int64}
-    C  = OffsetVector{CustomerNode}(undef, I)
-    for k ∈ 1:nrow(df)
-        iⁿ = df[k,1]
-        jⁿ = df[k,2]
-        x  = df[k,3]
-        y  = df[k,4]
-        qᶜ = df[k,5]
-        τᶜ = df[k,6]
-        tᵉ = df[k,7]
-        tˡ = df[k,8]
-        F  = FuelStationNode[]
-        iᵗ = 0
-        iʰ = 0
-        tᵃ = qᶜ > 0. ? tˡ : tᵉ
-        tᵈ = tᵃ + τᶜ
-        θ  = 1.
-        q  = 0.
-        r  = NullRoute
-        c  = CustomerNode(iⁿ, jⁿ, x, y, qᶜ, τᶜ, tᵉ, tˡ, F, iᵗ, iʰ, tᵃ, tᵈ, θ, q, r)
-        C[iⁿ] = c
-    end
     # Fuel Station Nodes
     df = DataFrame(CSV.File(joinpath(dir, "$instance/fuelstation_nodes.csv")))
     I  = (df[1,1]:df[nrow(df),1])::UnitRange{Int64}
@@ -100,10 +76,34 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         f  = FuelStationNode(iⁿ, jⁿ, x, y, τᵛ, πᵒ, πᶠ, q)
         F[iⁿ] = f
     end
+    # Customer Nodes
+    df = DataFrame(CSV.File(joinpath(dir, "$instance/customer_nodes.csv")))
+    I  = (df[1,1]:df[nrow(df),1])::UnitRange{Int64}
+    C  = OffsetVector{CustomerNode}(undef, I)
+    for k ∈ 1:nrow(df)
+        iⁿ = df[k,1]
+        jⁿ = df[k,2]
+        x  = df[k,3]
+        y  = df[k,4]
+        qᶜ = df[k,5]
+        τᶜ = df[k,6]
+        tᵉ = df[k,7]
+        tˡ = df[k,8]
+        Fᶜ = FuelStationNode[]
+        iᵗ = 0
+        iʰ = 0
+        tᵃ = qᶜ > 0. ? tˡ : tᵉ
+        tᵈ = tᵃ + τᶜ
+        θ  = 1.
+        q  = 0.
+        r  = NullRoute
+        c  = CustomerNode(iⁿ, jⁿ, x, y, qᶜ, τᶜ, tᵉ, tˡ, Fᶜ, iᵗ, iʰ, tᵃ, tᵈ, θ, q, r)
+        C[iⁿ] = c
+    end
     # Arcs
     df = DataFrame(CSV.File(joinpath(dir, "$instance/arcs.csv"), header=false))
     A  = Dict{Tuple{Int,Int},Arc}()
-    n  = lastindex(F)
+    n  = lastindex(C)
     for iᵗ ∈ 1:n
         for iʰ ∈ 1:n
             l = df[iᵗ,iʰ] 
@@ -124,9 +124,9 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
             Lᶠ[jᵛ] = l′ < l ? l′ : Lᶠ[jᵛ]
             Iᶠ[jᵛ] = l′ < l ? iʰ : Iᶠ[jᵛ]
         end
-        c.F = [F[iⁿ] for iⁿ ∈ Iᶠ]
+        c.Fᶜ = [F[iⁿ] for iⁿ ∈ Iᶠ]
     end
-    G = (D, C, F, A)
+    G = (D, F, C, A)
     return G
 end
 
