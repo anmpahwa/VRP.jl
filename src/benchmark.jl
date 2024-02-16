@@ -6,7 +6,7 @@ using DataFrames
 
 let
     # Set A
-    A = ["lc101", "lc103", "lc109", "lr101", "lr104", "lr105", "lrc101", "lrc106", "lrc108"]
+    A = ["lc101", "lc103", "lc104", "lr101", "lr104", "lr105", "lrc101", "lrc106", "lrc108"]
     # Set B
     B = ["lc201", "lc204", "lc207", "lr201", "lr202", "lr208", "lrc201", "lrc203", "lrc205"]
     # Define instances
