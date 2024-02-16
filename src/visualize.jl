@@ -5,15 +5,15 @@ Plots `instance`. Uses given `backend` to plot (defaults to `gr`).
 """
 function visualize(instance; backend=gr)
     backend()
-    D, C, _ = build(instance)
+    D, C, F, _ = build(instance)
     fig= plot(legend=:none)
-    K  = lastindex(C)
+    K  = lastindex(F)
     X  = zeros(Float64, K)
     Y  = zeros(Float64, K)
     M₁ = fill("color", K)
     M₂ = zeros(Int, K)
     M₃ = fill(:shape, K)
-    # Depot nodes
+    # Depot Nodes
     for (k,d) ∈ pairs(D)
         X[k]  = d.x
         Y[k]  = d.y
@@ -21,13 +21,21 @@ function visualize(instance; backend=gr)
         M₂[k] = 6
         M₃[k] = :rect
     end
-    # Customer nodes
+    # Customer Nodes
     for (k,c) ∈ pairs(C)
         X[k]  = c.x
         Y[k]  = c.y
         M₁[k] = isdelivery(c) ? "#d1e0ec" : "#ecddd1"
         M₂[k] = 5
         M₃[k] = :circle
+    end
+    # Fuel Station Nodes
+    for (k,f) ∈ pairs(F)
+        X[k]  = f.x
+        Y[k]  = f.y
+        M₁[k] = "#bfbfbf"
+        M₂[k] = 6
+        M₃[k] = :star4
     end
     scatter!(X, Y, color=M₁, markersize=M₂, markershape=M₃, markerstrokewidth=0)
     return fig
@@ -42,6 +50,7 @@ function visualize(s::Solution; backend=gr)
     backend()
     D = s.D
     C = s.C
+    F = s.F
     fig = plot(legend=:none)
     # Operational nodes: open depot nodes and closed customer nodes
     Z = vectorize(s)
@@ -62,10 +71,16 @@ function visualize(s::Solution; backend=gr)
                     M₁[k] = "#82b446"
                     M₂[k] = 6
                     M₃[k] = :rect
-                else 
+                end
+                if iscustomer(n)
                     M₁[k] = isdelivery(n) ? "#4682b4" : "#b47846"
                     M₂[k] = 5
                     M₃[k] = :circle
+                end
+                if isfuelstation(n)
+                    M₁[k] = "#12212d"
+                    M₂[k] = 6
+                    M₃[k] = :star4
                 end
             end
             scatter!(X, Y, color=M₁, markersize=M₂, markershape=M₃, markerstrokewidth=0)
@@ -76,6 +91,7 @@ function visualize(s::Solution; backend=gr)
     Z  = Int[] 
     for d ∈ D if !isopt(d) push!(Z, d.iⁿ) end end
     for c ∈ C if isopen(c) push!(Z, c.iⁿ) end end
+    for f ∈ F if !isopt(f) push!(Z, f.iⁿ) end end
     K  = eachindex(Z)
     X  = zeros(Float64, K)
     Y  = zeros(Float64, K)
@@ -84,17 +100,23 @@ function visualize(s::Solution; backend=gr)
     M₃ = fill(:shape, K)
     for k ∈ K
         i = Z[k]
-        n = i ≤ length(D) ? D[i] : C[i]
+        n = i ≤ lastindex(D) ? D[i] : (i ≤ lastindex(C) ? C[i] : F[i])
         X[k] = n.x
         Y[k] = n.y
         if isdepot(n) 
             M₁[k] = "#b4464b"
             M₂[k] = 6
             M₃[k] = :rect
-        else 
+        end
+        if iscustomer(n)
             M₁[k] = isdelivery(n) ? "#d1e0ec" : "#ecddd1"
             M₂[k] = 5
             M₃[k] = :circle
+        end
+        if isfuelstation(n)
+            M₁[k] = "#bfbfbf"
+            M₂[k] = 6
+            M₃[k] = :star4
         end
     end
     scatter!(X, Y, color=M₁, markersize=M₂, markershape=M₃, markerstrokewidth=0)
