@@ -65,8 +65,8 @@ function intramove!(rng::AbstractRNG, k̅::Int, s::Solution)
         # Step 2.4: Move the node to its best position (this could be its original position as well)
         iᵗ = p[1]
         iʰ = p[2]
-        nᵗ = iᵗ ≤ length(D) ? D[iᵗ] : C[iᵗ]
-        nʰ = iʰ ≤ length(D) ? D[iʰ] : C[iʰ]
+        nᵗ = iᵗ ≤ lastindex(D) ? D[iᵗ] : C[iᵗ]
+        nʰ = iʰ ≤ lastindex(D) ? D[iʰ] : C[iʰ]
         insertnode!(c, nᵗ, nʰ, r, s)
     end
     # Step 3: Return solution
