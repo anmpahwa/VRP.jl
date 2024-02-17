@@ -234,8 +234,10 @@ function vectorize(s::Solution)
             c  = cˢ
             while true
                 push!(Z[iⁿ][iᵛ], c.iⁿ)
-                f = c.F[v.jᵛ]
-                if c.θ < v.θˡ push!(Z[iⁿ][iᵛ], f.iⁿ) end
+                f  = c.F[v.jᵛ]
+                a  = s.A[(c.iⁿ, f.iⁿ)]
+                ωˡ = (a.l/v.lᵛ) * v.ωᵛ
+                if ωˡ > c.ω push!(Z[iⁿ][iᵛ], f.iⁿ) end
                 if isequal(c, cᵉ) break end
                 c = s.C[c.iʰ]
             end
@@ -281,7 +283,7 @@ function isfeasible(s::Solution)
                 if !isequal(cᵖ.r, cᵈ.r) return false end                    # Service constraint (order of service)
                 if cᵖ.tᵃ > cᵈ.tᵃ return false end                           # Service constraint (order of service)
                 if qᵒ > v.qᵛ return false end                               # Vehicle capacity constraint
-                if (ωˡ > c.ω) return false end                              # Vehicle range constraint
+                if ωˡ > c.ω return false end                                # Vehicle range constraint
                 if isequal(c, cᵉ) break end
                 c  = s.C[c.iʰ]
             end
