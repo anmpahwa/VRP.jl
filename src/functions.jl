@@ -241,6 +241,10 @@ function vectorize(s::Solution)
                 if isequal(c, cᵉ) break end
                 c = s.C[c.iʰ]
             end
+            f  = d.F[v.jᵛ]
+            a  = s.A[(d.iⁿ, f.iⁿ)]
+            ωˡ = (a.l/v.lᵛ) * v.ωᵛ
+            if ωˡ > r.ω push!(Z[iⁿ][iᵛ], f.iⁿ) end
             push!(Z[iⁿ][iᵛ], d.iⁿ)
         end
     end
@@ -290,7 +294,7 @@ function isfeasible(s::Solution)
             f  = d.F[v.jᵛ]
             a  = s.A[(d.iⁿ, f.iⁿ)]
             ωˡ = (a.l/v.lᵛ) * v.ωᵛ
-            if (ωˡ > r.ω) return false end                                  # Vehicle range constraint
+            if ωˡ > r.ω return false end                                    # Vehicle range constraint
             if d.tˢ > r.tˢ return false end                                 # Working-hours constraint (start time)
             if r.tᵉ > d.tᵉ return false end                                 # Working-hours constraint (end time)
             if r.tᵉ - r.tˢ > v.τʷ return false end                          # Working-hours constraint (duration)
