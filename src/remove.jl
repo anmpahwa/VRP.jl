@@ -578,7 +578,7 @@ function randomdepot!(rng::AbstractRNG, q::Int, s::Solution)
     # Step 2: Iteratively select a random depot and remove customer nodes from it until at least q customer nodes are removed
     n = 0
     while n < q
-        iᵈ = sample(rng, eachindex(D), Weights(W))
+        iᵈ = sample(rng, eachindex(D), OffsetWeights(W))
         d  = D[iᵈ]
         for v ∈ d.V
             if n ≥ q break end
@@ -632,7 +632,7 @@ function relateddepot!(rng::AbstractRNG, q::Int, s::Solution)
     X = fill(-Inf, eachindex(D))    # X[iᵛ]: relatedness of depot node D[iⁿ] with pivot depot node D[i]
     W = isclose.(D)                 # W[iᵈ]: selection weight for depot node D[iᵈ]
     # Step 2: Select a random closed depot node
-    i = sample(rng, eachindex(D), Weights(W))
+    i = sample(rng, eachindex(D), OffsetWeights(W))
     # Step 3: Evaluate relatedness of this depot node to every depot node
     m = sample(rng, [:l, :t])
     for iᵈ ∈ eachindex(D) X[iᵈ] = iszero(W[iᵈ]) ? relatedness(m, D[iᵈ], D[i], s) : -Inf end
