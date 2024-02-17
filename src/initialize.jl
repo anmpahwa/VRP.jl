@@ -15,9 +15,25 @@ as follows,
         |-vehicles.csv
 """
 function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
+    # Fuel Station Nodes
+    df = DataFrame(CSV.File(joinpath(dir, "$instance/fuelstation_nodes.csv")))
+    F  = Vector{FuelStationNode}(undef, nrow(df))
+    for k ∈ 1:nrow(df)
+        iⁿ = df[k,1]
+        jⁿ = df[k,2]
+        x  = df[k,3]
+        y  = df[k,4]
+        τᵛ = df[k,5]
+        πᵒ = df[k,6]
+        πᶠ = df[k,7]
+        q  = 0.
+        f  = FuelStationNode(iⁿ, jⁿ, x, y, τᵛ, πᵒ, πᶠ, q)
+        F[iⁿ] = f
+    end
     # Depot Nodes
     df = DataFrame(CSV.File(joinpath(dir, "$instance/depot_nodes.csv")))
-    D  = Vector{DepotNode}(undef, nrow(df))
+    I  = (df[1,1]:df[nrow(df),1])::UnitRange{Int64}
+    D  = OffsetVector{DepotNode}(undef, I)
     for k ∈ 1:nrow(df)
         iⁿ = df[k,1]
         x  = df[k,2]
@@ -26,9 +42,10 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         tᵉ = df[k,5]
         πᵒ = df[k,6]
         πᶠ = df[k,7]
+        Fᵈ = FuelStationNode[]
         V  = Vehicle[]
         n  = 0
-        d  = DepotNode(iⁿ, x, y, tˢ, tᵉ, πᵒ, πᶠ, V, n)
+        d  = DepotNode(iⁿ, x, y, tˢ, tᵉ, πᵒ, πᶠ, Fᵈ, V, n)
         D[iⁿ] = d
     end
     # Vehicles
@@ -41,13 +58,12 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         qᵛ = df[k,4]
         lᵛ = df[k,5]
         sᵛ = df[k,6]
-        θˡ = df[k,7]
-        θᵘ = df[k,8]
-        τᶜ = df[k,9]
-        τʷ = df[k,10]
-        πᵈ = df[k,11]
-        πᵗ = df[k,12]
-        πᶠ = df[k,13]
+        ωᵛ = df[k,7]
+        τᶜ = df[k,8]
+        τʷ = df[k,9]
+        πᵈ = df[k,10]
+        πᵗ = df[k,11]
+        πᶠ = df[k,12]
         x  = 0.
         y  = 0. 
         iˢ = iᵈ
@@ -57,24 +73,8 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         n  = 0 
         l  = 0.
         r  = Route(iᵛ, iᵈ, x, y, iˢ, iᵉ, tˢ, tᵉ, n, l)
-        v  = Vehicle(iᵛ, jᵛ, iᵈ, qᵛ, lᵛ, sᵛ, θˡ, θᵘ, τᶜ, τʷ, πᵈ, πᵗ, πᶠ, r)
+        v  = Vehicle(iᵛ, jᵛ, iᵈ, qᵛ, lᵛ, sᵛ, ωᵛ, τᶜ, τʷ, πᵈ, πᵗ, πᶠ, r)
         push!(d.V, v)
-    end
-    # Fuel Station Nodes
-    df = DataFrame(CSV.File(joinpath(dir, "$instance/fuelstation_nodes.csv")))
-    I  = (df[1,1]:df[nrow(df),1])::UnitRange{Int64}
-    F  = OffsetVector{FuelStationNode}(undef, I)
-    for k ∈ 1:nrow(df)
-        iⁿ = df[k,1]
-        jⁿ = df[k,2]
-        x  = df[k,3]
-        y  = df[k,4]
-        τᵛ = df[k,5]
-        πᵒ = df[k,6]
-        πᶠ = df[k,7]
-        q  = 0.
-        f  = FuelStationNode(iⁿ, jⁿ, x, y, τᵛ, πᵒ, πᶠ, q)
-        F[iⁿ] = f
     end
     # Customer Nodes
     df = DataFrame(CSV.File(joinpath(dir, "$instance/customer_nodes.csv")))
@@ -113,6 +113,19 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
     end
     V  = [v for d ∈ D for v ∈ d.V]
     Jᵛ = eachindex(unique(getproperty.(V, :jᵛ)))
+    for (iᵗ,d) ∈ pairs(D)
+        Iᶠ = zeros(Int, Jᵛ)
+        Lᶠ = fill(Inf, Jᵛ)
+        for (iʰ,f) ∈ pairs(F)
+            jᵛ = f.jⁿ
+            a  = A[(iᵗ,iʰ)]
+            l  = Lᶠ[jᵛ]
+            l′ = a.l
+            Lᶠ[jᵛ] = l′ < l ? l′ : Lᶠ[jᵛ]
+            Iᶠ[jᵛ] = l′ < l ? iʰ : Iᶠ[jᵛ]
+        end
+        d.F = [F[iⁿ] for iⁿ ∈ Iᶠ]
+    end
     for (iᵗ,c) ∈ pairs(C)
         Iᶠ = zeros(Int, Jᵛ)
         Lᶠ = fill(Inf, Jᵛ)
@@ -124,9 +137,9 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
             Lᶠ[jᵛ] = l′ < l ? l′ : Lᶠ[jᵛ]
             Iᶠ[jᵛ] = l′ < l ? iʰ : Iᶠ[jᵛ]
         end
-        c.Fᶜ = [F[iⁿ] for iⁿ ∈ Iᶠ]
+        c.F = [F[iⁿ] for iⁿ ∈ Iᶠ]
     end
-    G = (D, F, C, A)
+    G = (F, D, C, A)
     return G
 end
 
