@@ -84,7 +84,7 @@ isopt(d::DepotNode) = !iszero(d.n)
 Returns `true` if fuel station node `f` is operational.
 A `FuelStationNode` is defined operational if it refuels at least one vehicle.
 """
-isopt(f::FuelStationNode) = !iszero(f.q)
+isopt(f::FuelStationNode) = !iszero(f.ω)
 
 
 
@@ -234,6 +234,8 @@ function vectorize(s::Solution)
             c  = cˢ
             while true
                 push!(Z[iⁿ][iᵛ], c.iⁿ)
+                f = c.F[v.jᵛ]
+                if c.θ < v.θˡ push!(Z[iⁿ][iᵛ], f.iⁿ) end
                 if isequal(c, cᵉ) break end
                 c = s.C[c.iʰ]
             end
@@ -273,12 +275,14 @@ function isfeasible(s::Solution)
                 cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
                 cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
                 qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
+                f  = c.F[v.jᵛ]
+                θˡ = s.A[(c.iⁿ, f.iⁿ)].l/v.lᵛ
                 if !isequal(cᵖ.r, cᵈ.r) return false end                    # Service constraint (order of service)
                 if cᵖ.tᵃ > cᵈ.tᵃ return false end                           # Service constraint (order of service)
-                if c.θ < 0. return false end                                # Vehicle range constraint
+                if (θˡ > c.θ) return false end                              # Vehicle range constraint
                 if qᵒ > v.qᵛ return false end                               # Vehicle capacity constraint
                 if isequal(c, cᵉ) break end
-                c = s.C[c.iʰ]
+                c  = s.C[c.iʰ]
             end
             if d.tˢ > r.tˢ return false end                                 # Working-hours constraint (start time)
             if r.tᵉ > d.tᵉ return false end                                 # Working-hours constraint (end time)
