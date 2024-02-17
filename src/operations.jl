@@ -272,10 +272,10 @@ function refuel(nᵗ::Node, nʰ::Node, r::Route, s::Solution)
     if isdepot(nᵗ)
         if ωˡ ≥ r.ω
             s.πᶠ -= isopt(fᵗ) ? fᵗ.πᶠ : 0.
-            s.πᵒ -= fᵗ.ω * f.πᵒ
+            s.πᵒ -= fᵗ.ω * fᵗ.πᵒ
             s.πᵖ -= 0.
             r.l  += aᵗ.l + aʰ.l - aᵒ.l
-            fᵗ.ω += (v.ωᵛ + (ωˡ - r.w))
+            fᵗ.ω += (v.ωᵛ + (ωˡ - r.ω))
             s.πᶠ += isopt(fᵗ) ? fᵗ.πᶠ : 0.
             s.πᵒ += fᵗ.ω * fᵗ.πᵒ
             s.πᵖ += 0.
@@ -286,10 +286,10 @@ function refuel(nᵗ::Node, nʰ::Node, r::Route, s::Solution)
         c = nᵗ
         if ωˡ ≥ c.ω
             s.πᶠ -= isopt(fᵗ) ? fᵗ.πᶠ : 0.
-            s.πᵒ -= fᵗ.ω * f.πᵒ
+            s.πᵒ -= fᵗ.ω * fᵗ.πᵒ
             s.πᵖ -= 0.
             r.l  += aᵗ.l + aʰ.l - aᵒ.l
-            fᵗ.ω += (v.ωᵛ + (ωˡ - c.w))
+            fᵗ.ω += (v.ωᵛ + (ωˡ - c.ω))
             s.πᶠ += isopt(fᵗ) ? fᵗ.πᶠ : 0.
             s.πᵒ += fᵗ.ω * fᵗ.πᵒ
             s.πᵖ += 0.
