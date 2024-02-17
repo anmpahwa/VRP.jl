@@ -91,7 +91,7 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
             # update iterative parameters
             if isequal(c, cᵉ) break end
             nᵗ = c
-            nʰ = c.iʰ ≤ lastindex(D) ? s.D[c.iʰ] : s.C[c.iʰ]
+            nʰ = c.iʰ ≤ lastindex(s.D) ? s.D[c.iʰ] : s.C[c.iʰ]
             fᵗ = nᵗ.F[v.jᵛ]
             fʰ = nʰ.F[v.jᵛ]
             t  = c.tᵈ
@@ -106,7 +106,7 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         ωˡ   = (a′.l/v.lᵛ) * v.ωᵛ
         φ    = refuel(nᵗ, nʰ, r, s)
         r.tˢ = d.tˢ
-        r.tᵉ = cᵉ.tᵈ + φ * (aᵗ.l/v.sᵛ + (v.ωᵛ + (ωˡ - c.ω)) * f.τᵛ + aʰ.l/v.sᵛ) + (1 - φ) * (aᵒ.l/v.sᵛ)
+        r.tᵉ = cᵉ.tᵈ + φ * (aᵗ.l/v.sᵛ + (v.ωᵛ + (ωˡ - c.ω)) * fᵗ.τᵛ + aʰ.l/v.sᵛ) + (1 - φ) * (aᵒ.l/v.sᵛ)
         r.ω  = φ * (v.ωᵛ - (aʰ.l/v.lᵛ) * v.ωᵛ) + (1 - φ) * (ω - (aᵒ.l/v.lᵛ) * v.ωᵛ)
     else
         r.tˢ = d.tˢ
@@ -117,7 +117,7 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     ωˡ    = (s.A[(d.iⁿ, f.iⁿ)].l/v.lᵛ) * v.ωᵛ
     s.πᶠ += 0.
     s.πᵒ += (r.tᵉ - r.tˢ) * v.πᵗ
-    s.πᵖ += (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ) + (ωʰ > r.ω) * (ωʰ - r.ω)
+    s.πᵖ += (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ) + (ωˡ > r.ω) * (ωˡ - r.ω)
     return s
 end
 """
@@ -221,7 +221,7 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
             # update iterative parameters
             if isequal(c, cᵉ) break end
             nᵗ = c
-            nʰ = c.iʰ ≤ lastindex(D) ? s.D[c.iʰ] : s.C[c.iʰ]
+            nʰ = c.iʰ ≤ lastindex(s.D) ? s.D[c.iʰ] : s.C[c.iʰ]
             fᵗ = nᵗ.F[v.jᵛ]
             fʰ = nʰ.F[v.jᵛ]
             t  = c.tᵈ
@@ -236,7 +236,7 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         ωˡ   = (a′.l/v.lᵛ) * v.ωᵛ
         φ    = refuel(nᵗ, nʰ, r, s)
         r.tˢ = d.tˢ
-        r.tᵉ = cᵉ.tᵈ + φ * (aᵗ.l/v.sᵛ + (v.ωᵛ + (ωˡ - c.ω)) * f.τᵛ + aʰ.l/v.sᵛ) + (1 - φ) * (aᵒ.l/v.sᵛ)
+        r.tᵉ = cᵉ.tᵈ + φ * (aᵗ.l/v.sᵛ + (v.ωᵛ + (ωˡ - c.ω)) * fᵗ.τᵛ + aʰ.l/v.sᵛ) + (1 - φ) * (aᵒ.l/v.sᵛ)
         r.ω  = φ * (v.ωᵛ - (aʰ.l/v.lᵛ) * v.ωᵛ) + (1 - φ) * (ω - (aᵒ.l/v.lᵛ) * v.ωᵛ)
     else
         r.tˢ = d.tˢ
@@ -247,7 +247,7 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     ωˡ    = (s.A[(d.iⁿ, f.iⁿ)].l/v.lᵛ) * v.ωᵛ
     s.πᶠ += 0.
     s.πᵒ += (r.tᵉ - r.tˢ) * v.πᵗ
-    s.πᵖ += (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ) + (ωʰ > r.ω) * (ωʰ - r.ω)
+    s.πᵖ += (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ) + (ωˡ > r.ω) * (ωˡ - r.ω)
     return s
 end
 
@@ -268,18 +268,32 @@ function refuel(nᵗ::Node, nʰ::Node, r::Route, s::Solution)
     aᵗ = s.A[(nᵗ.iⁿ, fᵗ.iⁿ)]
     aʰ = s.A[(fᵗ.iⁿ, nʰ.iⁿ)]
     a′ = s.A[(nʰ.iⁿ, fʰ.iⁿ)]
-    ωᵗ = isdepot(nᵗ) ? r.ω : nᵗ.ω
-    ωʰ = (a′.l/v.lᵛ) * v.ωᵛ
-    if ω ≤ ωʰ
-        s.πᶠ -= isopt(fᵗ) ? fᵗ.πᶠ : 0.
-        s.πᵒ -= fᵗ.q * f.πᵒ
-        s.πᵖ -= 0.
-        r.l  += aᵗ.l + aʰ.l - aᵒ.l
-        fᵗ.q += (v.ωᵛ + (ωʰ - ωᵗ))
-        s.πᶠ += isopt(fᵗ) ? fᵗ.πᶠ : 0.
-        s.πᵒ += fᵗ.q * fᵗ.πᵒ
-        s.πᵖ += 0.
-        return true
+    ωˡ = (a′.l/v.lᵛ) * v.ωᵛ
+    if isdepot(nᵗ)
+        if ωˡ ≥ r.w
+            s.πᶠ -= isopt(fᵗ) ? fᵗ.πᶠ : 0.
+            s.πᵒ -= fᵗ.q * f.πᵒ
+            s.πᵖ -= 0.
+            r.l  += aᵗ.l + aʰ.l - aᵒ.l
+            fᵗ.q += (v.ωᵛ + (ωˡ - r.w))
+            s.πᶠ += isopt(fᵗ) ? fᵗ.πᶠ : 0.
+            s.πᵒ += fᵗ.q * fᵗ.πᵒ
+            s.πᵖ += 0.
+            return true
+        end
+    end
+    if iscustomer(nᵗ)
+        if ωˡ ≥ c.w
+            s.πᶠ -= isopt(fᵗ) ? fᵗ.πᶠ : 0.
+            s.πᵒ -= fᵗ.q * f.πᵒ
+            s.πᵖ -= 0.
+            r.l  += aᵗ.l + aʰ.l - aᵒ.l
+            fᵗ.q += (v.ωᵛ + (ωˡ - c.w))
+            s.πᶠ += isopt(fᵗ) ? fᵗ.πᶠ : 0.
+            s.πᵒ += fᵗ.q * fᵗ.πᵒ
+            s.πᵖ += 0.
+            return true
+        end
     end
     return false
 end

@@ -70,10 +70,11 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         iᵉ = iᵈ
         tˢ = d.tˢ
         tᵉ = d.tˢ
-        n  = 0 
+        n  = 0
+        ω  = ωᵛ
         l  = 0.
-        r  = Route(iᵛ, iᵈ, x, y, iˢ, iᵉ, tˢ, tᵉ, n, l)
-        v  = Vehicle(iᵛ, jᵛ, iᵈ, qᵛ, lᵛ, sᵛ, ωᵛ, τᶜ, τʷ, πᵈ, πᵗ, πᶠ, r)
+        r  = Route(iᵛ, iᵈ, x, y, iˢ, iᵉ, tˢ, tᵉ, n, ω, l)
+        v  = Vehicle(iᵛ, jᵛ, iᵈ, qᵛ, ωᵛ, lᵛ, sᵛ, τᶜ, τʷ, πᵈ, πᵗ, πᶠ, r)
         push!(d.V, v)
     end
     # Customer Nodes

@@ -210,7 +210,7 @@ end
 
 A `NullRoute` is a fictitious out-of-service route.
 """           
-const NullRoute = Route(0, 0, 0., 0., 0, 0, Inf, Inf, 0, Inf)
+const NullRoute = Route(0, 0, 0., 0., 0, 0, Inf, Inf, 0, Inf, Inf)
 
 
 
@@ -257,7 +257,7 @@ Base.hash(s::Solution) = hash(vectorize(s))
     isfeasible(s::Solution)
 
 Returns `true` if customer service and time-window constraints;
-vehicle range, capacity, and working-hours constraints;
+vehicle capacity, range, and working-hours constraints;
 are not violated.
 """
 function isfeasible(s::Solution)
@@ -268,7 +268,7 @@ function isfeasible(s::Solution)
             if !isopt(v) continue end
             r  = v.r
             cˢ = s.C[r.iˢ]
-            cᵉ = s.C[r.iᵉ] 
+            cᵉ = s.C[r.iᵉ]
             c  = cˢ
             while true
                 if c.tᵃ > c.tˡ return false end                             # Time-window constraint
@@ -276,14 +276,19 @@ function isfeasible(s::Solution)
                 cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
                 qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
                 f  = c.F[v.jᵛ]
-                θˡ = s.A[(c.iⁿ, f.iⁿ)].l/v.lᵛ
+                a  = s.A[(c.iⁿ, f.iⁿ)]
+                ωˡ = (a.l/v.lᵛ) * v.ωᵛ
                 if !isequal(cᵖ.r, cᵈ.r) return false end                    # Service constraint (order of service)
                 if cᵖ.tᵃ > cᵈ.tᵃ return false end                           # Service constraint (order of service)
-                if (θˡ > c.θ) return false end                              # Vehicle range constraint
                 if qᵒ > v.qᵛ return false end                               # Vehicle capacity constraint
+                if (ωˡ > c.ω) return false end                              # Vehicle range constraint
                 if isequal(c, cᵉ) break end
                 c  = s.C[c.iʰ]
             end
+            f  = d.F[v.jᵛ]
+            a  = s.A[(d.iⁿ, f.iⁿ)]
+            ωˡ = (a.l/v.lᵛ) * v.ωᵛ
+            if (ωˡ > r.ω) return false end                                  # Vehicle range constraint
             if d.tˢ > r.tˢ return false end                                 # Working-hours constraint (start time)
             if r.tᵉ > d.tᵉ return false end                                 # Working-hours constraint (end time)
             if r.tᵉ - r.tˢ > v.τʷ return false end                          # Working-hours constraint (duration)

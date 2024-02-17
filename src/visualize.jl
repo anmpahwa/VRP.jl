@@ -5,7 +5,7 @@ Plots `instance`. Uses given `backend` to plot (defaults to `gr`).
 """
 function visualize(instance; backend=gr)
     backend()
-    D, F, C, _ = build(instance)
+    F, D, C, _ = build(instance)
     fig= plot(legend=:none)
     K  = lastindex(C)
     X  = zeros(Float64, K)
@@ -13,14 +13,6 @@ function visualize(instance; backend=gr)
     M₁ = fill("color", K)
     M₂ = zeros(Int, K)
     M₃ = fill(:shape, K)
-    # Depot Nodes
-    for (k,d) ∈ pairs(D)
-        X[k]  = d.x
-        Y[k]  = d.y
-        M₁[k] = "#b4464b"
-        M₂[k] = 6
-        M₃[k] = :rect
-    end
     # Fuel Station Nodes
     for (k,f) ∈ pairs(F)
         X[k]  = f.x
@@ -28,6 +20,14 @@ function visualize(instance; backend=gr)
         M₁[k] = "#bfbfbf"
         M₂[k] = 6
         M₃[k] = :star4
+    end
+    # Depot Nodes
+    for (k,d) ∈ pairs(D)
+        X[k]  = d.x
+        Y[k]  = d.y
+        M₁[k] = "#b4464b"
+        M₂[k] = 6
+        M₃[k] = :rect
     end
     # Customer Nodes
     for (k,c) ∈ pairs(C)
@@ -48,8 +48,8 @@ Uses given `backend` to plot (defaults to `gr`).
 """
 function visualize(s::Solution; backend=gr)
     backend()
-    D = s.D
     F = s.F
+    D = s.D
     C = s.C
     fig = plot(legend=:none)
     # Operational nodes: open depot nodes and closed customer nodes
@@ -64,18 +64,18 @@ function visualize(s::Solution; backend=gr)
             M₃ = fill(:shape, K)
             for k ∈ K
                 i = Zᵛ[k]
-                n = i ≤ lastindex(D) ? D[i] : C[i]
+                n = i ≤ lastindex(F) ? F[i] : (i ≤ lastindex(D) ? D[i] : C[i])
                 X[k] = n.x
                 Y[k] = n.y
-                if isdepot(n) 
-                    M₁[k] = "#82b446"
-                    M₂[k] = 6
-                    M₃[k] = :rect
-                end
                 if isfuelstation(n)
                     M₁[k] = "#12212d"
                     M₂[k] = 6
                     M₃[k] = :star4
+                end
+                if isdepot(n) 
+                    M₁[k] = "#82b446"
+                    M₂[k] = 6
+                    M₃[k] = :rect
                 end
                 if iscustomer(n)
                     M₁[k] = isdelivery(n) ? "#4682b4" : "#b47846"
@@ -89,8 +89,8 @@ function visualize(s::Solution; backend=gr)
     end
     # Non-operational nodes: closed depot nodes and open customer nodes
     Z  = Int[] 
-    for d ∈ D if !isopt(d) push!(Z, d.iⁿ) end end
     for f ∈ F if !isopt(f) push!(Z, f.iⁿ) end end
+    for d ∈ D if !isopt(d) push!(Z, d.iⁿ) end end
     for c ∈ C if isopen(c) push!(Z, c.iⁿ) end end
     K  = eachindex(Z)
     X  = zeros(Float64, K)
@@ -100,18 +100,18 @@ function visualize(s::Solution; backend=gr)
     M₃ = fill(:shape, K)
     for k ∈ K
         i = Z[k]
-        n = i ≤ lastindex(D) ? D[i] : (i ≤ lastindex(F) ? F[i] : C[i])
+        n = i ≤ lastindex(F) ? F[i] : (i ≤ lastindex(D) ? D[i] : C[i])
         X[k] = n.x
         Y[k] = n.y
-        if isdepot(n) 
-            M₁[k] = "#b4464b"
-            M₂[k] = 6
-            M₃[k] = :rect
-        end
         if isfuelstation(n)
             M₁[k] = "#bfbfbf"
             M₂[k] = 6
             M₃[k] = :star4
+        end
+        if isdepot(n) 
+            M₁[k] = "#b4464b"
+            M₂[k] = 6
+            M₃[k] = :rect
         end
         if iscustomer(n)
             M₁[k] = isdelivery(n) ? "#d1e0ec" : "#ecddd1"
