@@ -275,9 +275,9 @@ function refuel(nᵗ::Node, nʰ::Node, r::Route, s::Solution)
             s.πᵒ -= fᵗ.q * f.πᵒ
             s.πᵖ -= 0.
             r.l  += aᵗ.l + aʰ.l - aᵒ.l
-            fᵗ.q += (v.ωᵛ + (ωˡ - r.w))
+            fᵗ.ω += (v.ωᵛ + (ωˡ - r.w))
             s.πᶠ += isopt(fᵗ) ? fᵗ.πᶠ : 0.
-            s.πᵒ += fᵗ.q * fᵗ.πᵒ
+            s.πᵒ += fᵗ.ω * fᵗ.πᵒ
             s.πᵖ += 0.
             return true
         end
@@ -289,9 +289,9 @@ function refuel(nᵗ::Node, nʰ::Node, r::Route, s::Solution)
             s.πᵒ -= fᵗ.q * f.πᵒ
             s.πᵖ -= 0.
             r.l  += aᵗ.l + aʰ.l - aᵒ.l
-            fᵗ.q += (v.ωᵛ + (ωˡ - c.w))
+            fᵗ.ω += (v.ωᵛ + (ωˡ - c.w))
             s.πᶠ += isopt(fᵗ) ? fᵗ.πᶠ : 0.
-            s.πᵒ += fᵗ.q * fᵗ.πᵒ
+            s.πᵒ += fᵗ.ω * fᵗ.πᵒ
             s.πᵖ += 0.
             return true
         end
