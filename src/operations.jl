@@ -270,7 +270,7 @@ function refuel(nᵗ::Node, nʰ::Node, r::Route, s::Solution)
     a′ = s.A[(nʰ.iⁿ, fʰ.iⁿ)]
     ωˡ = (a′.l/v.lᵛ) * v.ωᵛ
     if isdepot(nᵗ)
-        if ωˡ ≥ r.w
+        if ωˡ ≥ r.ω
             s.πᶠ -= isopt(fᵗ) ? fᵗ.πᶠ : 0.
             s.πᵒ -= fᵗ.q * f.πᵒ
             s.πᵖ -= 0.
@@ -283,7 +283,8 @@ function refuel(nᵗ::Node, nʰ::Node, r::Route, s::Solution)
         end
     end
     if iscustomer(nᵗ)
-        if ωˡ ≥ c.w
+        c = nᵗ
+        if ωˡ ≥ c.ω
             s.πᶠ -= isopt(fᵗ) ? fᵗ.πᶠ : 0.
             s.πᵒ -= fᵗ.q * f.πᵒ
             s.πᵖ -= 0.
