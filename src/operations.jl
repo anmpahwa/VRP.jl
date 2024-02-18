@@ -60,16 +60,16 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         c  = nʰ
         while true
             # fetch network features
-            cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ]   
-            cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
             aᶠ = s.A[(nʰ.iⁿ, fʰ.iⁿ)]
             aʰ = s.A[(nʰ.iⁿ, nʰ.iʰ)]
-            θˡ = max(aᶠ.l, aʰ.l)/v.lᵛ
+            θˡ = aᶠ.l/v.lᵛ
             aᵒ = s.A[(nᵗ.iⁿ, nʰ.iⁿ)]
             aᵗ = s.A[(nᵗ.iⁿ, fᵗ.iⁿ)]
             aʰ = s.A[(fᵗ.iⁿ, nʰ.iⁿ)]
             θᵒ = θ - aᵒ.l/v.lᵛ
             qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
+            cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ]   
+            cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
             # update costs
             s.πᶠ -= isopt(fᵗ) ? fᵗ.πᶠ : 0.
             s.πᵒ -= isdepot(nᵗ) ? r.ω * fᵗ.πᵒ : nᵗ.ω * fᵗ.πᵒ
@@ -153,7 +153,10 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         s.πᵒ += nᵗ.ω * fᵗ.πᵒ + (r.tᵉ - r.tˢ) * v.πᵗ
         s.πᵖ += (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ) + (θˡ > r.θ) * (θˡ - r.θ)
     else
-        f = d.F[v.jᵛ]
+        # fetch network features
+        f  = d.F[v.jᵛ]
+        aᶠ = s.A[(d.iⁿ, f.iⁿ)]
+        θˡ = aᶠ.l/v.lᵛ
         # update costs
         s.πᶠ -= isopt(f) ? f.πᶠ : 0.
         s.πᵒ -= r.ω * f.πᵒ + (r.tᵉ - r.tˢ) * v.πᵗ
@@ -182,14 +185,15 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     d  = s.D[r.iᵈ]
     v  = d.V[r.iᵛ]
     f  = c.F[v.jᵛ]
-    θˡ = s.A[(c.iⁿ, f.iⁿ)].l/v.lᵛ
+    aᶠ = s.A[(c.iⁿ, f.iⁿ)]
     aᵒ = s.A[(nᵗ.iⁿ, nʰ.iⁿ)]
     aᵗ = s.A[(nᵗ.iⁿ, c.iⁿ)]
     aʰ = s.A[(c.iⁿ, nʰ.iⁿ)]
+    θˡ = aᶠ.l/v.lᵛ
     cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
     cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
+    qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
     # update associated customer and fuel station nodes
-    qᵒ    = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
     s.πᶠ -= isopt(f) ? f.πᶠ : 0.
     s.πᵒ -= c.ω * f.πᵒ
     s.πᵖ -= (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ) + (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ) + (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ) + (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ) + (θˡ > c.θ) * (θˡ - c.θ)
@@ -245,16 +249,16 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         c  = nʰ
         while true
             # fetch network features
-            cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ]   
-            cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
             aᶠ = s.A[(nʰ.iⁿ, fʰ.iⁿ)]
             aʰ = s.A[(nʰ.iⁿ, nʰ.iʰ)]
-            θˡ = max(aᶠ.l, aʰ.l)/v.lᵛ
+            θˡ = aᶠ.l/v.lᵛ
             aᵒ = s.A[(nᵗ.iⁿ, nʰ.iⁿ)]
             aᵗ = s.A[(nᵗ.iⁿ, fᵗ.iⁿ)]
             aʰ = s.A[(fᵗ.iⁿ, nʰ.iⁿ)]
             θᵒ = θ - aᵒ.l/v.lᵛ
             qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
+            cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ]   
+            cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
             # update costs
             s.πᶠ -= isopt(fᵗ) ? fᵗ.πᶠ : 0.
             s.πᵒ -= isdepot(nᵗ) ? r.ω * fᵗ.πᵒ : nᵗ.ω * fᵗ.πᵒ
@@ -338,7 +342,10 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         s.πᵒ += nᵗ.ω * fᵗ.πᵒ + (r.tᵉ - r.tˢ) * v.πᵗ
         s.πᵖ += (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ) + (θˡ > r.θ) * (θˡ - r.θ)
     else
-        f = d.F[v.jᵛ]
+        # fetch network features
+        f  = d.F[v.jᵛ]
+        aᶠ = s.A[(d.iⁿ, f.iⁿ)]
+        θˡ = aᶠ.l/v.lᵛ
         # update costs
         s.πᶠ -= isopt(f) ? f.πᶠ : 0.
         s.πᵒ -= r.ω * f.πᵒ + (r.tᵉ - r.tˢ) * v.πᵗ
