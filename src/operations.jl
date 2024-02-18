@@ -46,96 +46,118 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     s.πᵒ += d.n * d.πᵒ
     s.πᵖ += 0.
     # update en-route parameters
-    f  = d.F[v.jᵛ]
-    θˡ = s.A[(d.iⁿ, f.iⁿ)].l/v.lᵛ
-    s.πᶠ -= 0.
-    s.πᵒ -= (r.tᵉ - r.tˢ) * v.πᵗ
-    s.πᵖ -= (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ) + (θˡ > r.θ) * (θˡ - r.θ)
     if isopt(r)
         # initiate iterated parameters
+        cˢ = s.C[r.iˢ]
+        cᵉ = s.C[r.iᵉ]
         nᵗ = d
-        nʰ = s.C[r.iˢ]
+        nʰ = cˢ
         fᵗ = nᵗ.F[v.jᵛ]
         fʰ = nʰ.F[v.jᵛ]
         t  = d.tˢ
         q  = 0.
         θ  = 1.
-        n  = nʰ
+        c  = nʰ
         while true
             # fetch network features
-            nᵖ = isdepot(n) ? s.D[n.iⁿ] : isdelivery(n) ? s.C[n.jⁿ] : s.C[n.iⁿ] 
-            nᵈ = isdepot(n) ? s.D[n.iⁿ] : isdelivery(n) ? s.C[n.iⁿ] : s.C[n.jⁿ]
+            cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ]   
+            cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
+            aᶠ = s.A[(nʰ.iⁿ, fʰ.iⁿ)]
+            aʰ = s.A[(nʰ.iⁿ, nʰ.iʰ)]
+            θˡ = max(aᶠ.l, aʰ.l)/v.lᵛ
             aᵒ = s.A[(nᵗ.iⁿ, nʰ.iⁿ)]
             aᵗ = s.A[(nᵗ.iⁿ, fᵗ.iⁿ)]
             aʰ = s.A[(fᵗ.iⁿ, nʰ.iⁿ)]
-            aˡ = s.A[(nʰ.iⁿ, fʰ.iⁿ)]
-            θˡ = aˡ.l/v.lᵛ
             θᵒ = θ - aᵒ.l/v.lᵛ
+            qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
             # update costs
-            qᵒ = isdepot(n) ? 0. : isdelivery(n) ? n.q : n.q + abs(n.qᶜ)
             s.πᶠ -= isopt(fᵗ) ? fᵗ.πᶠ : 0.
             s.πᵒ -= isdepot(nᵗ) ? r.ω * fᵗ.πᵒ : nᵗ.ω * fᵗ.πᵒ
-            s.πᵖ -= iscustomer(n) ? (n.tᵃ > n.tˡ) * (n.tᵃ - n.tˡ) + (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ) + (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ) + (θˡ > n.θ) * (θˡ - n.θ) : 0.
+            s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ) + (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ) + (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ) + (θˡ > c.θ) * (θˡ - c.θ)
             # update node characteristics
             if θˡ < θᵒ
                 # directly visit the next node
-                ω = 0.
-                if iscustomer(nʰ) 
-                    n.tᵃ = t + aᵒ.l/v.sᵛ
-                    n.tᵈ = n.tᵃ + v.τᶜ + max(0., n.tᵉ - n.tᵃ - v.τᶜ) + n.τᶜ
-                    n.q  = q
-                    n.θ  = θ - aᵒ.l/v.lᵛ
-                end
-                if isdepot(nʰ)
-                    r.tˢ = d.tˢ
-                    r.tᵉ = t + aᵒ.l/v.sᵛ
-                    r.θ  = θ - aᵒ.l/v.lᵛ
-                end
+                ω     = 0.
+                c.tᵃ  = t + aᵒ.l/v.sᵛ
+                c.tᵈ  = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - c.τᶜ) + c.τᶜ
+                c.q   = q
+                c.θ   = θ - aᵒ.l/v.lᵛ
                 fᵗ.ω -= isdepot(nᵗ) ? r.ω : nᵗ.ω
                 isdepot(nᵗ) ? r.ω = ω : nᵗ.ω = ω
                 fᵗ.ω += isdepot(nᵗ) ? r.ω : nᵗ.ω
                 r.l  += 0.
             else
                 # pre-emptively re-fuel and then visit the next node
-                ω = (1. - (θ - (aᵗ.l/v.lᵛ))) * v.ωᵛ
-                if iscustomer(nʰ) 
-                    n.tᵃ = t + aᵗ.l/v.sᵛ + ω * fᵗ.τᵛ + aʰ.l/v.sᵛ
-                    n.tᵈ = n.tᵃ + v.τᶜ + max(0., n.tᵉ - n.tᵃ - v.τᶜ) + n.τᶜ
-                    n.q  = q
-                    n.θ  = 1. - aʰ.l/v.lᵛ
-                end
-                if isdepot(nʰ)
-                    r.tˢ = d.tˢ
-                    r.tᵉ = t + aᵗ.l/v.sᵛ + ω * fᵗ.τᵛ + aʰ.l/v.sᵛ
-                    r.θ  = 1. - aʰ.l/v.lᵛ
-                end
+                ω     = (1. - (θ - (aᵗ.l/v.lᵛ))) * v.ωᵛ
+                c.tᵃ  = t + aᵗ.l/v.sᵛ + ω * fᵗ.τᵛ + aʰ.l/v.sᵛ
+                c.tᵈ  = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - v.τᶜ) + c.τᶜ
+                c.q   = q
+                c.θ   = 1. - aʰ.l/v.lᵛ
                 fᵗ.ω -= isdepot(nᵗ) ? r.ω : nᵗ.ω
                 isdepot(nᵗ) ? r.ω = ω : nᵗ.ω = ω
                 fᵗ.ω += isdepot(nᵗ) ? r.ω : nᵗ.ω
-                r.l  += aᵗ.l + aʰ.l - aᵒ.l
+                r.l  += 0.
             end
+            # fetch network features
+            qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
             # update costs
-            qᵒ = isdepot(n) ? 0. : isdelivery(n) ? n.q : n.q + abs(n.qᶜ)
             s.πᶠ += isopt(fᵗ) ? fᵗ.πᶠ : 0.
             s.πᵒ += isdepot(nᵗ) ? r.ω * fᵗ.πᵒ : nᵗ.ω * fᵗ.πᵒ
-            s.πᵖ += iscustomer(n) ? (n.tᵃ > n.tˡ) * (n.tᵃ - n.tˡ) + (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ) + (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ) + (θˡ > n.θ) * (θˡ - n.θ) : 0.
+            s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ) + (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ) + (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ) + (θˡ > c.θ) * (θˡ - c.θ)
             # update iterated parameters
-            if isequal(n, d) break end
-            nᵗ = n
-            nʰ = n.iʰ ≤ lastindex(s.D) ? s.D[n.iʰ] : s.C[n.iʰ]
+            nᵗ = c
+            nʰ = c.iʰ ≤ lastindex(s.D) ? s.D[c.iʰ] : s.C[c.iʰ]
             fᵗ = nᵗ.F[v.jᵛ]
             fʰ = nʰ.F[v.jᵛ]
-            t  = n.tᵈ
-            θ  = n.θ
-            q -= n.qᶜ
-            n  = nʰ
+            t  = c.tᵈ
+            θ  = c.θ
+            q -= c.qᶜ
+            if isequal(c, cᵉ) break end
+            c  = nʰ
         end
+        # fetch network features
+        aᶠ = s.A[(nʰ.iⁿ, fʰ.iⁿ)]
+        θˡ = aᶠ.l/v.lᵛ
+        aᵒ = s.A[(nᵗ.iⁿ, nʰ.iⁿ)]
+        aᵗ = s.A[(nᵗ.iⁿ, fᵗ.iⁿ)]
+        aʰ = s.A[(fᵗ.iⁿ, nʰ.iⁿ)]
+        θᵒ = θ - aᵒ.l/v.lᵛ
+        # update costs
+        s.πᶠ -= isopt(fᵗ) ? fᵗ.πᶠ : 0.
+        s.πᵒ -= nᵗ.ω * fᵗ.πᵒ + (r.tᵉ - r.tˢ) * v.πᵗ
+        s.πᵖ -= (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ) + (θˡ > r.θ) * (θˡ - r.θ)
+        # update node characteristics
+        if θˡ < θᵒ
+            # directly visit the next node
+            ω     = 0.
+            r.tˢ  = d.tˢ
+            r.tᵉ  = t + aᵒ.l/v.sᵛ
+            r.θ   = θ - aᵒ.l/v.lᵛ
+            fᵗ.ω -= nᵗ.ω
+            nᵗ.ω  = ω
+            fᵗ.ω += nᵗ.ω
+            r.l  += 0.
+        else
+            # pre-emptively re-fuel and then visit the next node
+            ω     = (1. - (θ - (aᵗ.l/v.lᵛ))) * v.ωᵛ
+            r.tˢ  = d.tˢ
+            r.tᵉ  = t + aᵗ.l/v.sᵛ + ω * fᵗ.τᵛ + aʰ.l/v.sᵛ
+            r.θ   = 1. - aʰ.l/v.lᵛ
+            fᵗ.ω -= nᵗ.ω
+            nᵗ.ω  = ω
+            fᵗ.ω += nᵗ.ω
+            r.l  += aᵗ.l + aʰ.l - aᵒ.l
+        end
+        # update costs
+        s.πᶠ += isopt(fᵗ) ? fᵗ.πᶠ : 0.
+        s.πᵒ += nᵗ.ω * fᵗ.πᵒ + (r.tᵉ - r.tˢ) * v.πᵗ
+        s.πᵖ += (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ) + (θˡ > r.θ) * (θˡ - r.θ)
     else
         f = d.F[v.jᵛ]
         # update costs
         s.πᶠ -= isopt(f) ? f.πᶠ : 0.
-        s.πᵒ -= r.ω * f.πᵒ
-        s.πᵖ -= 0.
+        s.πᵒ -= r.ω * f.πᵒ + (r.tᵉ - r.tˢ) * v.πᵗ
+        s.πᵖ -= (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ) + (θˡ > r.θ) * (θˡ - r.θ)
         # update route characteristics
         r.tˢ  = d.tˢ
         r.tᵉ  = r.tˢ
@@ -145,14 +167,9 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         f.ω  += r.ω
         # update costs
         s.πᶠ += isopt(f) ? f.πᶠ : 0.
-        s.πᵒ += r.ω * f.πᵒ
-        s.πᵖ += 0.
+        s.πᵒ += r.ω * f.πᵒ + (r.tᵉ - r.tˢ) * v.πᵗ
+        s.πᵖ += (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ) + (θˡ > r.θ) * (θˡ - r.θ)
     end
-    f  = d.F[v.jᵛ]
-    θˡ = s.A[(d.iⁿ, f.iⁿ)].l/v.lᵛ
-    s.πᶠ += 0.
-    s.πᵒ += (r.tᵉ - r.tˢ) * v.πᵗ
-    s.πᵖ += (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ) + (θˡ > r.θ) * (θˡ - r.θ)
     return s
 end
 """
@@ -214,96 +231,118 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     s.πᵒ += d.n * d.πᵒ
     s.πᵖ += 0.
     # update en-route parameters
-    f  = d.F[v.jᵛ]
-    θˡ = s.A[(d.iⁿ, f.iⁿ)].l/v.lᵛ
-    s.πᶠ -= 0.
-    s.πᵒ -= (r.tᵉ - r.tˢ) * v.πᵗ
-    s.πᵖ -= (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ) + (θˡ > r.θ) * (θˡ - r.θ)
     if isopt(r)
         # initiate iterated parameters
+        cˢ = s.C[r.iˢ]
+        cᵉ = s.C[r.iᵉ]
         nᵗ = d
-        nʰ = s.C[r.iˢ]
+        nʰ = cˢ
         fᵗ = nᵗ.F[v.jᵛ]
         fʰ = nʰ.F[v.jᵛ]
         t  = d.tˢ
         q  = 0.
         θ  = 1.
-        n  = nʰ
+        c  = nʰ
         while true
             # fetch network features
-            nᵖ = isdepot(n) ? s.D[n.iⁿ] : isdelivery(n) ? s.C[n.jⁿ] : s.C[n.iⁿ] 
-            nᵈ = isdepot(n) ? s.D[n.iⁿ] : isdelivery(n) ? s.C[n.iⁿ] : s.C[n.jⁿ]
+            cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ]   
+            cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
+            aᶠ = s.A[(nʰ.iⁿ, fʰ.iⁿ)]
+            aʰ = s.A[(nʰ.iⁿ, nʰ.iʰ)]
+            θˡ = max(aᶠ.l, aʰ.l)/v.lᵛ
             aᵒ = s.A[(nᵗ.iⁿ, nʰ.iⁿ)]
             aᵗ = s.A[(nᵗ.iⁿ, fᵗ.iⁿ)]
             aʰ = s.A[(fᵗ.iⁿ, nʰ.iⁿ)]
-            aˡ = s.A[(nʰ.iⁿ, fʰ.iⁿ)]
-            θˡ = aˡ.l/v.lᵛ
             θᵒ = θ - aᵒ.l/v.lᵛ
+            qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
             # update costs
-            qᵒ = isdepot(n) ? 0. : isdelivery(n) ? n.q : n.q + abs(n.qᶜ)
             s.πᶠ -= isopt(fᵗ) ? fᵗ.πᶠ : 0.
             s.πᵒ -= isdepot(nᵗ) ? r.ω * fᵗ.πᵒ : nᵗ.ω * fᵗ.πᵒ
-            s.πᵖ -= iscustomer(n) ? (n.tᵃ > n.tˡ) * (n.tᵃ - n.tˡ) + (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ) + (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ) + (θˡ > n.θ) * (θˡ - n.θ) : 0.
+            s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ) + (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ) + (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ) + (θˡ > c.θ) * (θˡ - c.θ)
             # update node characteristics
             if θˡ < θᵒ
                 # directly visit the next node
-                ω = 0.
-                if iscustomer(nʰ) 
-                    n.tᵃ = t + aᵒ.l/v.sᵛ
-                    n.tᵈ = n.tᵃ + v.τᶜ + max(0., n.tᵉ - n.tᵃ - v.τᶜ) + n.τᶜ
-                    n.q  = q
-                    n.θ  = θ - aᵒ.l/v.lᵛ
-                end
-                if isdepot(nʰ)
-                    r.tˢ = d.tˢ
-                    r.tᵉ = t + aᵒ.l/v.sᵛ
-                    r.θ  = θ - aᵒ.l/v.lᵛ
-                end
+                ω     = 0.
+                c.tᵃ  = t + aᵒ.l/v.sᵛ
+                c.tᵈ  = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - c.τᶜ) + c.τᶜ
+                c.q   = q
+                c.θ   = θ - aᵒ.l/v.lᵛ
                 fᵗ.ω -= isdepot(nᵗ) ? r.ω : nᵗ.ω
                 isdepot(nᵗ) ? r.ω = ω : nᵗ.ω = ω
                 fᵗ.ω += isdepot(nᵗ) ? r.ω : nᵗ.ω
                 r.l  += 0.
             else
                 # pre-emptively re-fuel and then visit the next node
-                ω = (1. - (θ - (aᵗ.l/v.lᵛ))) * v.ωᵛ
-                if iscustomer(nʰ) 
-                    n.tᵃ = t + aᵗ.l/v.sᵛ + ω * fᵗ.τᵛ + aʰ.l/v.sᵛ
-                    n.tᵈ = n.tᵃ + v.τᶜ + max(0., n.tᵉ - n.tᵃ - v.τᶜ) + n.τᶜ
-                    n.q  = q
-                    n.θ  = 1. - aʰ.l/v.lᵛ
-                end
-                if isdepot(nʰ)
-                    r.tˢ = d.tˢ
-                    r.tᵉ = t + aᵗ.l/v.sᵛ + ω * fᵗ.τᵛ + aʰ.l/v.sᵛ
-                    r.θ  = 1. - aʰ.l/v.lᵛ
-                end
+                ω     = (1. - (θ - (aᵗ.l/v.lᵛ))) * v.ωᵛ
+                c.tᵃ  = t + aᵗ.l/v.sᵛ + ω * fᵗ.τᵛ + aʰ.l/v.sᵛ
+                c.tᵈ  = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - v.τᶜ) + c.τᶜ
+                c.q   = q
+                c.θ   = 1. - aʰ.l/v.lᵛ
                 fᵗ.ω -= isdepot(nᵗ) ? r.ω : nᵗ.ω
                 isdepot(nᵗ) ? r.ω = ω : nᵗ.ω = ω
                 fᵗ.ω += isdepot(nᵗ) ? r.ω : nᵗ.ω
-                r.l  += aᵗ.l + aʰ.l - aᵒ.l
+                r.l  += 0.
             end
+            # fetch network features
+            qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
             # update costs
-            qᵒ = isdepot(n) ? 0. : isdelivery(n) ? n.q : n.q + abs(n.qᶜ)
             s.πᶠ += isopt(fᵗ) ? fᵗ.πᶠ : 0.
             s.πᵒ += isdepot(nᵗ) ? r.ω * fᵗ.πᵒ : nᵗ.ω * fᵗ.πᵒ
-            s.πᵖ += iscustomer(n) ? (n.tᵃ > n.tˡ) * (n.tᵃ - n.tˡ) + (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ) + (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ) + (θˡ > n.θ) * (θˡ - n.θ) : 0.
+            s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ) + (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ) + (qᵒ > v.qᵛ) * (qᵒ - v.qᵛ) + (θˡ > c.θ) * (θˡ - c.θ)
             # update iterated parameters
-            if isequal(n, d) break end
-            nᵗ = n
-            nʰ = n.iʰ ≤ lastindex(s.D) ? s.D[n.iʰ] : s.C[n.iʰ]
+            nᵗ = c
+            nʰ = c.iʰ ≤ lastindex(s.D) ? s.D[c.iʰ] : s.C[c.iʰ]
             fᵗ = nᵗ.F[v.jᵛ]
             fʰ = nʰ.F[v.jᵛ]
-            t  = n.tᵈ
-            θ  = n.θ
-            q -= n.qᶜ
-            n  = nʰ
+            t  = c.tᵈ
+            θ  = c.θ
+            q -= c.qᶜ
+            if isequal(c, cᵉ) break end
+            c  = nʰ
         end
+        # fetch network features
+        aᶠ = s.A[(nʰ.iⁿ, fʰ.iⁿ)]
+        θˡ = aᶠ.l/v.lᵛ
+        aᵒ = s.A[(nᵗ.iⁿ, nʰ.iⁿ)]
+        aᵗ = s.A[(nᵗ.iⁿ, fᵗ.iⁿ)]
+        aʰ = s.A[(fᵗ.iⁿ, nʰ.iⁿ)]
+        θᵒ = θ - aᵒ.l/v.lᵛ
+        # update costs
+        s.πᶠ -= isopt(fᵗ) ? fᵗ.πᶠ : 0.
+        s.πᵒ -= nᵗ.ω * fᵗ.πᵒ + (r.tᵉ - r.tˢ) * v.πᵗ
+        s.πᵖ -= (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ) + (θˡ > r.θ) * (θˡ - r.θ)
+        # update node characteristics
+        if θˡ < θᵒ
+            # directly visit the next node
+            ω     = 0.
+            r.tˢ  = d.tˢ
+            r.tᵉ  = t + aᵒ.l/v.sᵛ
+            r.θ   = θ - aᵒ.l/v.lᵛ
+            fᵗ.ω -= nᵗ.ω
+            nᵗ.ω  = ω
+            fᵗ.ω += nᵗ.ω
+            r.l  += 0.
+        else
+            # pre-emptively re-fuel and then visit the next node
+            ω     = (1. - (θ - (aᵗ.l/v.lᵛ))) * v.ωᵛ
+            r.tˢ  = d.tˢ
+            r.tᵉ  = t + aᵗ.l/v.sᵛ + ω * fᵗ.τᵛ + aʰ.l/v.sᵛ
+            r.θ   = 1. - aʰ.l/v.lᵛ
+            fᵗ.ω -= nᵗ.ω
+            nᵗ.ω  = ω
+            fᵗ.ω += nᵗ.ω
+            r.l  += aᵗ.l + aʰ.l - aᵒ.l
+        end
+        # update costs
+        s.πᶠ += isopt(fᵗ) ? fᵗ.πᶠ : 0.
+        s.πᵒ += nᵗ.ω * fᵗ.πᵒ + (r.tᵉ - r.tˢ) * v.πᵗ
+        s.πᵖ += (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ) + (θˡ > r.θ) * (θˡ - r.θ)
     else
         f = d.F[v.jᵛ]
         # update costs
         s.πᶠ -= isopt(f) ? f.πᶠ : 0.
-        s.πᵒ -= r.ω * f.πᵒ
-        s.πᵖ -= 0.
+        s.πᵒ -= r.ω * f.πᵒ + (r.tᵉ - r.tˢ) * v.πᵗ
+        s.πᵖ -= (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ) + (θˡ > r.θ) * (θˡ - r.θ)
         # update route characteristics
         r.tˢ  = d.tˢ
         r.tᵉ  = r.tˢ
@@ -313,13 +352,8 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         f.ω  += r.ω
         # update costs
         s.πᶠ += isopt(f) ? f.πᶠ : 0.
-        s.πᵒ += r.ω * f.πᵒ
-        s.πᵖ += 0.
+        s.πᵒ += r.ω * f.πᵒ + (r.tᵉ - r.tˢ) * v.πᵗ
+        s.πᵖ += (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ) + (θˡ > r.θ) * (θˡ - r.θ)
     end
-    f  = d.F[v.jᵛ]
-    θˡ = s.A[(d.iⁿ, f.iⁿ)].l/v.lᵛ
-    s.πᶠ += 0.
-    s.πᵒ += (r.tᵉ - r.tˢ) * v.πᵗ
-    s.πᵖ += (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ) + (θˡ > r.θ) * (θˡ - r.θ)
     return s
 end
