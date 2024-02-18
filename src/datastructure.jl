@@ -13,7 +13,7 @@ end
 
 
 """
-    Route(iᵛ::Int, iᵈ::Int, x::Float64, y::Float64, iˢ::Int, iᵉ::Int, tˢ::Float64, tᵉ::Float64, n::Int, ω::Float64, l::Float64)
+    Route(iᵛ::Int, iᵈ::Int, x::Float64, y::Float64, iˢ::Int, iᵉ::Int, tˢ::Float64, tᵉ::Float64, n::Int, θ::Float64, ω::Float64, l::Float64)
 
 A `Route` is a connection between nodes with vehicle index `iᵛ`, depot node index 
 `iᵈ`, centroid coordinates `(x,y)`, start node index `iˢ`, end node index `iᵉ`,
