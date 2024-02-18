@@ -210,7 +210,7 @@ end
 
 A `NullRoute` is a fictitious out-of-service route.
 """           
-const NullRoute = Route(0, 0, 0., 0., 0, 0, Inf, Inf, 0, Inf, Inf)
+const NullRoute = Route(0, 0, 0., 0., 0, 0, Inf, Inf, 0, 1., 0., Inf)
 
 
 
@@ -230,21 +230,17 @@ function vectorize(s::Solution)
             r  = v.r
             cˢ = s.C[r.iˢ]
             cᵉ = s.C[r.iᵉ] 
+            f  = d.F[v.jᵛ]
             push!(Z[iⁿ][iᵛ], d.iⁿ)
+            if r.ω > 0. push!(Z[iⁿ][iᵛ], f.iⁿ) end
             c  = cˢ
             while true
+                f = c.F[v.jᵛ]
                 push!(Z[iⁿ][iᵛ], c.iⁿ)
-                f  = c.F[v.jᵛ]
-                a  = s.A[(c.iⁿ, f.iⁿ)]
-                ωˡ = (a.l/v.lᵛ) * v.ωᵛ
-                if ωˡ > c.ω push!(Z[iⁿ][iᵛ], f.iⁿ) end
+                if c.ω > 0. push!(Z[iⁿ][iᵛ], f.iⁿ) end
                 if isequal(c, cᵉ) break end
                 c = s.C[c.iʰ]
             end
-            f  = d.F[v.jᵛ]
-            a  = s.A[(d.iⁿ, f.iⁿ)]
-            ωˡ = (a.l/v.lᵛ) * v.ωᵛ
-            if ωˡ > r.ω push!(Z[iⁿ][iᵛ], f.iⁿ) end
             push!(Z[iⁿ][iᵛ], d.iⁿ)
         end
     end
@@ -283,18 +279,18 @@ function isfeasible(s::Solution)
                 qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
                 f  = c.F[v.jᵛ]
                 a  = s.A[(c.iⁿ, f.iⁿ)]
-                ωˡ = (a.l/v.lᵛ) * v.ωᵛ
+                θˡ = a.l/v.lᵛ
                 if !isequal(cᵖ.r, cᵈ.r) return false end                    # Service constraint (order of service)
                 if cᵖ.tᵃ > cᵈ.tᵃ return false end                           # Service constraint (order of service)
                 if qᵒ > v.qᵛ return false end                               # Vehicle capacity constraint
-                if ωˡ > c.ω return false end                                # Vehicle range constraint
+                if θˡ > c.θ return false end                                # Vehicle range constraint
                 if isequal(c, cᵉ) break end
                 c  = s.C[c.iʰ]
             end
             f  = d.F[v.jᵛ]
             a  = s.A[(d.iⁿ, f.iⁿ)]
-            ωˡ = (a.l/v.lᵛ) * v.ωᵛ
-            if ωˡ > r.ω return false end                                    # Vehicle range constraint
+            θˡ = a.l/v.lᵛ
+            if θˡ > r.θ return false end                                    # Vehicle range constraint
             if d.tˢ > r.tˢ return false end                                 # Working-hours constraint (start time)
             if r.tᵉ > d.tᵉ return false end                                 # Working-hours constraint (end time)
             if r.tᵉ - r.tˢ > v.τʷ return false end                          # Working-hours constraint (duration)
