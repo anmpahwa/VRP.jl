@@ -10,7 +10,7 @@ let
     # Set B
     B = ["lc201", "lc204", "lc207", "lr201", "lr202", "lr208", "lrc201", "lrc203", "lrc205"]
     # Define instances
-    instances = [A..., B...]
+    instances = [B...]
     # Define random number generators
     seeds = [1010, 1106, 1509, 1604, 1905, 2104, 2412, 2703, 2710, 2807]
     # Dataframes to store solution quality and run time
@@ -31,7 +31,7 @@ let
             # Visualize initial solution
             display(visualize(s₁))
             # Define ALNS parameters
-            x = max(100, lastindex(s₁.C))
+            x = max(100, lastindex(s₁.C)) ÷ 4
             χ = ALNSparameters(
                 j   =   50                      ,
                 k   =   5                       ,
@@ -41,15 +41,15 @@ let
                             :randomcustomer!    ,
                             :randomroute!       ,
                             :randomvehicle!     ,
-                            :randomdepot!       ,
+                            #:randomdepot!       ,
                             :relatedcustomer!   ,
                             :relatedroute!      ,
                             :relatedvehicle!    ,
-                            :relateddepot!      ,
+                            #:relateddepot!      ,
                             :worstcustomer!     ,
                             :worstroute!        ,
                             :worstvehicle!      ,
-                            :worstdepot!
+                            #:worstdepot!
                         ]                       ,
                 Ψᵢ  =   [
                             :best!              ,
@@ -77,7 +77,7 @@ let
                 τ̅   =   0.5                     ,
                 ω̲   =   0.01                    ,
                 τ̲   =   0.01                    ,
-                θ   =   0.9993                  ,
+                θ   =   0.9972                  ,
                 ρ   =   0.1
             );
             # Run ALNS and fetch best solution
