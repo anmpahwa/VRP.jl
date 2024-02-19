@@ -78,7 +78,7 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
                 ω = 0.
                 δ = 0.
                 c.tᵃ = t + aᵗʰ.l/v.sᵛ
-                c.tᵈ = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - c.τᶜ) + c.τᶜ
+                c.tᵈ = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - v.τᶜ) + c.τᶜ
                 c.q  = q
                 c.θ̲  = θ̲
                 c.θ  = θᵒ
@@ -285,7 +285,7 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
                 ω = 0.
                 δ = 0.
                 c.tᵃ = t + aᵗʰ.l/v.sᵛ
-                c.tᵈ = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - c.τᶜ) + c.τᶜ
+                c.tᵈ = c.tᵃ + v.τᶜ + max(0., c.tᵉ - c.tᵃ - v.τᶜ) + c.τᶜ
                 c.q  = q
                 c.θ̲  = θ̲
                 c.θ  = θᵒ
