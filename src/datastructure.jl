@@ -13,12 +13,13 @@ end
 
 
 """
-    Route(iᵛ::Int, iᵈ::Int, x::Float64, y::Float64, iˢ::Int, iᵉ::Int, tˢ::Float64, tᵉ::Float64, n::Int, θ::Float64, ω::Float64, l::Float64)
+    Route(iᵛ::Int, iᵈ::Int, x::Float64, y::Float64, iˢ::Int, iᵉ::Int, tˢ::Float64, tᵉ::Float64, θ̲::Float64, θ::Float64, ω::Float64, δ::Float64, l::Float64, n::Int)
 
 A `Route` is a connection between nodes with vehicle index `iᵛ`, depot node index 
 `iᵈ`, centroid coordinates `(x,y)`, start node index `iˢ`, end node index `iᵉ`,
-start time `tˢ`, end time `tᵉ`, customers served `n`, vehicle tank status 
-on-arrival at depot node `θ`, fuel re-fueled `ω`, and length `l`.
+start time `tˢ`, end time `tᵉ`, pre-arrival minimum tank status `θ̲`, tank status 
+on-arrival `θ`, fuel re-fueled post-departure `ω`, re-fuel detour length `δ`, and 
+total length `l` and customers served `n`.
 """
 mutable struct Route
     iᵛ::Int                                                                         # Vehicle index
@@ -29,10 +30,12 @@ mutable struct Route
     iᵉ::Int                                                                         # End node index
     tˢ::Float64                                                                     # Start time
     tᵉ::Float64                                                                     # End time
-    n::Int                                                                          # Customers served
-    θ::Float64                                                                      # Tank status at end
-    ω::Float64                                                                      # Fuel re-fueled
-    l::Float64                                                                      # Length
+    θ̲::Float64                                                                      # Pre-arrival minimum tank status
+    θ::Float64                                                                      # Tank status on-arrival at depot node
+    ω::Float64                                                                      # Fuel re-fueled post-departure
+    δ::Float64                                                                      # Re-fuel detour length
+    l::Float64                                                                      # Total length
+    n::Int                                                                          # Total customers served
 end
 
 
@@ -49,8 +52,8 @@ mutable struct Vehicle
     iᵛ::Int                                                                         # Vehicle index
     jᵛ::Int                                                                         # Vehicle type index
     iᵈ::Int                                                                         # Depot node index
-    qᵛ::Float64                                                                     # Capacity
-    ωᵛ::Float64                                                                     # Tank Capacity
+    qᵛ::Float64                                                                     # Package capacity
+    ωᵛ::Float64                                                                     # Tank capacity
     lᵛ::Float64                                                                     # Range
     sᵛ::Float64                                                                     # Speed
     τᶜ::Float64                                                                     # Parking time at customer node
@@ -108,14 +111,15 @@ mutable struct DepotNode <: Node
     n::Int                                                                          # Customers served
 end
 """
-    CustomerNode(iⁿ::Int, jⁿ::Int, x::Float64, y::Float64, qᶜ::Float64, τᶜ::Float64, tᵉ::Float64, tˡ::Float64, F::Vector{FuelStationNode}, iᵗ::Int, iʰ::Int, tᵃ::Float64, tᵈ::Float64, q::Float64, θ::Float64, r::Route)
+    CustomerNode(iⁿ::Int, jⁿ::Int, x::Float64, y::Float64, qᶜ::Float64, τᶜ::Float64, tᵉ::Float64, tˡ::Float64, F::Vector{FuelStationNode}, iᵗ::Int, iʰ::Int, tᵃ::Float64, tᵈ::Float64, q::Float64, θ̲::Float64, θ::Float64, δ::Float64, r::Route)
 
 A `CustomerNode` is a source/sink point on the graph at `(x,y)` with index `iⁿ`, 
 associated delivery/pickup node index `jⁿ`, demand `qᶜ`, service time `τᶜ`, earliest 
 service time `tᵉ`, latest service time `tˡ`, set of nearest fuel station nodes for 
-every vehicle type `F`, tail node index `iᵗ`, head node index `iʰ`, serviced on 
-route `r` with vehicle arrival time `tᵃ` and departure time `tᵈ`, vehicle 
-on-arrival load `q` and tank status `θ`, and fuel re-fueled `ω`.
+every vehicle type `F`, tail node index `iᵗ`, head node index `iʰ`, vehicle arrival 
+time `tᵃ` and departure time `tᵈ`, vehicle on-arrival load `q`, pre-arrival minimum 
+tank status `θ̲`, vehicle on-arrival tank status `θ`, fuel re-fueled post-departure 
+`ω`, re-fuel detour length `δ`, and associated route `r`.
 """
 mutable struct CustomerNode <: Node
     iⁿ::Int                                                                         # Customer node index
@@ -132,8 +136,10 @@ mutable struct CustomerNode <: Node
     tᵃ::Float64                                                                     # Vehicle arrival time
     tᵈ::Float64                                                                     # Vehicle departure time
     q::Float64                                                                      # Vehicle load on arrival
+    θ̲::Float64                                                                      # Pre-arrival minimum tank status
     θ::Float64                                                                      # Vehicle tank status on arrival
-    ω::Float64                                                                      # Fuel re-fueled
+    ω::Float64                                                                      # Fuel re-fueled post-departure
+    δ::Float64                                                                      # Re-fuel detour length
     r::Route                                                                        # Route visiting the customer node
 end
 

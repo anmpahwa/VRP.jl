@@ -70,11 +70,13 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         iᵉ = iᵈ
         tˢ = d.tˢ
         tᵉ = d.tˢ
-        n  = 0
+        θ̲  = 1.
         θ  = 1.
         ω  = 0.
+        δ  = 0.
         l  = 0.
-        r  = Route(iᵛ, iᵈ, x, y, iˢ, iᵉ, tˢ, tᵉ, n, θ, ω, l)
+        n  = 0
+        r  = Route(iᵛ, iᵈ, x, y, iˢ, iᵉ, tˢ, tᵉ, θ̲, θ, ω, δ, l, n)
         v  = Vehicle(iᵛ, jᵛ, iᵈ, qᵛ, ωᵛ, lᵛ, sᵛ, τᶜ, τʷ, πᵈ, πᵗ, πᶠ, r)
         push!(d.V, v)
     end
@@ -97,10 +99,12 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         tᵃ = qᶜ > 0. ? tˡ : tᵉ
         tᵈ = tᵃ + τᶜ
         q  = 0.
+        θ̲  = 1.
         θ  = 1.
         ω  = 0.
+        δ  = 0.
         r  = NullRoute
-        c  = CustomerNode(iⁿ, jⁿ, x, y, qᶜ, τᶜ, tᵉ, tˡ, Fᶜ, iᵗ, iʰ, tᵃ, tᵈ, q, θ, ω, r)
+        c  = CustomerNode(iⁿ, jⁿ, x, y, qᶜ, τᶜ, tᵉ, tˡ, Fᶜ, iᵗ, iʰ, tᵃ, tᵈ, q, θ̲, θ, ω, δ, r)
         C[iⁿ] = c
     end
     # Arcs

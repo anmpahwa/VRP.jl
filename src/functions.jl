@@ -210,7 +210,7 @@ end
 
 A `NullRoute` is a fictitious out-of-service route.
 """           
-const NullRoute = Route(0, 0, 0., 0., 0, 0, Inf, Inf, 0, 1., 0., Inf)
+const NullRoute = Route(0, 0, 0., 0., 0, 0, Inf, Inf, 1., 1., 0., 0., Inf, 0)
 
 
 
@@ -277,20 +277,14 @@ function isfeasible(s::Solution)
                 cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
                 cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
                 qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
-                f  = c.F[v.jᵛ]
-                a  = s.A[(c.iⁿ, f.iⁿ)]
-                θˡ = a.l/v.lᵛ
                 if !isequal(cᵖ.r, cᵈ.r) return false end                    # Service constraint (order of service)
                 if cᵖ.tᵃ > cᵈ.tᵃ return false end                           # Service constraint (order of service)
                 if qᵒ > v.qᵛ return false end                               # Vehicle capacity constraint
-                if θˡ > c.θ return false end                                # Vehicle range constraint
+                if c.θ̲ > c.θ return false end                               # Vehicle range constraint
                 if isequal(c, cᵉ) break end
                 c  = s.C[c.iʰ]
             end
-            f  = d.F[v.jᵛ]
-            a  = s.A[(d.iⁿ, f.iⁿ)]
-            θˡ = a.l/v.lᵛ
-            if θˡ > r.θ return false end                                    # Vehicle range constraint
+            if r.θ̲ > r.θ return false end                                   # Vehicle range constraint
             if d.tˢ > r.tˢ return false end                                 # Working-hours constraint (start time)
             if r.tᵉ > d.tᵉ return false end                                 # Working-hours constraint (end time)
             if r.tᵉ - r.tˢ > v.τʷ return false end                          # Working-hours constraint (duration)
