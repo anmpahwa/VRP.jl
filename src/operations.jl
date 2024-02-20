@@ -17,7 +17,7 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     ## update cost
     s.πᶠ -= (isopt(d) ? d.πᶠ : 0.) + (isopt(v) ? v.πᶠ : 0.)
     s.πᵒ -= (d.πᵒ * d.n) + (v.πᵈ * r.l)
-    s.πᵖ -= !isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ) * abs(c.qᶜ)
+    s.πᵖ -= (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ)
     ## update depot node
     d.n += 1
     ## update route
@@ -35,14 +35,14 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     ## update cost
     s.πᶠ += (isopt(d) ? d.πᶠ : 0.) + (isopt(v) ? v.πᶠ : 0.)
     s.πᵒ += (d.πᵒ * d.n) + (v.πᵈ * r.l)
-    s.πᵖ += !isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ) * abs(c.qᶜ)
+    s.πᵖ += (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ)
     # update en-route parameters
     if isopt(r)
         ## initiate iterated parameters
         φᵗ = true
         nᵗ = d
         nᵒ = s.C[r.iˢ]
-        fᵗ = nᵗ.F[v.jᵛ]
+        fᵗ = nᵒ.F[v.jᵛ]
         fᵒ = nᵒ.F[v.jᵛ]
         t  = d.tˢ
         q  = 0.
@@ -95,7 +95,6 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
             if isequal(nᵒ, d) break end
         end
         ## fetch network features
-        aᵒᶠ = s.A[(nᵒ.iⁿ, fᵒ.iⁿ)]
         aᵗᵒ = s.A[(nᵗ.iⁿ, nᵒ.iⁿ)]
         aᵗᶠ = s.A[(nᵗ.iⁿ, fᵗ.iⁿ)]
         aᶠᵒ = s.A[(fᵗ.iⁿ, nᵒ.iⁿ)]
@@ -104,7 +103,7 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         s.πᵒ -= nᵗ.ω * fᵗ.πᵒ + (r.tᵉ - r.tˢ) * v.πᵗ + r.l * v.πᵈ
         s.πᵖ -= (r.θ̲ > r.θ) * (r.θ̲ - r.θ) + (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ)
         ## check for re-fueling
-        θ̲ᵒ = aᵒᶠ.l/v.lᵛ
+        θ̲ᵒ = 0.
         θᵒ = θ - aᵗᵒ.l/v.lᵛ
         θᶠ = θ - aᵗᶠ.l/v.lᵛ
         φᶠ = (θ̲ᵒ > θᵒ) && (θᶠ ≥ 0.)
@@ -124,28 +123,6 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         ## update costs
         s.πᶠ += isopt(fᵗ) ? fᵗ.πᶠ : 0.
         s.πᵒ += nᵗ.ω * fᵗ.πᵒ + (r.tᵉ - r.tˢ) * v.πᵗ + r.l * v.πᵈ
-        s.πᵖ += (r.θ̲ > r.θ) * (r.θ̲ - r.θ) + (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ)
-    else
-        ## fetch network features
-        f = d.F[v.jᵛ]
-        ## update costs
-        s.πᶠ -= isopt(f) ? f.πᶠ : 0.
-        s.πᵒ -= r.ω * f.πᵒ + (r.tᵉ - r.tˢ) * v.πᵗ + r.l * v.πᵈ
-        s.πᵖ -= (r.θ̲ > r.θ) * (r.θ̲ - r.θ) + (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ)
-        ## update network features
-        r.tˢ = d.tˢ
-        r.tᵉ = r.tˢ
-        r.θ̲  = 1.
-        r.θ  = 1.
-        f.ω -= r.ω
-        r.l -= r.δ
-        r.ω  = 0.
-        r.δ  = 0.
-        f.ω += r.ω
-        r.l += r.δ
-        ## update costs
-        s.πᶠ += isopt(f) ? f.πᶠ : 0.
-        s.πᵒ += r.ω * f.πᵒ + (r.tᵉ - r.tˢ) * v.πᵗ + r.l * v.πᵈ
         s.πᵖ += (r.θ̲ > r.θ) * (r.θ̲ - r.θ) + (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ)
     end
     return s
@@ -165,6 +142,7 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     aᵗʰ = s.A[(nᵗ.iⁿ, nʰ.iⁿ)]
     aᵗᶜ = s.A[(nᵗ.iⁿ, c.iⁿ)]
     aᶜʰ = s.A[(c.iⁿ, nʰ.iⁿ)]
+    cˢ  = s.C[r.iˢ]
     cᵖ  = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
     cᵈ  = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
     ## update cost
@@ -172,12 +150,13 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     s.πᵒ -= (f.πᵒ * c.ω) + (d.πᵒ * d.n) + (v.πᵈ * r.l)
     s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ) + (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ) + (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ) + (c.q > v.qᵛ) * (c.q - v.qᵛ) + (c.θ̲ > c.θ) * (c.θ̲ - c.θ)
     ## update fuel station node
-    f.ω -= c.ω
+    f.ω -= isequal(c, cˢ) * r.ω + c.ω
     ## update depot node
     d.n -= 1
     ## update route
     if isdepot(nᵗ) r.iˢ = nʰ.iⁿ end
     if isdepot(nʰ) r.iᵉ = nᵗ.iⁿ end
+    r.ω -= isequal(c, cˢ) * r.ω
     r.n -= 1
     r.l -= aᵗᶜ.l + c.δ + aᶜʰ.l - aᵗʰ.l
     ## update tail-head nodes
@@ -189,7 +168,7 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     c.tᵃ = isdelivery(c) ? c.tˡ : c.tᵉ
     c.tᵈ = c.tᵃ + c.τᶜ
     c.q  = 0.
-    c.θ̲  = 1.
+    c.θ̲  = 0.
     c.θ  = 1.
     c.ω  = 0.
     c.δ  = 0.
@@ -204,7 +183,7 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         φᵗ = true
         nᵗ = d
         nᵒ = s.C[r.iˢ]
-        fᵗ = nᵗ.F[v.jᵛ]
+        fᵗ = nᵒ.F[v.jᵛ]
         fᵒ = nᵒ.F[v.jᵛ]
         t  = d.tˢ
         q  = 0.
@@ -257,7 +236,6 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
             if isequal(nᵒ, d) break end
         end
         ## fetch network features
-        aᵒᶠ = s.A[(nᵒ.iⁿ, fᵒ.iⁿ)]
         aᵗᵒ = s.A[(nᵗ.iⁿ, nᵒ.iⁿ)]
         aᵗᶠ = s.A[(nᵗ.iⁿ, fᵗ.iⁿ)]
         aᶠᵒ = s.A[(fᵗ.iⁿ, nᵒ.iⁿ)]
@@ -266,7 +244,7 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         s.πᵒ -= nᵗ.ω * fᵗ.πᵒ + (r.tᵉ - r.tˢ) * v.πᵗ + r.l * v.πᵈ
         s.πᵖ -= (r.θ̲ > r.θ) * (r.θ̲ - r.θ) + (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ)
         ## check for re-fueling
-        θ̲ᵒ = aᵒᶠ.l/v.lᵛ
+        θ̲ᵒ = 0.
         θᵒ = θ - aᵗᵒ.l/v.lᵛ
         θᶠ = θ - aᵗᶠ.l/v.lᵛ
         φᶠ = (θ̲ᵒ > θᵒ) && (θᶠ ≥ 0.)
@@ -288,8 +266,6 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         s.πᵒ += nᵗ.ω * fᵗ.πᵒ + (r.tᵉ - r.tˢ) * v.πᵗ + r.l * v.πᵈ
         s.πᵖ += (r.θ̲ > r.θ) * (r.θ̲ - r.θ) + (d.tˢ > r.tˢ) * (d.tˢ - r.tˢ) + (r.tᵉ > d.tᵉ) * (r.tᵉ - d.tᵉ) + ((r.tᵉ - r.tˢ) > v.τʷ) * ((r.tᵉ - r.tˢ) - v.τʷ)
     else
-        ## fetch network features
-        f = d.F[v.jᵛ]
         ## update costs
         s.πᶠ -= isopt(f) ? f.πᶠ : 0.
         s.πᵒ -= r.ω * f.πᵒ + (r.tᵉ - r.tˢ) * v.πᵗ + r.l * v.πᵈ
@@ -297,7 +273,7 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         ## update network features
         r.tˢ = d.tˢ
         r.tᵉ = r.tˢ
-        r.θ̲  = 1.
+        r.θ̲  = 0.
         r.θ  = 1.
         f.ω -= r.ω
         r.l -= r.δ
