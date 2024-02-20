@@ -74,9 +74,9 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         θ  = 1.
         ω  = 0.
         δ  = 0.
-        l  = 0.
         n  = 0
-        r  = Route(iᵛ, iᵈ, x, y, iˢ, iᵉ, tˢ, tᵉ, θ̲, θ, ω, δ, l, n)
+        l  = 0.
+        r  = Route(iᵛ, iᵈ, x, y, iˢ, iᵉ, tˢ, tᵉ, θ̲, θ, ω, δ, n, l)
         v  = Vehicle(iᵛ, jᵛ, iᵈ, qᵛ, ωᵛ, lᵛ, sᵛ, τᶜ, τʷ, πᵈ, πᵗ, πᶠ, r)
         push!(d.V, v)
     end
