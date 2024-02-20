@@ -210,7 +210,7 @@ end
 
 A `NullRoute` is a fictitious out-of-service route.
 """           
-const NullRoute = Route(0, 0, 0., 0., 0, 0, Inf, Inf, 1., 1., 0., 0., 0, Inf)
+const NullRoute = Route(0, 0, 0., 0., 0, 0, Inf, Inf, 1., 0., Inf, Inf, 0, Inf)
 
 
 
@@ -230,7 +230,7 @@ function vectorize(s::Solution)
             r  = v.r
             cˢ = s.C[r.iˢ]
             cᵉ = s.C[r.iᵉ] 
-            f  = d.F[v.jᵛ]
+            f  = cˢ.F[v.jᵛ]
             push!(Z[iⁿ][iᵛ], d.iⁿ)
             if r.ω > 0. push!(Z[iⁿ][iᵛ], f.iⁿ) end
             c  = cˢ
