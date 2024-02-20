@@ -7,8 +7,7 @@ and head node `nʰ` in route `r`.
 function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Solution)
     d = s.D[r.iᵈ]
     v = d.V[r.iᵛ]
-    f = c.F[v.jᵛ]
-    # update associated fuel station node, depot node, route, tail-head nodes, and the customer node
+    # update associated depot node, route, tail-head nodes, and the customer node
     ## fetch network features
     aᵗʰ = s.A[(nᵗ.iⁿ, nʰ.iⁿ)]
     aᵗᶜ = s.A[(nᵗ.iⁿ, c.iⁿ)]
@@ -16,12 +15,9 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     cᵖ  = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
     cᵈ  = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
     ## update cost
-    φᵖᵈ = !isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)
-    s.πᶠ -= (isopt(f) ? f.πᶠ : 0.) + (isopt(d) ? d.πᶠ : 0.) + (isopt(v) ? v.πᶠ : 0.)
-    s.πᵒ -= (f.πᵒ * c.ω) + (d.πᵒ * d.n) + (v.πᵈ * r.l)
-    s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ) + φᵖᵈ * abs(c.qᶜ) + (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ) + (c.q > v.qᵛ) * (c.q - v.qᵛ) + (c.θ̲ > c.θ) * (c.θ̲ - c.θ)
-    ## update fuel station node
-    f.ω += c.ω
+    s.πᶠ -= (isopt(d) ? d.πᶠ : 0.) + (isopt(v) ? v.πᶠ : 0.)
+    s.πᵒ -= (d.πᵒ * d.n) + (v.πᵈ * r.l)
+    s.πᵖ -= !isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ) * abs(c.qᶜ)
     ## update depot node
     d.n += 1
     ## update route
@@ -35,19 +31,11 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     ## update the customer node
     c.iᵗ = nᵗ.iⁿ
     c.iʰ = nʰ.iⁿ
-    c.tᵃ = isdelivery(c) ? c.tˡ : c.tᵉ
-    c.tᵈ = c.tᵃ + c.τᶜ
-    c.q  = 0.
-    c.θ̲  = 1.
-    c.θ  = 1.
-    c.ω  = 0.
-    c.δ  = 0.
     c.r  = r
     ## update cost
-    φᵖᵈ = !isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)
-    s.πᶠ += (isopt(f) ? f.πᶠ : 0.) + (isopt(d) ? d.πᶠ : 0.) + (isopt(v) ? v.πᶠ : 0.)
-    s.πᵒ += (f.πᵒ * c.ω) + (d.πᵒ * d.n) + (v.πᵈ * r.l)
-    s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ) + φᵖᵈ * abs(c.qᶜ) + (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ) + (c.q > v.qᵛ) * (c.q - v.qᵛ) + (c.θ̲ > c.θ) * (c.θ̲ - c.θ)
+    s.πᶠ += (isopt(d) ? d.πᶠ : 0.) + (isopt(v) ? v.πᶠ : 0.)
+    s.πᵒ += (d.πᵒ * d.n) + (v.πᵈ * r.l)
+    s.πᵖ += !isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ) * abs(c.qᶜ)
     # update en-route parameters
     if isopt(r)
         ## initiate iterated parameters
@@ -69,10 +57,9 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
             nᵖ  = isdelivery(nᵒ) ? s.C[nᵒ.jⁿ] : s.C[nᵒ.iⁿ]   
             nᵈ  = isdelivery(nᵒ) ? s.C[nᵒ.iⁿ] : s.C[nᵒ.jⁿ]
             ## update costs
-            φᵖᵈ = !isequal(nᵖ.r, nᵈ.r) && isclose(nᵖ) && isclose(nᵈ)
             s.πᶠ -= isopt(fᵗ) ? fᵗ.πᶠ : 0.
             s.πᵒ -= fᵗ.πᵒ * (φᵗ ? r.ω : nᵗ.ω) + v.πᵈ * r.l
-            s.πᵖ -= (nᵒ.tᵃ > nᵒ.tˡ) * (nᵒ.tᵃ - nᵒ.tˡ) + φᵖᵈ * abs(nᵒ.qᶜ) + (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ) + (nᵒ.q > v.qᵛ) * (nᵒ.q - v.qᵛ) + (nᵒ.θ̲ > nᵒ.θ) * (nᵒ.θ̲ - nᵒ.θ)
+            s.πᵖ -= (nᵒ.tᵃ > nᵒ.tˡ) * (nᵒ.tᵃ - nᵒ.tˡ) + (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ) + (nᵒ.q > v.qᵛ) * (nᵒ.q - v.qᵛ) + (nᵒ.θ̲ > nᵒ.θ) * (nᵒ.θ̲ - nᵒ.θ)
             ## check for re-fueling
             θ̲ᵒ = min(aᵒᶠ.l, aᵒʰ.l)/v.lᵛ
             θᵒ = θ - aᵗᵒ.l/v.lᵛ
@@ -93,10 +80,9 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
             fᵗ.ω += φᵗ ? r.ω : nᵗ.ω
             r.l  += φᵗ ? r.δ : nᵗ.δ
             ## update costs
-            φᵖᵈ = !isequal(nᵖ.r, nᵈ.r) && isclose(nᵖ) && isclose(nᵈ)
             s.πᶠ += isopt(fᵗ) ? fᵗ.πᶠ : 0.
             s.πᵒ += fᵗ.πᵒ * (φᵗ ? r.ω : nᵗ.ω) + v.πᵈ * r.l
-            s.πᵖ += (nᵒ.tᵃ > nᵒ.tˡ) * (nᵒ.tᵃ - nᵒ.tˡ) + φᵖᵈ * abs(nᵒ.qᶜ) + (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ) + (nᵒ.q > v.qᵛ) * (nᵒ.q - v.qᵛ) + (nᵒ.θ̲ > nᵒ.θ) * (nᵒ.θ̲ - nᵒ.θ)
+            s.πᵖ += (nᵒ.tᵃ > nᵒ.tˡ) * (nᵒ.tᵃ - nᵒ.tˡ) + (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ) + (nᵒ.q > v.qᵛ) * (nᵒ.q - v.qᵛ) + (nᵒ.θ̲ > nᵒ.θ) * (nᵒ.θ̲ - nᵒ.θ)
             ## update iterated parameters
             φᵗ = false
             nᵗ = nᵒ
@@ -182,10 +168,9 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     cᵖ  = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
     cᵈ  = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
     ## update cost
-    φᵖᵈ = !isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)
     s.πᶠ -= (isopt(f) ? f.πᶠ : 0.) + (isopt(d) ? d.πᶠ : 0.) + (isopt(v) ? v.πᶠ : 0.)
     s.πᵒ -= (f.πᵒ * c.ω) + (d.πᵒ * d.n) + (v.πᵈ * r.l)
-    s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ) + φᵖᵈ * abs(c.qᶜ) + (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ) + (c.q > v.qᵛ) * (c.q - v.qᵛ) + (c.θ̲ > c.θ) * (c.θ̲ - c.θ)
+    s.πᵖ -= (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ) + (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ) + (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ) + (c.q > v.qᵛ) * (c.q - v.qᵛ) + (c.θ̲ > c.θ) * (c.θ̲ - c.θ)
     ## update fuel station node
     f.ω -= c.ω
     ## update depot node
@@ -210,10 +195,9 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     c.δ  = 0.
     c.r  = NullRoute
     ## update cost
-    φᵖᵈ = !isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)
     s.πᶠ += (isopt(f) ? f.πᶠ : 0.) + (isopt(d) ? d.πᶠ : 0.) + (isopt(v) ? v.πᶠ : 0.)
     s.πᵒ += (f.πᵒ * c.ω) + (d.πᵒ * d.n) + (v.πᵈ * r.l)
-    s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ) + φᵖᵈ * abs(c.qᶜ) + (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ) + (c.q > v.qᵛ) * (c.q - v.qᵛ) + (c.θ̲ > c.θ) * (c.θ̲ - c.θ)
+    s.πᵖ += (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ) + (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ) + (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ) + (c.q > v.qᵛ) * (c.q - v.qᵛ) + (c.θ̲ > c.θ) * (c.θ̲ - c.θ)
     # update en-route parameters
     if isopt(r)
         ## initiate iterated parameters
@@ -235,10 +219,9 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
             nᵖ  = isdelivery(nᵒ) ? s.C[nᵒ.jⁿ] : s.C[nᵒ.iⁿ]   
             nᵈ  = isdelivery(nᵒ) ? s.C[nᵒ.iⁿ] : s.C[nᵒ.jⁿ]
             ## update costs
-            φᵖᵈ = !isequal(nᵖ.r, nᵈ.r) && isclose(nᵖ) && isclose(nᵈ)
             s.πᶠ -= isopt(fᵗ) ? fᵗ.πᶠ : 0.
             s.πᵒ -= fᵗ.πᵒ * (φᵗ ? r.ω : nᵗ.ω) + v.πᵈ * r.l
-            s.πᵖ -= (nᵒ.tᵃ > nᵒ.tˡ) * (nᵒ.tᵃ - nᵒ.tˡ) + φᵖᵈ * abs(nᵒ.qᶜ) + (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ) + (nᵒ.q > v.qᵛ) * (nᵒ.q - v.qᵛ) + (nᵒ.θ̲ > nᵒ.θ) * (nᵒ.θ̲ - nᵒ.θ)
+            s.πᵖ -= (nᵒ.tᵃ > nᵒ.tˡ) * (nᵒ.tᵃ - nᵒ.tˡ) + (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ) + (nᵒ.q > v.qᵛ) * (nᵒ.q - v.qᵛ) + (nᵒ.θ̲ > nᵒ.θ) * (nᵒ.θ̲ - nᵒ.θ)
             ## check for re-fueling
             θ̲ᵒ = min(aᵒᶠ.l, aᵒʰ.l)/v.lᵛ
             θᵒ = θ - aᵗᵒ.l/v.lᵛ
@@ -259,10 +242,9 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
             fᵗ.ω += φᵗ ? r.ω : nᵗ.ω
             r.l  += φᵗ ? r.δ : nᵗ.δ
             ## update costs
-            φᵖᵈ = !isequal(nᵖ.r, nᵈ.r) && isclose(nᵖ) && isclose(nᵈ)
             s.πᶠ += isopt(fᵗ) ? fᵗ.πᶠ : 0.
             s.πᵒ += fᵗ.πᵒ * (φᵗ ? r.ω : nᵗ.ω) + v.πᵈ * r.l
-            s.πᵖ += (nᵒ.tᵃ > nᵒ.tˡ) * (nᵒ.tᵃ - nᵒ.tˡ) + φᵖᵈ * abs(nᵒ.qᶜ) + (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ) + (nᵒ.q > v.qᵛ) * (nᵒ.q - v.qᵛ) + (nᵒ.θ̲ > nᵒ.θ) * (nᵒ.θ̲ - nᵒ.θ)
+            s.πᵖ += (nᵒ.tᵃ > nᵒ.tˡ) * (nᵒ.tᵃ - nᵒ.tˡ) + (nᵖ.tᵃ > nᵈ.tᵃ) * (nᵖ.tᵃ - nᵈ.tᵃ) + (nᵒ.q > v.qᵛ) * (nᵒ.q - v.qᵛ) + (nᵒ.θ̲ > nᵒ.θ) * (nᵒ.θ̲ - nᵒ.θ)
             ## update iterated parameters
             φᵗ = false
             nᵗ = nᵒ
