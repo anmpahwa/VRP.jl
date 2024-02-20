@@ -210,7 +210,7 @@ end
 
 A `NullRoute` is a fictitious out-of-service route.
 """           
-const NullRoute = Route(0, 0, 0., 0., 0, 0, Inf, Inf, 1., 1., 0., 0., Inf, 0)
+const NullRoute = Route(0, 0, 0., 0., 0, 0, Inf, Inf, 1., 1., 0., 0., 0, Inf)
 
 
 
@@ -276,10 +276,9 @@ function isfeasible(s::Solution)
                 if c.tᵃ > c.tˡ return false end                             # Time-window constraint
                 cᵖ = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
                 cᵈ = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
-                qᵒ = isdelivery(c) ? c.q : c.q + abs(c.qᶜ)
                 if !isequal(cᵖ.r, cᵈ.r) return false end                    # Service constraint (order of service)
                 if cᵖ.tᵃ > cᵈ.tᵃ return false end                           # Service constraint (order of service)
-                if qᵒ > v.qᵛ return false end                               # Vehicle capacity constraint
+                if c.q > v.qᵛ return false end                              # Vehicle capacity constraint
                 if c.θ̲ > c.θ return false end                               # Vehicle range constraint
                 if isequal(c, cᵉ) break end
                 c  = s.C[c.iʰ]
