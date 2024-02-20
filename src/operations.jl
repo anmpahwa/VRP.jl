@@ -18,7 +18,7 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     ## update cost
     s.πᶠ -= (isopt(f) ? f.πᶠ : 0.) + (isopt(d) ? d.πᶠ : 0.) + (isopt(v) ? v.πᶠ : 0.)
     s.πᵒ -= (f.πᵒ * c.ω) + (d.πᵒ * d.n) + (v.πᵈ * r.l)
-    s.πᵖ -= (c.q > v.qᵛ) * (c.q - v.qᵛ) + (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ) + (c.θ̲ > c.θ) * (c.θ̲ - c.θ) + (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ) + (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
+    s.πᵖ -= (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ)
     ## update fuel station node
     f.ω += c.ω
     ## update depot node
@@ -34,18 +34,11 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     ## update the customer node
     c.iᵗ = nᵗ.iⁿ
     c.iʰ = nʰ.iⁿ
-    c.tᵃ = isdelivery(c) ? c.tˡ : c.tᵉ
-    c.tᵈ = c.tᵃ + c.τᶜ
-    c.q  = 0.
-    c.θ̲  = 1.
-    c.θ  = 1.
-    c.ω  = 0.
-    c.δ  = 0.
     c.r  = r
     ## update cost
     s.πᶠ += (isopt(f) ? f.πᶠ : 0.) + (isopt(d) ? d.πᶠ : 0.) + (isopt(v) ? v.πᶠ : 0.)
     s.πᵒ += (f.πᵒ * c.ω) + (d.πᵒ * d.n) + (v.πᵈ * r.l)
-    s.πᵖ += (c.q > v.qᵛ) * (c.q - v.qᵛ) + (c.tᵃ > c.tˡ) * (c.tᵃ - c.tˡ) + (c.θ̲ > c.θ) * (c.θ̲ - c.θ) + (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ) + (cᵖ.tᵃ > cᵈ.tᵃ) * (cᵖ.tᵃ - cᵈ.tᵃ)
+    s.πᵖ += (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) * abs(c.qᶜ)
     # update en-route parameters
     if isopt(r)
         ## initiate iterated parameters
