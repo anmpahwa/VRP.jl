@@ -296,6 +296,8 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         s.πᵖ += (r.tᵉ > d.tᵉ) ? (r.tᵉ - d.tᵉ) : 0.
         s.πᵖ += ((r.tᵉ - r.tˢ) > v.τʷ) ? ((r.tᵉ - r.tˢ) - v.τʷ) : 0.
     else
+        ## fetch network features
+        f = d.F[v.jᵛ]
         ## update costs
         s.πᶠ -= isopt(f) * f.πᶠ
         s.πᵒ -= r.ω * f.πᵒ + (r.tᵉ - r.tˢ) * v.πᵗ + r.l * v.πᵈ
