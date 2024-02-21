@@ -51,7 +51,7 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
     # Vehicles
     df = DataFrame(CSV.File(joinpath(dir, "$instance/vehicles.csv")))
     for k ∈ 1:nrow(df)
-        d  = D[df[k,3]]
+        d  = D[df[k,4]]
         iᵛ = df[k,1]
         jᵛ = df[k,2]
         jᶠ = df[k,3]
