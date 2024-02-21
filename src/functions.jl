@@ -107,7 +107,7 @@ isopen(d::DepotNode) = !iszero(d.n)
 Returns `true` if fuel station node `f` is open.
 A `FuelStationNode` is defined open if it refuels at least one vehicle.
 """
-isopen(f::FuelStationNode) = !iszero(f.n)
+isopen(f::FuelStationNode) = f.ω > 0.
 
 
 
@@ -131,7 +131,7 @@ isclose(d::DepotNode) = iszero(d.n)
 Returns `true` if fuel station node `f` is open.
 A `FuelStationNode` is defined closed if it refuels no vehicle.
 """
-isclose(f::FuelStationNode) = iszero(f.n)
+isclose(f::FuelStationNode) = !(f.ω > 0.)
 
 
 
