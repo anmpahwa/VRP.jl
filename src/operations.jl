@@ -42,8 +42,8 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         φᵗ = true
         nᵗ = d
         nᵒ = s.C[r.iˢ]
-        fᵗ = nᵗ.F[v.jᵛ]
-        fᵒ = nᵒ.F[v.jᵛ]
+        fᵗ = nᵗ.F[v.jᶠ]
+        fᵒ = nᵒ.F[v.jᶠ]
         t  = d.tˢ
         q  = 0.
         θ  = 1.
@@ -93,8 +93,8 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
             φᵗ = false
             nᵗ = nᵒ
             nᵒ = nᵗ.iʰ ≤ lastindex(s.D) ? s.D[nᵗ.iʰ] : s.C[nᵗ.iʰ]
-            fᵗ = nᵗ.F[v.jᵛ]
-            fᵒ = nᵒ.F[v.jᵛ]
+            fᵗ = nᵗ.F[v.jᶠ]
+            fᵒ = nᵒ.F[v.jᶠ]
             t  = nᵗ.tᵈ
             θ  = nᵗ.θ
             q  = nᵗ.q - (isdelivery(nᵗ) ? abs(nᵗ.qᶜ) : 0.)
@@ -148,7 +148,7 @@ and head node `nʰ` in route `r`.
 function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Solution)
     d = s.D[r.iᵈ]
     v = d.V[r.iᵛ]
-    f = c.F[v.jᵛ]
+    f = c.F[v.jᶠ]
     # update associated fuel station node, depot node, route, tail-head nodes, and the customer node
     ## fetch network features
     aᵗʰ = s.A[(nᵗ.iⁿ, nʰ.iⁿ)]
@@ -201,8 +201,8 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         φᵗ = true
         nᵗ = d
         nᵒ = s.C[r.iˢ]
-        fᵗ = nᵗ.F[v.jᵛ]
-        fᵒ = nᵒ.F[v.jᵛ]
+        fᵗ = nᵗ.F[v.jᶠ]
+        fᵒ = nᵒ.F[v.jᶠ]
         t  = d.tˢ
         q  = 0.
         θ  = 1.
@@ -252,8 +252,8 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
             φᵗ = false
             nᵗ = nᵒ
             nᵒ = nᵗ.iʰ ≤ lastindex(s.D) ? s.D[nᵗ.iʰ] : s.C[nᵗ.iʰ]
-            fᵗ = nᵗ.F[v.jᵛ]
-            fᵒ = nᵒ.F[v.jᵛ]
+            fᵗ = nᵗ.F[v.jᶠ]
+            fᵒ = nᵒ.F[v.jᶠ]
             t  = nᵗ.tᵈ
             θ  = nᵗ.θ
             q  = nᵗ.q - (isdelivery(nᵗ) ? abs(nᵗ.qᶜ) : 0.)
@@ -297,7 +297,7 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         s.πᵖ += ((r.tᵉ - r.tˢ) > v.τʷ) ? ((r.tᵉ - r.tˢ) - v.τʷ) : 0.
     else
         ## fetch network features
-        f = d.F[v.jᵛ]
+        f = d.F[v.jᶠ]
         ## update costs
         s.πᶠ -= isopt(f) * f.πᶠ
         s.πᵒ -= r.ω * f.πᵒ + (r.tᵉ - r.tˢ) * v.πᵗ + r.l * v.πᵈ

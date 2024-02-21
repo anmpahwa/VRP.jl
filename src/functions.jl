@@ -84,8 +84,7 @@ isopt(d::DepotNode) = !iszero(d.n)
 Returns `true` if fuel station node `f` is operational.
 A `FuelStationNode` is defined operational if it refuels at least one vehicle.
 """
-isopt(f::FuelStationNode) = !iszero(f.ω)
-
+isopt(f::FuelStationNode) = f.ω > 0.
 
 
 """
@@ -230,12 +229,12 @@ function vectorize(s::Solution)
             r  = v.r
             cˢ = s.C[r.iˢ]
             cᵉ = s.C[r.iᵉ] 
-            f  = cˢ.F[v.jᵛ]
+            f  = d.F[v.jᶠ]
             push!(Z[iⁿ][iᵛ], d.iⁿ)
             if r.ω > 0. push!(Z[iⁿ][iᵛ], f.iⁿ) end
             c  = cˢ
             while true
-                f = c.F[v.jᵛ]
+                f = c.F[v.jᶠ]
                 push!(Z[iⁿ][iᵛ], c.iⁿ)
                 if c.ω > 0. push!(Z[iⁿ][iᵛ], f.iⁿ) end
                 if isequal(c, cᵉ) break end

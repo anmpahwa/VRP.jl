@@ -41,16 +41,18 @@ end
 
 
 """
-    Vehicle(iᵛ::Int, jᵛ::Int, iᵈ::Int, qᵛ::Float64, ωᵛ::Float64, lᵛ::Float64, sᵛ::Float64, τᶜ::Float64, τʷ::Float64, πᵈ::Float64, πᵗ::Float64, πᶠ::Float64, r::Route)
+    Vehicle(iᵛ::Int, jᵛ::Int, jᶠ::Int, iᵈ::Int, qᵛ::Float64, ωᵛ::Float64, lᵛ::Float64, sᵛ::Float64, τᶜ::Float64, τʷ::Float64, πᵈ::Float64, πᵗ::Float64, πᶠ::Float64, r::Route)
 
-A `Vehicle` is a mode of delivery with index `iᵛ`, type index `jᵛ`, depot node 
-index `iᵈ`, package capacity `qᵛ`, tank capacity `ωᵛ`, range `lᵛ`, speed `sᵛ`, 
-customer node parking time `τᶜ`, driver working-hours `τʷ`, operational cost `πᵈ` 
-per unit distance and `πᵗ` per unit time, fixed cost `πᶠ`, and associated route `r`.
+A `Vehicle` is a mode of delivery with index `iᵛ`, type index `jᵛ`, fuel-type index
+`jᶠ`, depot node index `iᵈ`, package capacity `qᵛ`, tank capacity `ωᵛ`, range `lᵛ`, 
+speed `sᵛ`, customer node parking time `τᶜ`, driver working-hours `τʷ`, operational 
+cost `πᵈ` per unit distance and `πᵗ` per unit time, fixed cost `πᶠ`, and associated 
+route `r`.
 """
 mutable struct Vehicle
     iᵛ::Int                                                                         # Vehicle index
     jᵛ::Int                                                                         # Vehicle type index
+    jᶠ::Int                                                                         # Vehicle fuel-type index
     iᵈ::Int                                                                         # Depot node index
     qᵛ::Float64                                                                     # Package capacity
     ωᵛ::Float64                                                                     # Tank capacity
@@ -76,13 +78,13 @@ abstract type Node end
     FuelStationNode(iⁿ::Int, jⁿ::Int, x::Float64, y::Float64, τᵛ::Float64, πᵒ::Float64, πᶠ::Float64, ω::Float64)
 
 A `FuelStationNode` is a re-fueling point on the graph at `(x,y)` with index `iⁿ`, 
-associated vehicle type `jⁿ`, re-fueling rate `τᵛ`, operational cost `πᵒ` per unit 
-fuel re-fueled, fixed cost `πᶠ`, and fuel re-fueled `ω`.
+associated vehicle fuel-type `jⁿ`, re-fueling rate `τᵛ`, operational cost `πᵒ` per 
+unit fuel re-fueled, fixed cost `πᶠ`, and fuel re-fueled `ω`.
 
 """
 mutable struct FuelStationNode <: Node
     iⁿ::Int                                                                         # Fuel Station node index
-    jⁿ::Int                                                                         # Fuel Station type (consistent with vehicle type)
+    jⁿ::Int                                                                         # Fuel Station type (consistent with vehicle fuel-type)
     x::Float64                                                                      # Location on the x-axis
     y::Float64                                                                      # Location in the y-axis
     τᵛ::Float64                                                                     # Vehicle re-fueling rate

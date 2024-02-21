@@ -54,16 +54,17 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         d  = D[df[k,3]]
         iᵛ = df[k,1]
         jᵛ = df[k,2]
-        iᵈ = df[k,3]
-        qᵛ = df[k,4]
-        ωᵛ = df[k,5]
-        lᵛ = df[k,6]
-        sᵛ = df[k,7]
-        τᶜ = df[k,8]
-        τʷ = df[k,9]
-        πᵈ = df[k,10]
-        πᵗ = df[k,11]
-        πᶠ = df[k,12]
+        jᶠ = df[k,3]
+        iᵈ = df[k,4]
+        qᵛ = df[k,5]
+        ωᵛ = df[k,6]
+        lᵛ = df[k,7]
+        sᵛ = df[k,8]
+        τᶜ = df[k,9]
+        τʷ = df[k,10]
+        πᵈ = df[k,11]
+        πᵗ = df[k,12]
+        πᶠ = df[k,13]
         x  = 0.
         y  = 0. 
         iˢ = iᵈ
@@ -77,7 +78,7 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         n  = 0
         l  = 0.
         r  = Route(iᵛ, iᵈ, x, y, iˢ, iᵉ, tˢ, tᵉ, θ̲, θ, ω, δ, n, l)
-        v  = Vehicle(iᵛ, jᵛ, iᵈ, qᵛ, ωᵛ, lᵛ, sᵛ, τᶜ, τʷ, πᵈ, πᵗ, πᶠ, r)
+        v  = Vehicle(iᵛ, jᵛ, jᶠ, iᵈ, qᵛ, ωᵛ, lᵛ, sᵛ, τᶜ, τʷ, πᵈ, πᵗ, πᶠ, r)
         push!(d.V, v)
     end
     # Customer Nodes
@@ -119,10 +120,10 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         end
     end
     V  = [v for d ∈ D for v ∈ d.V]
-    Jᵛ = eachindex(unique(getproperty.(V, :jᵛ)))
+    Jᶠ = eachindex(unique(getproperty.(V, :jᶠ)))
     for (iᵗ,d) ∈ pairs(D)
-        Iᶠ = zeros(Int, Jᵛ)
-        Lᶠ = fill(Inf, Jᵛ)
+        Iᶠ = zeros(Int, Jᶠ)
+        Lᶠ = fill(Inf, Jᶠ)
         for (iʰ,f) ∈ pairs(F)
             jᵛ = f.jⁿ
             a  = A[(iᵗ,iʰ)]
@@ -134,8 +135,8 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         d.F = [F[iⁿ] for iⁿ ∈ Iᶠ]
     end
     for (iᵗ,c) ∈ pairs(C)
-        Iᶠ = zeros(Int, Jᵛ)
-        Lᶠ = fill(Inf, Jᵛ)
+        Iᶠ = zeros(Int, Jᶠ)
+        Lᶠ = fill(Inf, Jᶠ)
         for (iʰ,f) ∈ pairs(F)
             jᵛ = f.jⁿ
             a  = A[(iᵗ,iʰ)]
