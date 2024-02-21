@@ -24,7 +24,7 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     if isdepot(nᵗ) r.iˢ = c.iⁿ end
     if isdepot(nʰ) r.iᵉ = c.iⁿ end
     r.n += 1
-    r.l += aᵗᶜ.l + c.δ + aᶜʰ.l - aᵗʰ.l
+    r.l += aᵗᶜ.l + aᶜʰ.l - aᵗʰ.l
     ## update tail-head nodes
     if iscustomer(nᵗ) nᵗ.iʰ = c.iⁿ end
     if iscustomer(nʰ) nʰ.iᵗ = c.iⁿ end
@@ -42,7 +42,7 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         φᵗ = true
         nᵗ = d
         nᵒ = s.C[r.iˢ]
-        fᵗ = nᵒ.F[v.jᵛ]
+        fᵗ = nᵗ.F[v.jᵛ]
         fᵒ = nᵒ.F[v.jᵛ]
         t  = d.tˢ
         q  = 0.
@@ -154,7 +154,6 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     aᵗʰ = s.A[(nᵗ.iⁿ, nʰ.iⁿ)]
     aᵗᶜ = s.A[(nᵗ.iⁿ, c.iⁿ)]
     aᶜʰ = s.A[(c.iⁿ, nʰ.iⁿ)]
-    cˢ  = s.C[r.iˢ]
     cᵖ  = isdelivery(c) ? s.C[c.jⁿ] : s.C[c.iⁿ] 
     cᵈ  = isdelivery(c) ? s.C[c.iⁿ] : s.C[c.jⁿ]
     ## update cost
@@ -166,13 +165,12 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
     s.πᵖ -= (c.q > v.qᵛ) ? (c.q - v.qᵛ) : 0.
     s.πᵖ -= (c.θ̲ > c.θ) ? (c.θ̲ - c.θ) : 0.
     ## update fuel station node
-    f.ω -= isequal(c, cˢ) * r.ω + c.ω
+    f.ω -= c.ω
     ## update depot node
     d.n -= 1
     ## update route
     if isdepot(nᵗ) r.iˢ = nʰ.iⁿ end
     if isdepot(nʰ) r.iᵉ = nᵗ.iⁿ end
-    r.ω -= isequal(c, cˢ) * r.ω
     r.n -= 1
     r.l -= aᵗᶜ.l + c.δ + aᶜʰ.l - aᵗʰ.l
     ## update tail-head nodes
@@ -203,7 +201,7 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         φᵗ = true
         nᵗ = d
         nᵒ = s.C[r.iˢ]
-        fᵗ = nᵒ.F[v.jᵛ]
+        fᵗ = nᵗ.F[v.jᵛ]
         fᵒ = nᵒ.F[v.jᵛ]
         t  = d.tˢ
         q  = 0.
