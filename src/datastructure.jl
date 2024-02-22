@@ -45,9 +45,9 @@ end
 
 A `Vehicle` is a mode of delivery with index `iᵛ`, type index `jᵛ`, fuel-type index
 `jᶠ`, depot node index `iᵈ`, package capacity `qᵛ`, tank capacity `ωᵛ`, range `lᵛ`, 
-speed `sᵛ`, customer node parking time `τᶜ`, driver working-hours `τʷ`, operational 
-cost `πᵈ` per unit distance and `πᵗ` per unit time, fixed cost `πᶠ`, and associated 
-route `r`.
+speed `sᵛ`, parking time at a customer node `τᶜ`, driver working-hours (duration) 
+`τʷ`, operational cost `πᵈ` per unit distance and `πᵗ` per unit time, fixed cost 
+`πᶠ`, and associated route `r`.
 """
 mutable struct Vehicle
     iᵛ::Int                                                                         # Vehicle index
@@ -58,7 +58,7 @@ mutable struct Vehicle
     ωᵛ::Float64                                                                     # Tank capacity
     lᵛ::Float64                                                                     # Range
     sᵛ::Float64                                                                     # Speed
-    τᶜ::Float64                                                                     # Parking time at customer node
+    τᶜ::Float64                                                                     # Parking time at a customer node
     τʷ::Float64                                                                     # Driver working-hours duration
     πᵈ::Float64                                                                     # Distance-based operational cost
     πᵗ::Float64                                                                     # Time-based operational cost
@@ -116,13 +116,13 @@ end
     CustomerNode(iⁿ::Int, jⁿ::Int, x::Float64, y::Float64, qᶜ::Float64, τᶜ::Float64, tᵉ::Float64, tˡ::Float64, F::Vector{FuelStationNode}, iᵗ::Int, iʰ::Int, tᵃ::Float64, tᵈ::Float64, q::Float64, θ̲::Float64, θ::Float64, ω::Float64, δ::Float64, r::Route)
 
 A `CustomerNode` is a source/sink point on the graph at `(x,y)` with index `iⁿ`, 
-associated delivery/pickup node index `jⁿ`, demand `qᶜ`, service time `τᶜ`, earliest 
-service time `tᵉ`, latest service time `tˡ`, set of nearest fuel station nodes for 
-every vehicle type `F`, tail node index `iᵗ`, head node index `iʰ`, vehicle arrival 
-time `tᵃ` and departure time `tᵈ`, vehicle load `q` on-arrival if delivery node else 
-on-departure if pickup node, threshold vehicle on-arrival tank status `θ̲`, vehicle 
-on-arrival tank status `θ`, post-departure fuel re-fueled `ω`, re-fuel detour length 
-`δ`, and associated route `r`.
+associated delivery/pickup node index `jⁿ`, demand `qᶜ`, service time (duration) 
+`τᶜ`, earliest service time `tᵉ`, latest service time `tˡ`, set of nearest fuel 
+station nodes for every vehicle type `F`, tail node index `iᵗ`, head node index 
+`iʰ`, vehicle arrival time `tᵃ` and departure time `tᵈ`, vehicle load `q` on-arrival 
+if delivery node else on-departure if pickup node, threshold vehicle on-arrival tank 
+status `θ̲`, vehicle on-arrival tank status `θ`, post-departure fuel re-fueled `ω`, 
+re-fuel detour length `δ`, and associated route `r`.
 """
 mutable struct CustomerNode <: Node
     iⁿ::Int                                                                         # Customer node index
@@ -130,7 +130,7 @@ mutable struct CustomerNode <: Node
     x::Float64                                                                      # Location on the x-axis
     y::Float64                                                                      # Location on the y-axis
     qᶜ::Float64                                                                     # Demand
-    τᶜ::Float64                                                                     # Service time
+    τᶜ::Float64                                                                     # Service time (duration)
     tᵉ::Float64                                                                     # Earliest service time
     tˡ::Float64                                                                     # Latest service time
     F::Vector{FuelStationNode}                                                      # Nearest fuel station nodes
