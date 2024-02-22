@@ -40,6 +40,8 @@ Each instance folder contains the following files
     - qv: capacity
     - lv: range
     - sv: speed
+    - ol: tank status lower operational threshold
+    - ou: tank status upper operational threshold
     - tf: refueling time at the depot node
     - td: service time per package at the depot node
     - tc: parking time at a customer node

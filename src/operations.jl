@@ -64,12 +64,12 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
             s.πᵖ -= (nᵒ.q > v.qᵛ) ? (nᵒ.q - v.qᵛ) : 0.
             s.πᵖ -= (nᵒ.θ̲ > nᵒ.θ) ? (nᵒ.θ̲ - nᵒ.θ) : 0.
             ## check for refueling
-            θ̲ᵒ = min(aᵒᶠ.l, aᵒʰ.l)/v.lᵛ
+            θ̲ᵒ = max(min(aᵒᶠ.l, aᵒʰ.l)/v.lᵛ, v.θ̲)
             θᵒ = θ - aᵗᵒ.l/v.lᵛ
             θᶠ = θ - aᵗᶠ.l/v.lᵛ
-            φᶠ = (θ̲ᵒ > θᵒ) && (θᶠ ≥ 0.)
+            φᶠ = (θ̲ᵒ > θᵒ) && (0. ≤ θᶠ < v.θ̅)
             ## update network features
-            ω = φᶠ ? ((1. - θᶠ) * v.ωᵛ) : (0.)
+            ω = φᶠ ? ((v.θ̅ - θᶠ) * v.ωᵛ) : (0.)
             δ = φᶠ ? (aᵗᶠ.l + aᶠᵒ.l - aᵗᵒ.l) : (0.)
             nᵒ.tᵃ = t + (φᶠ ? (aᵗᶠ.l/v.sᵛ + ω * fᵗ.τᵛ + aᶠᵒ.l/v.sᵛ) : (aᵗᵒ.l/v.sᵛ))
             nᵒ.tᵈ = nᵒ.tᵃ + v.τᶜ + max(0., nᵒ.tᵉ - nᵒ.tᵃ - v.τᶜ) + nᵒ.τᶜ
@@ -115,9 +115,9 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         θ̲ᵒ = 0.
         θᵒ = θ - aᵗᵒ.l/v.lᵛ
         θᶠ = θ - aᵗᶠ.l/v.lᵛ
-        φᶠ = (θ̲ᵒ > θᵒ) && (θᶠ ≥ 0.)
+        φᶠ = (θ̲ᵒ > θᵒ) && (0. ≤ θᶠ < v.θ̅)
         ## update network features
-        ω = φᶠ ? ((1. - θᶠ) * v.ωᵛ) : (0.)
+        ω = φᶠ ? ((v.θ̅ - θᶠ) * v.ωᵛ) : (0.)
         δ = φᶠ ? (aᵗᶠ.l + aᶠᵒ.l - aᵗᵒ.l) : (0.)
         r.tˢ  = d.tˢ
         r.tᵉ  = t + (φᶠ ? (aᵗᶠ.l/v.sᵛ + ω * fᵗ.τᵛ + aᶠᵒ.l/v.sᵛ) : (aᵗᵒ.l/v.sᵛ))
@@ -223,12 +223,12 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
             s.πᵖ -= (nᵒ.q > v.qᵛ) ? (nᵒ.q - v.qᵛ) : 0.
             s.πᵖ -= (nᵒ.θ̲ > nᵒ.θ) ? (nᵒ.θ̲ - nᵒ.θ) : 0.
             ## check for refueling
-            θ̲ᵒ = min(aᵒᶠ.l, aᵒʰ.l)/v.lᵛ
+            θ̲ᵒ = max(min(aᵒᶠ.l, aᵒʰ.l)/v.lᵛ, v.θ̲)
             θᵒ = θ - aᵗᵒ.l/v.lᵛ
             θᶠ = θ - aᵗᶠ.l/v.lᵛ
-            φᶠ = (θ̲ᵒ > θᵒ) && (θᶠ ≥ 0.)
+            φᶠ = (θ̲ᵒ > θᵒ) && (0. ≤ θᶠ < v.θ̅)
             ## update network features
-            ω = φᶠ ? ((1. - θᶠ) * v.ωᵛ) : (0.)
+            ω = φᶠ ? ((v.θ̅ - θᶠ) * v.ωᵛ) : (0.)
             δ = φᶠ ? (aᵗᶠ.l + aᶠᵒ.l - aᵗᵒ.l) : (0.)
             nᵒ.tᵃ = t + (φᶠ ? (aᵗᶠ.l/v.sᵛ + ω * fᵗ.τᵛ + aᶠᵒ.l/v.sᵛ) : (aᵗᵒ.l/v.sᵛ))
             nᵒ.tᵈ = nᵒ.tᵃ + v.τᶜ + max(0., nᵒ.tᵉ - nᵒ.tᵃ - v.τᶜ) + nᵒ.τᶜ
@@ -274,9 +274,9 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         θ̲ᵒ = 0.
         θᵒ = θ - aᵗᵒ.l/v.lᵛ
         θᶠ = θ - aᵗᶠ.l/v.lᵛ
-        φᶠ = (θ̲ᵒ > θᵒ) && (θᶠ ≥ 0.)
+        φᶠ = (θ̲ᵒ > θᵒ) && (0. ≤ θᶠ < v.θ̅)
         ## update network features
-        ω = φᶠ ? ((1. - θᶠ) * v.ωᵛ) : (0.)
+        ω = φᶠ ? ((v.θ̅ - θᶠ) * v.ωᵛ) : (0.)
         δ = φᶠ ? (aᵗᶠ.l + aᶠᵒ.l - aᵗᵒ.l) : (0.)
         r.tˢ  = d.tˢ
         r.tᵉ  = t + (φᶠ ? (aᵗᶠ.l/v.sᵛ + ω * fᵗ.τᵛ + aᶠᵒ.l/v.sᵛ) : (aᵗᵒ.l/v.sᵛ))

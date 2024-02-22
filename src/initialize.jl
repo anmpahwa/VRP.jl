@@ -60,11 +60,15 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         ωᵛ = df[k,6]
         lᵛ = df[k,7]
         sᵛ = df[k,8]
-        τᶜ = df[k,9]
-        τʷ = df[k,10]
-        πᵈ = df[k,11]
-        πᵗ = df[k,12]
-        πᶠ = df[k,13]
+        θ̲  = df[k,9]
+        θ̅  = df[k,10]
+        τᶜ = df[k,11]
+        τʷ = df[k,12]
+        πᵈ = df[k,13]
+        πᵗ = df[k,14]
+        πᶠ = df[k,15]
+        r  = NullRoute
+        v  = Vehicle(iᵛ, jᵛ, jᶠ, iᵈ, qᵛ, ωᵛ, lᵛ, sᵛ, θ̲, θ̅, τᶜ, τʷ, πᵈ, πᵗ, πᶠ, r)
         x  = 0.
         y  = 0. 
         iˢ = iᵈ
@@ -77,8 +81,7 @@ function build(instance::String; dir=joinpath(dirname(@__DIR__), "instances"))
         δ  = 0.
         n  = 0
         l  = 0.
-        r  = Route(iᵛ, iᵈ, x, y, iˢ, iᵉ, tˢ, tᵉ, θ̲, θ, ω, δ, n, l)
-        v  = Vehicle(iᵛ, jᵛ, jᶠ, iᵈ, qᵛ, ωᵛ, lᵛ, sᵛ, τᶜ, τʷ, πᵈ, πᵗ, πᶠ, r)
+        v.r= Route(iᵛ, iᵈ, x, y, iˢ, iᵉ, tˢ, tᵉ, θ̲, θ, ω, δ, n, l)
         push!(d.V, v)
     end
     # Customer Nodes

@@ -41,11 +41,12 @@ end
 
 
 """
-    Vehicle(iᵛ::Int, jᵛ::Int, jᶠ::Int, iᵈ::Int, qᵛ::Float64, ωᵛ::Float64, lᵛ::Float64, sᵛ::Float64, τᶜ::Float64, τʷ::Float64, πᵈ::Float64, πᵗ::Float64, πᶠ::Float64, r::Route)
+    Vehicle(iᵛ::Int, jᵛ::Int, jᶠ::Int, iᵈ::Int, qᵛ::Float64, ωᵛ::Float64, lᵛ::Float64, sᵛ::Float64, θ̲::Float64, θ̅::Float64, τᶜ::Float64, τʷ::Float64, πᵈ::Float64, πᵗ::Float64, πᶠ::Float64, r::Route)
 
 A `Vehicle` is a mode of delivery with index `iᵛ`, type index `jᵛ`, fuel-type index
 `jᶠ`, depot node index `iᵈ`, package capacity `qᵛ`, tank capacity `ωᵛ`, range `lᵛ`, 
-speed `sᵛ`, parking time at a customer node `τᶜ`, driver working-hours (duration) 
+speed `sᵛ`, tank-status lower operational threshold `θ̲` and upper operational 
+threshold `θ̅`, parking time at a customer node `τᶜ`, driver working-hours (duration) 
 `τʷ`, operational cost `πᵈ` per unit distance and `πᵗ` per unit time, fixed cost 
 `πᶠ`, and associated route `r`.
 """
@@ -58,6 +59,8 @@ mutable struct Vehicle
     ωᵛ::Float64                                                                     # Tank capacity
     lᵛ::Float64                                                                     # Range
     sᵛ::Float64                                                                     # Speed
+    θ̲::Float64                                                                      # Tank-status lower operational threhold
+    θ̅::Float64                                                                      # Tank-status upper operational threshold
     τᶜ::Float64                                                                     # Parking time at a customer node
     τʷ::Float64                                                                     # Driver working-hours duration
     πᵈ::Float64                                                                     # Distance-based operational cost
