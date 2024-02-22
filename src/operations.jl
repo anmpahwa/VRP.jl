@@ -63,7 +63,7 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
             s.πᵖ -= (nᵖ.tᵃ > nᵈ.tᵃ) ? (nᵖ.tᵃ - nᵈ.tᵃ) : 0.
             s.πᵖ -= (nᵒ.q > v.qᵛ) ? (nᵒ.q - v.qᵛ) : 0.
             s.πᵖ -= (nᵒ.θ̲ > nᵒ.θ) ? (nᵒ.θ̲ - nᵒ.θ) : 0.
-            ## check for re-fueling
+            ## check for refueling
             θ̲ᵒ = min(aᵒᶠ.l, aᵒʰ.l)/v.lᵛ
             θᵒ = θ - aᵗᵒ.l/v.lᵛ
             θᶠ = θ - aᵗᶠ.l/v.lᵛ
@@ -111,7 +111,7 @@ function insertnode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         s.πᵖ -= (d.tˢ > r.tˢ) ? (d.tˢ - r.tˢ) : 0.
         s.πᵖ -= (r.tᵉ > d.tᵉ) ? (r.tᵉ - d.tᵉ) : 0.
         s.πᵖ -= ((r.tᵉ - r.tˢ) > v.τʷ) ? ((r.tᵉ - r.tˢ) - v.τʷ) : 0.
-        ## check for re-fueling
+        ## check for refueling
         θ̲ᵒ = 0.
         θᵒ = θ - aᵗᵒ.l/v.lᵛ
         θᶠ = θ - aᵗᶠ.l/v.lᵛ
@@ -222,7 +222,7 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
             s.πᵖ -= (nᵖ.tᵃ > nᵈ.tᵃ) ? (nᵖ.tᵃ - nᵈ.tᵃ) : 0.
             s.πᵖ -= (nᵒ.q > v.qᵛ) ? (nᵒ.q - v.qᵛ) : 0.
             s.πᵖ -= (nᵒ.θ̲ > nᵒ.θ) ? (nᵒ.θ̲ - nᵒ.θ) : 0.
-            ## check for re-fueling
+            ## check for refueling
             θ̲ᵒ = min(aᵒᶠ.l, aᵒʰ.l)/v.lᵛ
             θᵒ = θ - aᵗᵒ.l/v.lᵛ
             θᶠ = θ - aᵗᶠ.l/v.lᵛ
@@ -270,7 +270,7 @@ function removenode!(c::CustomerNode, nᵗ::Node, nʰ::Node, r::Route, s::Soluti
         s.πᵖ -= (d.tˢ > r.tˢ) ? (d.tˢ - r.tˢ) : 0.
         s.πᵖ -= (r.tᵉ > d.tᵉ) ? (r.tᵉ - d.tᵉ) : 0.
         s.πᵖ -= ((r.tᵉ - r.tˢ) > v.τʷ) ? ((r.tᵉ - r.tˢ) - v.τʷ) : 0.
-        ## check for re-fueling
+        ## check for refueling
         θ̲ᵒ = 0.
         θᵒ = θ - aᵗᵒ.l/v.lᵛ
         θᶠ = θ - aᵗᶠ.l/v.lᵛ

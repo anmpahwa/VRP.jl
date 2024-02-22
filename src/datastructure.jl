@@ -18,7 +18,7 @@ end
 A `Route` is a connection between nodes with vehicle index `iᵛ`, depot node index 
 `iᵈ`, centroid coordinates `(x,y)`, start node index `iˢ`, end node index `iᵉ`,
 start time `tˢ`, end time `tᵉ`, threshold vehicle on-arrival tank status `θ̲`, 
-vehicle on-arrival tank status `θ`, post-departure fuel re-fueled `ω`, re-fuel 
+vehicle on-arrival tank status `θ`, post-departure fuel refueled `ω`, refuel 
 detour length `δ`, total customers served `n`, and total length `l`.
 """
 mutable struct Route
@@ -32,8 +32,8 @@ mutable struct Route
     tᵉ::Float64                                                                     # End time
     θ̲::Float64                                                                      # Threshold vehicle on-arrival tank status
     θ::Float64                                                                      # Vehicle on-arrival tank status at the depot node
-    ω::Float64                                                                      # Fuel re-fueled post-departure from the depot node
-    δ::Float64                                                                      # Re-fuel detour length
+    ω::Float64                                                                      # Fuel refueled post-departure from the depot node
+    δ::Float64                                                                      # Refuel detour length
     n::Int                                                                          # Total customers served
     l::Float64                                                                      # Total length
 end
@@ -77,9 +77,9 @@ abstract type Node end
 """
     FuelStationNode(iⁿ::Int, jⁿ::Int, x::Float64, y::Float64, τᵛ::Float64, πᵒ::Float64, πᶠ::Float64, ω::Float64)
 
-A `FuelStationNode` is a re-fueling point on the graph at `(x,y)` with index `iⁿ`, 
-associated vehicle fuel-type `jⁿ`, re-fueling rate `τᵛ`, operational cost `πᵒ` per 
-unit fuel re-fueled, fixed cost `πᶠ`, and fuel re-fueled `ω`.
+A `FuelStationNode` is a refueling point on the graph at `(x,y)` with index `iⁿ`, 
+associated vehicle fuel-type `jⁿ`, refueling rate `τᵛ`, operational cost `πᵒ` per 
+unit fuel refueled, fixed cost `πᶠ`, and fuel refueled `ω`.
 
 """
 mutable struct FuelStationNode <: Node
@@ -87,10 +87,10 @@ mutable struct FuelStationNode <: Node
     jⁿ::Int                                                                         # Fuel Station type (consistent with vehicle fuel-type)
     x::Float64                                                                      # Location on the x-axis
     y::Float64                                                                      # Location in the y-axis
-    τᵛ::Float64                                                                     # Vehicle re-fueling rate
+    τᵛ::Float64                                                                     # Vehicle refueling rate
     πᵒ::Float64                                                                     # Operational cost
     πᶠ::Float64                                                                     # Fixed cost
-    ω::Float64                                                                      # Fuel re-fueled
+    ω::Float64                                                                      # Fuel refueled
 end
 """
     DepotNode(iⁿ::Int, x::Float64, y::Float64, tˢ::Float64, tᵉ::Float64, F::Vector{FuelStationNode}, V::Vector{Vehicle}, n::Int)
@@ -121,8 +121,8 @@ associated delivery/pickup node index `jⁿ`, demand `qᶜ`, service time (durat
 station nodes for every vehicle type `F`, tail node index `iᵗ`, head node index 
 `iʰ`, vehicle arrival time `tᵃ` and departure time `tᵈ`, vehicle load `q` on-arrival 
 if delivery node else on-departure if pickup node, threshold vehicle on-arrival tank 
-status `θ̲`, vehicle on-arrival tank status `θ`, post-departure fuel re-fueled `ω`, 
-re-fuel detour length `δ`, and associated route `r`.
+status `θ̲`, vehicle on-arrival tank status `θ`, post-departure fuel refueled `ω`, 
+refuel detour length `δ`, and associated route `r`.
 """
 mutable struct CustomerNode <: Node
     iⁿ::Int                                                                         # Customer node index
@@ -141,8 +141,8 @@ mutable struct CustomerNode <: Node
     q::Float64                                                                      # Vehicle on-arrival load if delivery node else on-departure node if pickup node
     θ̲::Float64                                                                      # Threshold vehicle on-arrival tank status
     θ::Float64                                                                      # Vehicle on-arrival tank status at the customer node
-    ω::Float64                                                                      # Fuel re-fueled post-departure from the customer node
-    δ::Float64                                                                      # Re-fuel detour length
+    ω::Float64                                                                      # Fuel refueled post-departure from the customer node
+    δ::Float64                                                                      # Refuel detour length
     r::Route                                                                        # Route visiting the customer node
 end
 

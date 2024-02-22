@@ -28,8 +28,8 @@ Each instance folder contains the following files
     - jn: associated vehicle fuel-type
     - x: location on the x-axis
     - y: location on the y-axis
-    - tv: re-fueling rate
-    - co: operational cost per unit fuel consumed re-fueling
+    - tv: refueling rate
+    - co: operational cost per unit fuel consumed refueling
     - cf: fixed cost
 
 - vehicles.csv: list of vehicles at the depot nodes
@@ -40,7 +40,7 @@ Each instance folder contains the following files
     - qv: capacity
     - lv: range
     - sv: speed
-    - tf: re-fueling time at the depot node
+    - tf: refueling time at the depot node
     - td: service time per package at the depot node
     - tc: parking time at a customer node
     - tw: driver working-hours
