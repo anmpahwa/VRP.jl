@@ -65,6 +65,18 @@ let
             @test f(s₂) ≤ f(s₁)
         end
     end
+    @testset "ePDPTW" begin
+        instances = ["elc101"]
+        for instance ∈ instances
+            visualize(instance)
+            println(instance)
+            s₁ = initialize(instance)
+            s₂ = ALNS(χ, s₁)
+            visualize(s₂)
+            @test isfeasible(s₂)
+            @test f(s₂) ≤ f(s₁)
+        end
+    end
     return
 end
         
