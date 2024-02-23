@@ -140,7 +140,7 @@ isclose(f::FuelStationNode) = !(f.ω > 1e-3)
 
 Returns a measure of similarity between customer nodes `c₁` and `c₂` based on metric `m` in solution `s`.
 """
-function relatedness(m::Symbol, c₁::CustomerNode, c₂::CustomerNode, s::Solution;)
+function relatedness(m::Symbol, c₁::CustomerNode, c₂::CustomerNode, s::Solution)
     ϵ   = 1e-5
     cᵖ₁ = isdelivery(c₁) ? s.C[c₁.jⁿ] : s.C[c₁.iⁿ] 
     cᵈ₁ = isdelivery(c₁) ? s.C[c₁.iⁿ] : s.C[c₁.jⁿ]
