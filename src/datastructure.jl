@@ -165,5 +165,4 @@ mutable struct Solution
     πᶠ::Float64                                                                     # Fixed cost
     πᵒ::Float64                                                                     # Opertaional cost
     πᵖ::Float64                                                                     # Penalty
-    Solution(F, D, C, A) = new(F, D, C, A, 0., 0., 0.)
 end

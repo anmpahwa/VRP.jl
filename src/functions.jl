@@ -214,6 +214,50 @@ const NullRoute = Route(0, 0, 0., 0., 0, 0, Inf, Inf, 1., 0., Inf, Inf, 0, Inf)
 
 
 """
+    Solution(F::Vector{FuelStationNode}, D::OffsetVector{DepotNode, Vector{DepotNode}}, C::OffsetVector{CustomerNode, Vector{CustomerNode}}, A::Dict{Tuple{Int,Int}, Arc})
+
+Returns `Solution` on graph `G = (F, D, C, A)`.
+"""
+function Solution(F::Vector{FuelStationNode}, D::OffsetVector{DepotNode, Vector{DepotNode}}, C::OffsetVector{CustomerNode, Vector{CustomerNode}}, A::Dict{Tuple{Int,Int}, Arc})
+    πᶠ = 0.
+    πᵒ = 0.
+    πᵖ = 0.
+    for f ∈ F
+        πᶠ += isopt(f) * f.πᶠ
+        πᵒ += f.ω * f.πᵒ
+        πᵖ += 0.
+    end
+    for d ∈ D
+        πᶠ += isopt(d) * d.πᶠ
+        πᵒ += d.n * d.πᵒ
+        πᵖ += 0. 
+        for v ∈ d.V
+            r   = v.r  
+            πᶠ += isopt(v) * v.πᶠ
+            πᵒ += (r.tᵉ - r.tˢ) * v.πᵗ + r.l * v.πᵈ
+            πᵖ += (r.θ̲ > r.θ) ? (r.θ̲ - r.θ) : 0.
+            πᵖ += (d.tˢ > r.tˢ) ? (d.tˢ - r.tˢ) : 0.
+            πᵖ += (r.tᵉ > d.tᵉ) ? (r.tᵉ - d.tᵉ) : 0.
+            πᵖ += ((r.tᵉ - r.tˢ) > v.τʷ) ? ((r.tᵉ - r.tˢ) - v.τʷ) : 0.
+        end
+    end
+    for c ∈ C
+        qᵛ  = isclose(c) ? D[c.r.iᵈ].V[r.iᵛ].qᵛ : Inf
+        cᵖ  = isdelivery(c) ? C[c.jⁿ] : C[c.iⁿ] 
+        cᵈ  = isdelivery(c) ? C[c.iⁿ] : C[c.jⁿ]
+        πᶠ += 0.
+        πᵒ += 0.
+        πᵖ += (c.tᵃ > c.tˡ) ? (c.tᵃ - c.tˡ) : 0.
+        πᵖ += (!isequal(cᵖ.r, cᵈ.r) && isclose(cᵖ) && isclose(cᵈ)) ? abs(c.qᶜ) : 0.
+        πᵖ += (cᵖ.tᵃ > cᵈ.tᵃ) ? (cᵖ.tᵃ - cᵈ.tᵃ) : 0.
+        πᵖ += (c.q > qᵛ) ? (c.q - qᵛ) : 0.
+        πᵖ += (c.θ̲ > c.θ) ? (c.θ̲ - c.θ) : 0.
+    end
+    return Solution(F, D, C, A, πᶠ, πᵒ, πᵖ)
+end
+
+
+"""
     vectorize(s::Solution)
 
 Returns `Solution` as a sequence of nodes in the order of visits for every depot, vehicle, and route.
